@@ -5,28 +5,32 @@
     padding: 0;
     box-sizing: border-box;
 }
-body{
+body {
     font-family: "Pretendard Variable", Pretendard, sans-serif;
     font-size: 14px;
     line-height: 1.5;
     color: #121212;
     background-color: #f0f0f0;
 }
-ul,li{
+ul,
+li {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-a{
+a {
     text-decoration: none;
 }
-img,input,button{
+img,
+input,
+button {
     vertical-align: top;
 }
-input,button{
+input,
+button {
     font-family: "Pretendard Variable", Pretendard, sans-serif;
 }
-button{
+button {
     border: none;
     background-color: transparent;
     cursor: pointer;
