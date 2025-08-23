@@ -1,16 +1,17 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
-import { Header, Footer } from './components/common';
-import { HomePage } from './components/pages';
+import * as Common from './components/common';
+import * as Pages from './components/pages';
+
 import './App.css';
 
 const Layout = () => {
     return (
         <div id='Layout'>
-            <Header />
+            <Common.Header />
             <main>
                 <Outlet />
             </main>
-            <Footer />
+            <Common.Footer />
         </div>
     );
 };
@@ -20,7 +21,8 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path='/' element={<Layout />}>
-                    <Route index element={<HomePage />} />
+                    <Route index element={<Pages.HomePage />} />
+                    <Route path='/chat' element={<Pages.ChatPage />} />
                 </Route>
             </Routes>
         </BrowserRouter>

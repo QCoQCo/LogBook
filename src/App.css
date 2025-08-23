@@ -1,0 +1,8 @@
+#Layout {
+    width: 100%;
+}
+#Layout main {
+    width: 1200px;
+    min-height: 80vh;
+    margin: 0 auto;
+}
