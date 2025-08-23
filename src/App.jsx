@@ -6,6 +6,7 @@ import './App.css';
 
 const Layout = () => {
     return (
+        // 체팅페이지 다크모드 판별
         <div id='Layout'>
             <Common.Header />
             <main>

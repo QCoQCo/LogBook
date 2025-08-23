@@ -3,7 +3,7 @@ import './Footer.scss';
 
 const Footer = () => {
     return (
-        <div id='Footer'>
+        <footer id='Footer'>
             <div className='container'>
                 <div className='top'>
                     <div className='icons'>
@@ -26,7 +26,7 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </footer>
     );
 };
 
