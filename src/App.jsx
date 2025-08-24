@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import * as Common from './components/common';
 import * as Pages from './components/pages';
+import { LogBookProvider } from './context/LogBookContext';
 
 import './App.css';
 
@@ -19,14 +20,16 @@ const Layout = () => {
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path='/' element={<Layout />}>
-                    <Route index element={<Pages.HomePage />} />
-                    <Route path='/chat' element={<Pages.ChatPage />} />
-                </Route>
-            </Routes>
-        </BrowserRouter>
+        <LogBookProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path='/' element={<Layout />}>
+                        <Route index element={<Pages.HomePage />} />
+                        <Route path='/chat' element={<Pages.ChatPage />} />
+                    </Route>
+                </Routes>
+            </BrowserRouter>
+        </LogBookProvider>
     );
 }
 
