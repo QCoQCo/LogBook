@@ -28,14 +28,39 @@ function App() {
     const fetchPlaylists = async () => {
         try {
             const response = await axios.get(`/data/playlistData.json`);
-            console.log(response);
-            if (response.status == 200) {
+            if (response.status === 200) {
                 setPlaylist(response.data);
             }
         } catch (error) {
             console.error('Error fetching playlists:', error);
-            return [];
         }
+    };
+
+    const addSong = (playId, song) => {
+        setPlaylist((prev) =>
+            prev.map((pl) => {
+                if (pl.playId !== playId) return pl;
+                const existing = pl.songs || [];
+                const maxSeq = existing.reduce((m, s) => Math.max(m, Number(s.SEQ) || 0), 0);
+                const newSong = { ...song, SEQ: String(maxSeq + 1) };
+                return { ...pl, songs: [...existing, newSong] };
+            })
+        );
+    };
+
+    const updatePlaylistSongs = (playId, songs) => {
+        setPlaylist((prev) => prev.map((pl) => (pl.playId === playId ? { ...pl, songs } : pl)));
+    };
+
+    const deletePlaylistSongs = (playId, contentId) => {
+        setPlaylist((prev) =>
+            prev.map((pl) => {
+                if (pl.playId !== playId) return pl;
+                const existing = pl.songs || [];
+                const updatedSongs = existing.filter((song) => song.contentId !== contentId);
+                return { ...pl, songs: updatedSongs };
+            })
+        );
     };
 
     return (
@@ -45,7 +70,14 @@ function App() {
                     <Route index element={<pages.HomePage />} />
                     <Route
                         path='/playlist/:playId'
-                        element={<pages.Playlist playlist={playlist} />}
+                        element={
+                            <pages.Playlist
+                                playlist={playlist}
+                                addSong={addSong}
+                                updatePlaylistSongs={updatePlaylistSongs}
+                                deletePlaylistSongs={deletePlaylistSongs}
+                            />
+                        }
                     />
                 </Route>
             </Routes>
