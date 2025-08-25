@@ -7,12 +7,12 @@ import { getAuth } from 'firebase/auth';
 // Firebase 설정 객체 (실제 프로젝트 설정으로 교체 필요)
 const firebaseConfig = {
     // TODO: 실제 Firebase 프로젝트 설정으로 교체
-    apiKey: 'your-api-key',
-    authDomain: 'your-project.firebaseapp.com',
-    projectId: 'your-project-id',
-    storageBucket: 'your-project.appspot.com',
-    messagingSenderId: 'your-sender-id',
-    appId: 'your-app-id',
+    apiKey: 'api-key',
+    authDomain: 'project.firebaseapp.com',
+    projectId: 'project-id',
+    storageBucket: 'project.appspot.com',
+    messagingSenderId: 'sender-id',
+    appId: 'app-id',
 };
 
 // Firebase 앱 초기화
