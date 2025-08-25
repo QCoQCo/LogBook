@@ -1,6 +1,7 @@
 ## ☠️LogBook🏴‍☠️is a simple React-vite fullstack Blog project
 
-# this is DEV branch
+
+# this is TMRG branch
 
 # 의논이 필요한 사항
 

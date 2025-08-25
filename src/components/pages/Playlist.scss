@@ -1,0 +1,24 @@
+// Playlist.scss
+.Playlist {
+    border-radius: 20px;
+    width: 1200px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.playlistTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.layout {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.react-grid-layout {
+    position: relative;
+}
