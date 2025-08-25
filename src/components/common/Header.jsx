@@ -6,7 +6,6 @@ import './Header.scss';
 const Header = () => {
     const [showLogin, setShowLogin] = useState(false);
     const toggleLogin = () => {
-        console.log('Header: toggleLogin ->', !showLogin);
         setShowLogin(!showLogin);
     };
 
