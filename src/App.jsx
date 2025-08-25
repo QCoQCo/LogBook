@@ -1,19 +1,21 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-
-import * as common from './components/common';
-import * as pages from './components/pages';
 import axios from 'axios';
+import * as Common from './components/common';
+import * as Pages from './components/pages';
+import { LogBookProvider } from './context/LogBookContext';
+
 import './App.css';
 
 const Layout = () => {
     return (
+        // 체팅페이지 다크모드 판별
         <div id='Layout'>
-            <common.Header />
+            <Common.Header />
             <main>
                 <Outlet />
             </main>
-            <common.Footer />
+            <Common.Footer />
         </div>
     );
 };
@@ -64,24 +66,27 @@ function App() {
     };
 
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path='/' element={<Layout />}>
-                    <Route index element={<pages.HomePage />} />
-                    <Route
-                        path='/playlist/:playId'
-                        element={
-                            <pages.Playlist
-                                playlist={playlist}
-                                addSong={addSong}
-                                updatePlaylistSongs={updatePlaylistSongs}
-                                deletePlaylistSongs={deletePlaylistSongs}
-                            />
-                        }
-                    />
-                </Route>
-            </Routes>
-        </BrowserRouter>
+        <LogBookProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path='/' element={<Layout />}>
+                        <Route index element={<Pages.HomePage />} />
+                        <Route path='/chat' element={<Pages.ChatPage />} />
+                        <Route
+                            path='/playlist/:playId'
+                            element={
+                                <pages.Playlist
+                                    playlist={playlist}
+                                    addSong={addSong}
+                                    updatePlaylistSongs={updatePlaylistSongs}
+                                    deletePlaylistSongs={deletePlaylistSongs}
+                                />
+                            }
+                        />
+                    </Route>
+                </Routes>
+            </BrowserRouter>
+        </LogBookProvider>
     );
 }
 
