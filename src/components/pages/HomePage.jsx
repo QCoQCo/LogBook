@@ -12,6 +12,9 @@ const HomePage = () => {
                     <p>
                         <Link to='/myPage'>Mypage</Link>
                     </p>
+                    <p>
+                        <Link to='/playlist/1'>PlayListPage</Link>
+                    </p>
                 </div>
             </div>
         </div>

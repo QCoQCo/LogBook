@@ -75,7 +75,7 @@ function App() {
                         <Route
                             path='/playlist/:playId'
                             element={
-                                <pages.Playlist
+                                <Pages.Playlist
                                     playlist={playlist}
                                     addSong={addSong}
                                     updatePlaylistSongs={updatePlaylistSongs}
