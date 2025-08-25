@@ -4,7 +4,6 @@ import './login.scss';
 
 const Login = ({ onClose = () => {} }) => {
     useEffect(() => {
-        console.log('Login: mounted');
         const onKey = (e) => {
             if (e.key === 'Escape') onClose();
         };
@@ -34,7 +33,6 @@ const Login = ({ onClose = () => {} }) => {
                     className='lb-form'
                     onSubmit={(e) => {
                         e.preventDefault();
-                        // TODO: 인증 로직 추가
                         onClose();
                     }}
                 >
@@ -50,6 +48,14 @@ const Login = ({ onClose = () => {} }) => {
                         로그인
                     </button>
                 </form>
+                <div className='lb-sign-info'>
+                    <div className='lb-signup'>
+                        <a href='#'>회원가입</a>
+                    </div>
+                    <div className='lb-find-id-pw'>
+                        <a href='#'>아이디/비밀번호 찾기</a>
+                    </div>
+                </div>
             </div>
         </div>
     );
