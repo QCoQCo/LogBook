@@ -83,6 +83,7 @@ function App() {
                                 />
                             }
                         />
+                        <Route path='/myPage' element={<Pages.MyPage />} />
                     </Route>
                 </Routes>
             </BrowserRouter>
