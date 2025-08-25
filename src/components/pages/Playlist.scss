@@ -9,13 +9,90 @@
     padding: 0;
 
     .playlistTitle {
+        margin: 20px 0;
+        display: flex;
         font-size: 2rem;
         font-weight: bold;
-        margin-bottom: 20px;
+
+        .titleView {
+            display: flex;
+
+            .titleText {
+                margin-right: 12px;
+                line-height: 1;
+                max-width: 820px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .titleEditBtn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                border-radius: 6px;
+                background: transparent;
+                border: none;
+                color: #374151;
+                cursor: pointer;
+                padding: 4px;
+                transition: background-color 120ms ease, color 120ms ease;
+
+                &:hover {
+                    background: rgba(55, 65, 81, 0.06);
+                }
+            }
+        }
+        .titleEdit {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 12px;
+
+            .titleEditInput {
+                font-size: 1.25rem;
+                padding: 6px 10px;
+                border-radius: 8px;
+                border: 1px solid rgba(15, 23, 42, 0.08);
+                background: #fff;
+                outline: none;
+                min-width: 380px;
+            }
+
+            .titleEditBtns {
+                display: inline-flex;
+                gap: 8px;
+
+                button {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 6px;
+                    border: none;
+                    cursor: pointer;
+                    background: transparent;
+                    color: #374151;
+                }
+
+                .titleConfirmBtn {
+                    background: #10b981;
+                    color: white;
+                }
+
+                .titleCancelBtn {
+                    background: #e53935;
+                    color: #fff;
+                }
+            }
+        }
     }
 
     .playlistContents {
-        height: 65vh;
+        height: 60vh;
         overflow-y: auto;
         width: 100%;
 

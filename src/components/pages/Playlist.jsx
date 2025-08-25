@@ -5,7 +5,13 @@ import PlaylistItem from './PlaylistItem';
 import ReactGridLayout from 'react-grid-layout';
 import './Playlist.scss';
 
-const Playlist = ({ playlist, addSong, updatePlaylistSongs, deletePlaylistSongs }) => {
+const Playlist = ({
+    playlist,
+    addSong,
+    updatePlaylistSongs,
+    deletePlaylistSongs,
+    updatePlaylistTitle,
+}) => {
     const linkInputRef = useRef(null);
     const { playId } = useParams();
 
@@ -29,6 +35,10 @@ const Playlist = ({ playlist, addSong, updatePlaylistSongs, deletePlaylistSongs 
     const [thumbnail, setThumbnail] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    // playlist title edit state
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [editTitle, setEditTitle] = useState(pl.title || '');
+    const [localTitle, setLocalTitle] = useState(pl.title || '');
 
     const isYouTubeUrl = (value) => {
         try {
@@ -117,9 +127,143 @@ const Playlist = ({ playlist, addSong, updatePlaylistSongs, deletePlaylistSongs 
         linkInputRef.current?.focus();
     }, []);
 
+    // keep local title in sync when playlist prop changes
+    useEffect(() => {
+        const t = pl.title || '';
+        setLocalTitle(t);
+        if (!isEditingTitle) setEditTitle(t);
+    }, [pl.title]);
+
+    const startEditTitle = () => {
+        setEditTitle(localTitle || '');
+        setIsEditingTitle(true);
+        setError('');
+    };
+
+    const cancelEditTitle = () => {
+        setEditTitle(localTitle || '');
+        setIsEditingTitle(false);
+        setError('');
+    };
+
+    const confirmEditTitle = async () => {
+        const newT = (editTitle || '').trim();
+        if (!newT) return setError('Title cannot be empty');
+        // call update callback if provided, otherwise just update locally
+        if (typeof updatePlaylistTitle === 'function') {
+            try {
+                const res = updatePlaylistTitle(pl.playId, newT);
+                // handle promise or sync return
+                if (res && typeof res.then === 'function') await res;
+                setLocalTitle(newT);
+                setIsEditingTitle(false);
+            } catch (err) {
+                console.error('updatePlaylistTitle error', err);
+                setError('Failed to update playlist title');
+            }
+        } else {
+            setLocalTitle(newT);
+            setIsEditingTitle(false);
+        }
+    };
+
     return (
         <div className='Playlist'>
-            <div className='playlistTitle'>{pl.title}</div>
+            <div className='playlistTitle'>
+                {!isEditingTitle ? (
+                    <div className='titleView'>
+                        <div className='titleText'>{localTitle}</div>
+                        <button
+                            type='button'
+                            className='titleEditBtn'
+                            aria-label='Edit playlist title'
+                            onClick={startEditTitle}
+                        >
+                            {/* pencil icon */}
+                            <svg
+                                width='16'
+                                height='16'
+                                viewBox='0 0 24 24'
+                                fill='none'
+                                xmlns='http://www.w3.org/2000/svg'
+                            >
+                                <path
+                                    d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'
+                                    stroke='currentColor'
+                                    strokeWidth='1'
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                />
+                                <path
+                                    d='M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z'
+                                    stroke='currentColor'
+                                    strokeWidth='1'
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                ) : (
+                    <div className='titleEdit'>
+                        <input
+                            className='titleEditInput'
+                            type='text'
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            aria-label='Edit playlist title input'
+                        />
+                        <div className='titleEditBtns'>
+                            <button
+                                type='button'
+                                className='titleConfirmBtn'
+                                aria-label='Confirm title'
+                                onClick={confirmEditTitle}
+                            >
+                                {/* check icon */}
+                                <svg
+                                    width='16'
+                                    height='16'
+                                    viewBox='0 0 24 24'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                >
+                                    <path
+                                        d='M20 6L9 17l-5-5'
+                                        stroke='currentColor'
+                                        strokeWidth='2'
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                    />
+                                </svg>
+                            </button>
+                            <button
+                                type='button'
+                                className='titleCancelBtn'
+                                aria-label='Cancel title edit'
+                                onClick={cancelEditTitle}
+                            >
+                                {/* X icon */}
+                                <svg
+                                    width='16'
+                                    height='16'
+                                    viewBox='0 0 24 24'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                >
+                                    <path
+                                        d='M18 6L6 18M6 6l12 12'
+                                        stroke='currentColor'
+                                        strokeWidth='2'
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
             <div className='playlistContents'>
                 {songs.length > 0 ? (
                     <ReactGridLayout
