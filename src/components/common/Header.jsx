@@ -1,7 +1,15 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import Login from './login.jsx';
 import './Header.scss';
 
 const Header = () => {
+    const [showLogin, setShowLogin] = useState(false);
+    const toggleLogin = () => {
+        console.log('Header: toggleLogin ->', !showLogin);
+        setShowLogin(!showLogin);
+    };
+
     return (
         <header id='Header'>
             <div className='container'>
@@ -24,7 +32,8 @@ const Header = () => {
                     </div>
                     {/* 로그인 여부 판단 후 로그인 버튼 OR 유저 프로필 */}
                     <div className='login-btn'>
-                        <button>로그인</button>
+                        <button onClick={toggleLogin}>로그인</button>
+                        {showLogin && <Login onClose={toggleLogin} />}
                     </div>
                 </div>
             </div>

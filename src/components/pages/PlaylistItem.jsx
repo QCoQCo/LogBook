@@ -12,22 +12,22 @@ const PlaylistItem = ({ item, deletePlaylistSongs, playId }) => {
 
     return (
         <div className='playlistItem'>
-            <div className='playlistItemDrag' ref={dragHandleRef}>
+            <div className='playlist-item-drag' ref={dragHandleRef}>
                 <span style={{ fontSize: '1.5rem' }}>≡</span>
             </div>
             <a href={item.link} target='_blank' rel='noopener noreferrer'>
-                <div className='playlistItemProfile'>
+                <div className='playlist-item-profile'>
                     <img
                         src={item.thumbnail}
                         alt='프로필'
                         style={{ width: '100%', borderRadius: '50%' }}
                     />
                 </div>
-                <div className='playlistItemTitle'>{item.title}</div>
+                <div className='playlist-item-title'>{item.title}</div>
             </a>
-            <div className='playlistItemBtn'>
+            <div className='playlist-item-btn'>
                 <button
-                    className='playlistItemDelBtn'
+                    className='playlist-item-del-btn'
                     aria-label='삭제'
                     title='삭제'
                     onClick={handlePlaylistItemDelete}

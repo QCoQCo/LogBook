@@ -169,13 +169,13 @@ const Playlist = ({
 
     return (
         <div className='Playlist'>
-            <div className='playlistTitle'>
+            <div className='playlist-title'>
                 {!isEditingTitle ? (
-                    <div className='titleView'>
-                        <div className='titleText'>{localTitle}</div>
+                    <div className='title-view'>
+                        <div className='title-text'>{localTitle}</div>
                         <button
                             type='button'
-                            className='titleEditBtn'
+                            className='title-edit-btn'
                             aria-label='Edit playlist title'
                             onClick={startEditTitle}
                         >
@@ -205,18 +205,18 @@ const Playlist = ({
                         </button>
                     </div>
                 ) : (
-                    <div className='titleEdit'>
+                    <div className='title-edit'>
                         <input
-                            className='titleEditInput'
+                            className='title-edit-input'
                             type='text'
                             value={editTitle}
                             onChange={(e) => setEditTitle(e.target.value)}
                             aria-label='Edit playlist title input'
                         />
-                        <div className='titleEditBtns'>
+                        <div className='title-edit-btns'>
                             <button
                                 type='button'
-                                className='titleConfirmBtn'
+                                className='title-confirm-btn'
                                 aria-label='Confirm title'
                                 onClick={confirmEditTitle}
                             >
@@ -239,7 +239,7 @@ const Playlist = ({
                             </button>
                             <button
                                 type='button'
-                                className='titleCancelBtn'
+                                className='title-cancel-btn'
                                 aria-label='Cancel title edit'
                                 onClick={cancelEditTitle}
                             >
@@ -264,7 +264,7 @@ const Playlist = ({
                     </div>
                 )}
             </div>
-            <div className='playlistContents'>
+            <div className='playlist-contents'>
                 {songs.length > 0 ? (
                     <ReactGridLayout
                         className='layout'
@@ -274,7 +274,7 @@ const Playlist = ({
                         rowHeight={70}
                         margin={[0, 0]}
                         isDraggable={true}
-                        draggableHandle='.playlistItemDrag'
+                        draggableHandle='.playlist-item-drag'
                         draggableAxis='y'
                         onLayoutChange={(newLayout) => {
                             // newLayout is array with {i, y}; reorder songs by y
@@ -303,21 +303,21 @@ const Playlist = ({
                         ))}
                     </ReactGridLayout>
                 ) : (
-                    <div className='noPlaylist'>No Playlist Available</div>
+                    <div className='no-playlist'>No Playlist Available</div>
                 )}
             </div>
 
-            <div className='playlistInput'>
-                <form onSubmit={handleSubmit} className='playlistForm'>
-                    <div className='inputPill'>
+            <div className='playlist-input'>
+                <form onSubmit={handleSubmit} className='playlist-form'>
+                    <div className='input-pill'>
                         {thumbnail ? (
-                            <img className='thumbPreview' src={thumbnail} alt='thumb' />
+                            <img className='thumb-preview' src={thumbnail} alt='thumb' />
                         ) : (
-                            <div className='thumbPlaceholder' />
+                            <div className='thumb-placeholder' />
                         )}
 
                         <input
-                            className='linkInput'
+                            className='link-input'
                             type='text'
                             placeholder='Paste YouTube link here (only YouTube)'
                             value={link}
@@ -325,7 +325,7 @@ const Playlist = ({
                             ref={linkInputRef}
                         />
 
-                        <button className='addBtn' type='submit' aria-label='Add song'>
+                        <button className='add-btn' type='submit' aria-label='Add song'>
                             <svg
                                 width='18'
                                 height='18'
@@ -344,11 +344,11 @@ const Playlist = ({
                         </button>
                     </div>
 
-                    <div className='metaRow'>
+                    <div className='meta-row'>
                         {loading ? (
                             <div className='loading'>Loading metadata...</div>
                         ) : title ? (
-                            <div className='songTitle'>{title}</div>
+                            <div className='song-title'>{title}</div>
                         ) : (
                             <div className='hint'>
                                 Title will appear here after entering a YouTube link
