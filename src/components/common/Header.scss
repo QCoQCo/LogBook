@@ -1,0 +1,103 @@
+#Header {
+    width: 100%;
+    height: 100px;
+    background-color: #f0f0f0;
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        height: 100%;
+        padding: 0 20px;
+        .left {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            padding: 10px;
+
+            a {
+                display: flex;
+                align-items: center;
+                justify-content: start;
+                gap: 10px;
+                .logo {
+                    width: 100px;
+                    height: 100px;
+                    background-image: url('/img/logBook_logo.png');
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                }
+                .title {
+                    width: 200px;
+                    height: 100px;
+                    background-image: url('/img/logBook_logo_text.png');
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                }
+            }
+        }
+        .right {
+            display: flex;
+            align-items: center;
+            justify-content: end;
+            gap: 10px;
+            width: 100%;
+            height: 100%;
+            padding: 0 20px;
+            .search-btn {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                // background-color: #e5f4f7;
+                background-color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                svg {
+                    width: 20px;
+                }
+                &:hover {
+                    background-color: #c0dedd;
+                }
+            }
+            .notification-btn {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                // background-color: #e5f4f7;
+                background-color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                svg {
+                    width: 20px;
+                }
+                &:hover {
+                    background-color: #c0dedd;
+                }
+            }
+            .login-btn {
+                button {
+                    width: 100px;
+                    height: 40px;
+                    padding: 10px 20px;
+                    border-radius: 10px;
+                    background-color: #fff;
+                    color: #000;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    &:hover {
+                        background-color: #000;
+                        color: #fff;
+                    }
+                }
+            }
+        }
+    }
+}
