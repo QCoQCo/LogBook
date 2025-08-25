@@ -48,8 +48,8 @@ function App() {
                         <Route index element={<Pages.HomePage />} />
                         <Route path='/chat' element={<Pages.ChatPage />} />
                         <Route
-                          path='/playlist/:playId'
-                          element={<Pages.Playlist playlist={playlist} />}
+                            path='/playlist/:playId'
+                            element={<Pages.Playlist playlist={playlist} />}
                         />
                     </Route>
                 </Routes>
