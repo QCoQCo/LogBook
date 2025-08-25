@@ -14,13 +14,13 @@
         flex: 1;
         display: flex;
 
-        .playlistItemNumber {
+        .playlist-item-number {
             font-size: 1.2rem;
             color: #009900;
             font-weight: bold;
             margin-right: 12px;
         }
-        .playlistItemProfile {
+        .playlist-item-profile {
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -30,7 +30,7 @@
             align-items: center;
             justify-content: center;
         }
-        .playlistItemTitle {
+        .playlist-item-title {
             flex: 1;
             font-size: 1.1rem;
             color: #222;
@@ -38,7 +38,7 @@
         }
     }
 
-    .playlistItemDrag {
+    .playlist-item-drag {
         margin-right: 12px;
         width: 24px;
         height: 24px;
@@ -47,11 +47,10 @@
         justify-content: center;
         cursor: grab;
     }
-
-    .playlistItemBtn {
+    .playlist-item-btn {
         width: 24px;
 
-        .playlistItemDelBtn {
+        .playlist-item-del-btn {
             width: 24px;
             height: 24px;
             border-radius: 50%;
