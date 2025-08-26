@@ -11,50 +11,64 @@ const initialLayout = [
 ];
 
 const MyPage = () => {
-    // layout 상태를 useState로 관리하여 동적 변경이 가능하게 합니다.
     const [layout, setLayout] = useState(initialLayout);
-
-    // 드롭된 아이템의 내용에 대한 카운터를 useState로 관리합니다.
     const [newItemCounter, setNewItemCounter] = useState(0);
 
-    const onDrop = (currentLayout, droppedItemProps) => {
-        // 새로운 아이템에 대한 고유한 ID를 생성합니다.
-        setNewItemCounter((prevCounter) => {
-            const newId = `new-item-${prevCounter}`;
-            const newItem = {
-                i: newId,
-                x: droppedItemProps.x,
-                y: droppedItemProps.y,
-                w: 1, // 드롭 시 새로운 아이템의 기본 크기를 지정
-                h: 1, // 드롭 시 새로운 아이템의 기본 크기를 지정
-            };
-            // layout 상태 업데이트는 prevLayout을 사용
-            setLayout((prevLayout) => [...prevLayout, newItem]);
+    const onLayoutChange = (newLayout) => {
+        setLayout(newLayout);
+        console.log('Layout changed:', newLayout);
+    };
 
-            console.log(newItem);
-            return prevCounter + 1;
+    const onDrop = (currentLayout, droppedItemProps) => {
+        // droppedItemProps에서 드롭된 아이템의 정보를 가져옵니다.
+        const { x, y } = droppedItemProps;
+
+        const isOverlap = layout.some((item, i) => {
+            return item.x <= x && item.x + (item.w - 1) >= x && item.y === y;
         });
 
-        console.log('레이아웃', layout);
-        console.log('아이템', droppedItemProps);
+        console.log(isOverlap);
+        // 새로운 아이템 객체를 생성합니다.
 
-        // 카운터를 증가시켜 다음 아이템에 고유한 ID를 부여합니다.
+        const newId = `new-item-${newItemCounter}`;
+
+        const newItem = {
+            i: newId,
+            x: x,
+            y: y,
+            w: 1,
+            h: 1,
+        };
+
+        if (isOverlap) {
+            const newLayout = layout.map((item) =>
+                item.x <= x && item.x + (item.w - 1) >= x && item.y >= y
+                    ? { ...item, y: item.y + 1 }
+                    : item
+            );
+            setLayout([...newLayout, newItem]);
+        } else {
+            setLayout((prevLayout) => [...prevLayout, newItem]);
+        }
+
         setNewItemCounter((prevCounter) => prevCounter + 1);
     };
 
-    // 레이아웃 데이터를 기반으로 아이템을 렌더링하는 함수입니다.
     const renderGridItems = () => {
         return layout.map((item) => {
             const isNewItem = item.i.startsWith('new-item');
             const itemText = isNewItem
                 ? `New Item ${item.i.split('-').pop()}`
                 : item.i.replace(/-/g, ' ').toUpperCase();
-
-            return (
-                <div className={isNewItem ? 'new-grid-item' : item.i} key={item.i}>
-                    <div className='grid-item-text'>{itemText}</div>
-                </div>
-            );
+            if (item.i !== '__dropping-elem__') {
+                return (
+                    <div className={isNewItem ? 'new-grid-item' : item.i} key={item.i}>
+                        <div className='grid-item-text'>{itemText}</div>
+                    </div>
+                );
+            } else {
+                return;
+            }
         });
     };
 
@@ -103,6 +117,7 @@ const MyPage = () => {
                     onDrop={onDrop}
                     isDroppable={true}
                     compactType={'vertical'}
+                    onLayoutChange={onLayoutChange}
                 >
                     {renderGridItems()}
                 </ReactGridLayout>
