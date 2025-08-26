@@ -14,6 +14,11 @@ const Header = ({ isLogin, handleLoginState }) => {
     const [showLogin, setShowLogin] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [showMenu, setShowMenu] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const searchRef = useRef(null);
+    const searchAreaRef = useRef(null);
+    const searchAreaElRef = useRef(null);
     const menuRef = useRef(null);
 
     useEffect(() => {
@@ -38,7 +43,7 @@ const Header = ({ isLogin, handleLoginState }) => {
         }
         // request current-session from other tabs (they will reply with 'login' payload)
         try {
-            //console.debug('[Header] sending request for session to other tabs');
+            console.debug('[Header] sending request for session to other tabs');
             sendAuthEvent('request');
         } catch (e) {
             // ignore
@@ -59,7 +64,10 @@ const Header = ({ isLogin, handleLoginState }) => {
                     if (raw) {
                         try {
                             const payload = JSON.parse(raw);
-                            //console.debug( '[Header] replying with login payload to requester', payload);
+                            console.debug(
+                                '[Header] replying with login payload to requester',
+                                payload
+                            );
                             sendAuthEvent('login', payload);
                         } catch (e) {
                             // ignore
@@ -75,10 +83,10 @@ const Header = ({ isLogin, handleLoginState }) => {
                     if (data.payload) {
                         // ensure this tab has session data
                         try {
-                            // console.debug(
-                            //     '[Header] writing login payload to sessionStorage',
-                            //     data.payload
-                            // );
+                            console.debug(
+                                '[Header] writing login payload to sessionStorage',
+                                data.payload
+                            );
                             sessionStorage.setItem(
                                 'logbook_current_user',
                                 JSON.stringify(data.payload)
@@ -103,7 +111,7 @@ const Header = ({ isLogin, handleLoginState }) => {
                 } catch (e) {
                     // ignore
                 }
-                //console.debug('[Header] received logout event, cleared sessionStorage');
+                console.debug('[Header] received logout event, cleared sessionStorage');
                 setCurrentUser(null);
                 setShowMenu(false);
                 if (typeof handleLoginState === 'function') handleLoginState(false);
@@ -120,6 +128,10 @@ const Header = ({ isLogin, handleLoginState }) => {
 
     const toggleLogin = () => setShowLogin((s) => !s);
     const toggleMenu = () => setShowMenu((s) => !s);
+    const toggleSearch = () => {
+        console.debug('[Header] toggleSearch, before:', showSearch);
+        setShowSearch((s) => !s);
+    };
 
     useEffect(() => {
         if (!showMenu) return;
@@ -132,6 +144,38 @@ const Header = ({ isLogin, handleLoginState }) => {
         return () => document.removeEventListener('click', onDocClick);
     }, [showMenu]);
 
+    // autofocus search input when opened: use transitionend event on the .search-area element
+    useEffect(() => {
+        const el = searchAreaElRef.current;
+        if (!showSearch || !el) return;
+        console.debug('[Header] waiting for transitionend to focus input');
+        let didFocus = false;
+        const onTransitionEnd = (e) => {
+            if (e.target !== el) return;
+            if (e.propertyName !== 'transform' && e.propertyName !== 'opacity') return;
+            didFocus = true;
+            try {
+                searchRef.current && searchRef.current.focus();
+            } catch (err) {
+                // ignore
+            }
+        };
+        el.addEventListener('transitionend', onTransitionEnd);
+        const fallback = setTimeout(() => {
+            if (!didFocus) {
+                try {
+                    searchRef.current && searchRef.current.focus();
+                } catch (err) {
+                    // ignore
+                }
+            }
+        }, 420);
+        return () => {
+            el.removeEventListener('transitionend', onTransitionEnd);
+            clearTimeout(fallback);
+        };
+    }, [showSearch]);
+
     const handleLogout = () => {
         try {
             sessionStorage.removeItem('logbook_current_user');
@@ -142,9 +186,7 @@ const Header = ({ isLogin, handleLoginState }) => {
         }
         // broadcast logout so other tabs can clear state
         try {
-            // import locally to avoid hoisting issues in older bundlers
-            const { sendAuthEvent } = require('../../utils/sessionSync');
-            if (sendAuthEvent) sendAuthEvent('logout');
+            sendAuthEvent('logout');
         } catch (e) {
             // ignore
         }
@@ -152,6 +194,22 @@ const Header = ({ isLogin, handleLoginState }) => {
         setShowMenu(false);
         if (typeof handleLoginState === 'function') handleLoginState(false);
         navigate('/');
+    };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        const q = searchQuery && searchQuery.trim();
+        if (q) {
+            // navigate to a search route. If you don't have a route, adjust as needed.
+            try {
+                navigate(`/search?q=${encodeURIComponent(q)}`);
+            } catch (err) {
+                // ignore navigation errors
+                console.debug('[Header] search navigate failed', err);
+            }
+        }
+        setShowSearch(false);
+        setSearchQuery('');
     };
 
     return (
@@ -165,10 +223,80 @@ const Header = ({ isLogin, handleLoginState }) => {
                 </div>
 
                 <div className='right'>
-                    <div className='search-btn' aria-hidden>
-                        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 640'>
-                            <path d='M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z' />
-                        </svg>
+                    <div className='search-wrapper' ref={searchAreaRef}>
+                        <div
+                            className={`search-area ${showSearch ? 'open' : ''}`}
+                            ref={searchAreaElRef}
+                        >
+                            <form onSubmit={handleSearchSubmit}>
+                                <div className='search-input'>
+                                    <span className='input-icon' aria-hidden>
+                                        <svg
+                                            xmlns='http://www.w3.org/2000/svg'
+                                            viewBox='0 0 24 24'
+                                            width='16'
+                                            height='16'
+                                            fill='currentColor'
+                                        >
+                                            <path d='M10 2a8 8 0 105.292 14.292l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z' />
+                                        </svg>
+                                    </span>
+                                    <input
+                                        ref={searchRef}
+                                        type='text'
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder='검색어를 입력하세요'
+                                        aria-label='검색어'
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            type='button'
+                                            className='clear-btn'
+                                            aria-label='입력 초기화'
+                                            onClick={() => {
+                                                setSearchQuery('');
+                                                try {
+                                                    searchRef.current && searchRef.current.focus();
+                                                } catch (e) {
+                                                    // ignore
+                                                }
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                    )}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div className={`search-btn ${showSearch ? 'active' : ''}`}>
+                        <button
+                            type='button'
+                            className='search-toggle'
+                            aria-label={showSearch ? '검색 닫기' : '검색'}
+                            aria-expanded={showSearch}
+                            onClick={toggleSearch}
+                        >
+                            {showSearch ? (
+                                <svg
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    viewBox='0 0 24 24'
+                                    width='18'
+                                    height='18'
+                                >
+                                    <path
+                                        d='M18.3 5.71a1 1 0 00-1.41 0L12 10.59 7.11 5.7A1 1 0 105.7 7.11L10.59 12l-4.9 4.89a1 1 0 101.41 1.41L12 13.41l4.89 4.9a1 1 0 001.41-1.41L13.41 12l4.9-4.89a1 1 0 000-1.4z'
+                                        fill='currentColor'
+                                    />
+                                </svg>
+                            ) : (
+                                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 640'>
+                                    <path d='M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z' />
+                                </svg>
+                            )}
+                        </button>
                     </div>
 
                     <div className='notification-btn' aria-hidden>

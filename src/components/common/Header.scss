@@ -42,11 +42,96 @@
             display: flex;
             align-items: center;
             justify-content: end;
+            position: relative;
             gap: 10px;
             width: 100%;
             height: 100%;
             padding: 0 20px;
+
+            .search-area {
+                /* 현재 DOM 흐름에서 확장/축소되도록 변경 (요소 위치 유지) */
+                display: flex;
+                align-items: center;
+                background: #fff;
+                border: 1px solid rgba(0, 0, 0, 0.08);
+                border-radius: 6px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+                padding: 6px 8px;
+                margin-right: 8px;
+                z-index: 1200;
+                width: auto;
+                overflow: hidden;
+                opacity: 0;
+                visibility: hidden;
+                transform-origin: right center;
+                transform: scaleX(0);
+                min-width: 44px; /* ensure small visible area when scaled */
+                pointer-events: none;
+                transition: transform 220ms ease, opacity 180ms ease, visibility 180ms;
+
+                form {
+                    display: flex;
+                    align-items: center;
+                }
+                .search-input {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: linear-gradient(180deg, #ffffff, #fbfbfb);
+                    border-radius: 8px;
+                    padding: 6px 8px;
+                    box-shadow: 0 4px 10px rgba(20, 20, 20, 0.04);
+                    position: relative;
+                }
+                .input-icon {
+                    display: inline-flex;
+                    flex: 0 0 28px; /* fixed space for the icon so it's never pushed out */
+                    align-items: center;
+                    justify-content: center;
+                    color: #6b6b6b;
+                    z-index: 2;
+                }
+                input {
+                    flex: 1 1 auto;
+                    min-width: 120px;
+                    height: 42px;
+                    padding: 6px 8px;
+                    border: none;
+                    background: transparent;
+                    font-size: 14px;
+                    color: #111;
+                    outline: none;
+                }
+                .clear-btn {
+                    all: unset;
+                    cursor: pointer;
+                    color: #888;
+                    font-size: 18px;
+                    line-height: 1;
+                    padding: 2px 6px;
+                    border-radius: 6px;
+                }
+                .clear-btn:hover {
+                    background: rgba(0, 0, 0, 0.04);
+                    color: #444;
+                }
+            }
+
+            .search-area.open {
+                width: 40vw;
+                opacity: 1;
+                visibility: visible;
+                transform: scaleX(1);
+                pointer-events: auto;
+            }
+
+            .search-wrapper {
+                display: flex;
+                align-items: center;
+            }
+
             .search-btn {
+                position: relative; /* 기준을 만들어 검색 영역을 버튼 아래에 배치 */
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
@@ -61,6 +146,23 @@
                 }
                 &:hover {
                     background-color: #c0dedd;
+                }
+                .search-toggle {
+                    all: unset;
+                    width: 100%;
+                    height: 100%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                }
+                &.active {
+                    background: linear-gradient(180deg, #f6f9f8, #e7f2ef);
+                    box-shadow: 0 6px 16px rgba(20, 40, 30, 0.08);
+                    transform: translateY(-1px);
+                }
+                .search-toggle svg {
+                    color: #1f6f63;
                 }
             }
             .notification-btn {
