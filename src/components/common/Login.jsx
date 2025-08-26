@@ -3,12 +3,16 @@ import ReactDOM from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import './login.scss';
 import { loginClient } from '../../utils/auth';
+import { initAuthChannel, sendAuthEvent, migrateLocalToSession } from '../../utils/sessionSync';
 
 const Login = ({ onClose = () => {}, handleLoginState }) => {
     useEffect(() => {
         const onKey = (e) => {
             if (e.key === 'Escape') onClose();
         };
+        // init auth channel and perform migration if needed
+        initAuthChannel();
+        migrateLocalToSession();
         document.addEventListener('keydown', onKey);
         const prevOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
@@ -37,10 +41,17 @@ const Login = ({ onClose = () => {}, handleLoginState }) => {
                 const usersJson = localStorage.getItem('logbook_users');
                 const users = usersJson ? JSON.parse(usersJson) : [];
                 const user = users.find((u) => u.id === userId);
-                localStorage.setItem(
+                // save current user in sessionStorage (session-only)
+                sessionStorage.setItem(
                     'logbook_current_user',
                     JSON.stringify({ id: user?.id, email: user?.email })
                 );
+                // broadcast login to other tabs
+                try {
+                    sendAuthEvent('login', { id: user?.id, email: user?.email });
+                } catch (e) {
+                    // ignore
+                }
                 handleLoginState(true);
                 onClose();
                 navigate('/myPage');
@@ -48,7 +59,7 @@ const Login = ({ onClose = () => {}, handleLoginState }) => {
                 setError('아이디 또는 비밀번호가 일치하지 않습니다.');
             }
         } catch (err) {
-            console.error('로그인 처리 오류', err);
+            // console.error('로그인 처리 오류', err);
             setError('로그인 중 오류가 발생했습니다. 콘솔을 확인하세요.');
         }
     };

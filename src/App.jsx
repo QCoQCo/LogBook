@@ -6,6 +6,7 @@ import * as Pages from './components/pages';
 import { LogBookProvider } from './context/LogBookContext';
 
 import './App.css';
+import { initAuthChannel, addAuthListener, migrateLocalToSession } from './utils/sessionSync';
 
 const Layout = () => {
     const [isLogin, setLogin] = useState(false);
@@ -13,6 +14,43 @@ const Layout = () => {
     const handleLoginState = (state) => {
         setLogin(state);
     };
+
+    useEffect(() => {
+        // initialize auth channel and migrate any legacy storage
+        try {
+            initAuthChannel();
+        } catch (e) {
+            // ignore
+        }
+        try {
+            migrateLocalToSession();
+        } catch (e) {
+            // ignore
+        }
+        // set initial login state from sessionStorage (fallback to localStorage)
+        try {
+            const raw =
+                sessionStorage.getItem('logbook_current_user') ||
+                localStorage.getItem('logbook_current_user');
+            setLogin(!!raw);
+        } catch (e) {
+            // ignore
+        }
+
+        // listen for auth events from other tabs
+        const unsub = addAuthListener((data) => {
+            if (!data || !data.type) return;
+            if (data.type === 'login') setLogin(true);
+            if (data.type === 'logout') setLogin(false);
+        });
+        return () => {
+            try {
+                unsub();
+            } catch (e) {
+                // ignore
+            }
+        };
+    }, []);
 
     return (
         // 체팅페이지 다크모드 판별

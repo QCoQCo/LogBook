@@ -2,22 +2,121 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import Login from './login.jsx';
 import './Header.scss';
+import {
+    initAuthChannel,
+    addAuthListener,
+    migrateLocalToSession,
+    sendAuthEvent,
+} from '../../utils/sessionSync';
 
 const Header = ({ isLogin, handleLoginState }) => {
-    const navigate = new useNavigate();
+    const navigate = useNavigate();
     const [showLogin, setShowLogin] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef(null);
 
     useEffect(() => {
+        // init channel and migrate any legacy localStorage entry
         try {
-            const raw = localStorage.getItem('logbook_current_user');
+            initAuthChannel();
+        } catch (e) {
+            // ignore
+        }
+        try {
+            migrateLocalToSession();
+        } catch (e) {
+            // ignore
+        }
+        try {
+            const raw =
+                sessionStorage.getItem('logbook_current_user') ||
+                localStorage.getItem('logbook_current_user');
             if (raw) setCurrentUser(JSON.parse(raw));
         } catch (e) {
             // ignore
         }
+        // request current-session from other tabs (they will reply with 'login' payload)
+        try {
+            //console.debug('[Header] sending request for session to other tabs');
+            sendAuthEvent('request');
+        } catch (e) {
+            // ignore
+        }
     }, []);
+
+    // auth events listener for multi-tab sync
+    useEffect(() => {
+        const unsub = addAuthListener((data) => {
+            if (!data || !data.type) return;
+            // console.debug('[Header] auth event received', data);
+            // if another tab requests current session, respond with login payload if available
+            if (data.type === 'request') {
+                try {
+                    const raw =
+                        sessionStorage.getItem('logbook_current_user') ||
+                        localStorage.getItem('logbook_current_user');
+                    if (raw) {
+                        try {
+                            const payload = JSON.parse(raw);
+                            //console.debug( '[Header] replying with login payload to requester', payload);
+                            sendAuthEvent('login', payload);
+                        } catch (e) {
+                            // ignore
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+                return;
+            }
+            if (data.type === 'login') {
+                try {
+                    if (data.payload) {
+                        // ensure this tab has session data
+                        try {
+                            // console.debug(
+                            //     '[Header] writing login payload to sessionStorage',
+                            //     data.payload
+                            // );
+                            sessionStorage.setItem(
+                                'logbook_current_user',
+                                JSON.stringify(data.payload)
+                            );
+                        } catch (e) {
+                            // ignore
+                        }
+                        setCurrentUser(data.payload);
+                    } else {
+                        const raw =
+                            sessionStorage.getItem('logbook_current_user') ||
+                            localStorage.getItem('logbook_current_user');
+                        setCurrentUser(raw ? JSON.parse(raw) : null);
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+            if (data.type === 'logout') {
+                try {
+                    sessionStorage.removeItem('logbook_current_user');
+                } catch (e) {
+                    // ignore
+                }
+                //console.debug('[Header] received logout event, cleared sessionStorage');
+                setCurrentUser(null);
+                setShowMenu(false);
+                if (typeof handleLoginState === 'function') handleLoginState(false);
+            }
+        });
+        return () => {
+            try {
+                unsub();
+            } catch (e) {
+                // ignore
+            }
+        };
+    }, [handleLoginState]);
 
     const toggleLogin = () => setShowLogin((s) => !s);
     const toggleMenu = () => setShowMenu((s) => !s);
@@ -35,7 +134,17 @@ const Header = ({ isLogin, handleLoginState }) => {
 
     const handleLogout = () => {
         try {
+            sessionStorage.removeItem('logbook_current_user');
+            // also remove localStorage entry for compatibility/migration
             localStorage.removeItem('logbook_current_user');
+        } catch (e) {
+            // ignore
+        }
+        // broadcast logout so other tabs can clear state
+        try {
+            // import locally to avoid hoisting issues in older bundlers
+            const { sendAuthEvent } = require('../../utils/sessionSync');
+            if (sendAuthEvent) sendAuthEvent('logout');
         } catch (e) {
             // ignore
         }
@@ -95,7 +204,7 @@ const Header = ({ isLogin, handleLoginState }) => {
                                     <ul className='user-menu' role='menu'>
                                         <li role='menuitem'>
                                             <a
-                                                href='/blog'
+                                                href='/myPage'
                                                 target='_blank'
                                                 rel='noopener noreferrer'
                                             >
