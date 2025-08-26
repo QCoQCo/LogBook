@@ -11,6 +11,157 @@
             .chat-area-header {
                 width: 100%;
                 height: 100px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 20px;
+
+                .chat-area-header-title {
+                    h1 {
+                        margin: 0;
+                        color: #fff;
+                        font-size: 24px;
+                    }
+                }
+
+                .chat-nick-name-section {
+                    .nickname-display-container {
+                        display: flex;
+                        align-items: center;
+                        gap: 15px;
+
+                        .current-nickname {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            background-color: rgba(255, 255, 255, 0.1);
+                            padding: 8px 16px;
+                            border-radius: 20px;
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+
+                            .nickname-label {
+                                color: #ccc;
+                                font-size: 14px;
+                                font-weight: 500;
+                            }
+
+                            .nickname-value {
+                                color: #fff;
+                                font-size: 16px;
+                                font-weight: 600;
+                                min-width: 60px;
+                            }
+                        }
+
+                        .edit-btn {
+                            padding: 8px 12px;
+                            background-color: #9cc385;
+                            color: #000;
+                            border: none;
+                            border-radius: 15px;
+                            font-size: 14px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+
+                            &:hover {
+                                background-color: #c9fbad;
+                                transform: translateY(-1px);
+                            }
+                        }
+                    }
+
+                    .nickname-edit-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+
+                        .nickname-input-wrapper {
+                            position: relative;
+
+                            .nickname-input {
+                                padding: 10px 15px;
+                                border: 2px solid rgba(255, 255, 255, 0.3);
+                                border-radius: 20px;
+                                background-color: rgba(255, 255, 255, 0.1);
+                                color: #fff;
+                                font-size: 16px;
+                                outline: none;
+                                min-width: 200px;
+                                transition: all 0.3s ease;
+
+                                &::placeholder {
+                                    color: rgba(255, 255, 255, 0.6);
+                                }
+
+                                &:focus {
+                                    border-color: #9cc385;
+                                    background-color: rgba(255, 255, 255, 0.15);
+                                    box-shadow: 0 0 0 3px rgba(156, 195, 133, 0.2);
+                                }
+
+                                &.error {
+                                    border-color: #e74c3c;
+
+                                    &:focus {
+                                        box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+                                    }
+                                }
+                            }
+
+                            .nickname-error {
+                                position: absolute;
+                                top: 100%;
+                                left: 0;
+                                margin-top: 5px;
+                                color: #e74c3c;
+                                font-size: 12px;
+                                font-weight: 500;
+                                white-space: nowrap;
+                                background-color: rgba(231, 76, 60, 0.1);
+                                padding: 4px 8px;
+                                border-radius: 8px;
+                                border: 1px solid rgba(231, 76, 60, 0.3);
+                            }
+                        }
+
+                        .nickname-buttons {
+                            display: flex;
+                            gap: 8px;
+
+                            button {
+                                padding: 8px 16px;
+                                border: none;
+                                border-radius: 15px;
+                                font-size: 14px;
+                                font-weight: 500;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+
+                                &.save-btn {
+                                    background-color: #9cc385;
+                                    color: #000;
+
+                                    &:hover {
+                                        background-color: #c9fbad;
+                                        transform: translateY(-1px);
+                                    }
+                                }
+
+                                &.cancel-btn {
+                                    background-color: rgba(255, 255, 255, 0.2);
+                                    color: #fff;
+                                    border: 1px solid rgba(255, 255, 255, 0.3);
+
+                                    &:hover {
+                                        background-color: rgba(255, 255, 255, 0.3);
+                                        transform: translateY(-1px);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             .chat-area-content {
                 height: 600px;
