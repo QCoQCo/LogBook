@@ -8,10 +8,16 @@ import { LogBookProvider } from './context/LogBookContext';
 import './App.css';
 
 const Layout = () => {
+    const [isLogin, setLogin] = useState(false);
+
+    const handleLoginState = (state) => {
+        setLogin(state);
+    };
+
     return (
         // 체팅페이지 다크모드 판별
         <div id='Layout'>
-            <Common.Header />
+            <Common.Header isLogin={isLogin} handleLoginState={handleLoginState} />
             <main>
                 <Outlet />
             </main>
@@ -84,6 +90,7 @@ function App() {
                             }
                         />
                         <Route path='/myPage' element={<Pages.MyPage />} />
+                        <Route path='/signUp' element={<Pages.SignUp />} />
                     </Route>
                 </Routes>
             </BrowserRouter>
