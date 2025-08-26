@@ -24,7 +24,6 @@ const SignUp = () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9+\-()\s]{6,20}$/;
-    // PW: 8-20 chars, must include letter, digit and special char, no spaces (case-insensitive letter check)
     const passwordRegex = /^(?=.{8,20}$)(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])(?!.*\s).+$/;
 
     const validateField = (name, value) => {
@@ -68,7 +67,6 @@ const SignUp = () => {
         }
     };
 
-    // derived per-rule checks for password (used to show individual rule status)
     const pw = values.password || '';
     const passwordChecks = {
         length: pw.length >= 8 && pw.length <= 20,
@@ -79,7 +77,6 @@ const SignUp = () => {
     };
     const allPasswordRulesOk = Object.values(passwordChecks).every(Boolean);
 
-    // ordered rule list for rendering and filtering
     const pwRules = [
         { key: 'length', text: '8~20자', ok: passwordChecks.length },
         { key: 'letter', text: '영문자 1자 이상 (대소문자 무관)', ok: passwordChecks.letter },
@@ -88,7 +85,6 @@ const SignUp = () => {
         { key: 'noSpace', text: '공백 없음', ok: passwordChecks.noSpace },
     ];
 
-    // only show rules that are NOT satisfied
     const failingRules = pwRules.filter((r) => !r.ok);
 
     const validateAll = () => {
@@ -96,12 +92,10 @@ const SignUp = () => {
         Object.keys(values).forEach((k) => {
             next[k] = validateField(k, values[k]);
         });
-        // if password rule checklist not all ok, add generic password error
         if (!allPasswordRulesOk) {
             next.password = next.password || '비밀번호 규칙을 모두 충족해야 합니다.';
         }
 
-        // find first error key to focus
         const firstErrorKey = Object.keys(next).find((k) => next[k]);
 
         setErrors(next);
@@ -118,11 +112,10 @@ const SignUp = () => {
             try {
                 refsMap[firstErrorKey].current.focus();
             } catch (e) {
-                // ignore
+                console.error('Focus error', e);
             }
         }
 
-        // return true if no errors for required fields (id, password, passwordConfirm, email) and password rules ok
         const required = ['id', 'password', 'passwordConfirm', 'email'];
         return required.every((r) => !next[r]) && allPasswordRulesOk;
     };
@@ -130,25 +123,22 @@ const SignUp = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateAll()) return;
-        // store user data in localStorage (demo). Password is base64-encoded here for minimal obfuscation;
-        // do NOT rely on this for real security — a server-side solution is required for production.
         try {
             await signupClient(values.id, values.password, values.email, values.phone);
-            // reset form state
+
             setValues({ id: '', password: '', passwordConfirm: '', email: '', phone: '' });
             setErrors({});
             setSubmitted(true);
         } catch (err) {
-            // signupClient throws when ID exists
             setErrors((prev) => ({ ...prev, id: err.message || '회원가입에 실패했습니다.' }));
         }
     };
 
     const isFormValid = () => {
-        // Require id, password, passwordConfirm and email to be filled
-        if (!values.id || !values.password || !values.passwordConfirm || !values.email)
+        if (!values.id || !values.password || !values.passwordConfirm || !values.email) {
             return false;
-        // no current error messages (phone is optional)
+        }
+
         return (
             !errors.id &&
             !errors.password &&
@@ -225,7 +215,6 @@ const SignUp = () => {
                                 </div>
                             )}
 
-                            {/* show only failing rules; hide satisfied items */}
                             {failingRules.length > 0 && (
                                 <div
                                     id='signup-password-hint'
