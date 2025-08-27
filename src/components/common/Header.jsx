@@ -1,16 +1,18 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import Login from './login.jsx';
-import './Header.scss';
+import { useLogBook } from '../../context/LogBookContext';
 import {
     initAuthChannel,
     addAuthListener,
     migrateLocalToSession,
     sendAuthEvent,
 } from '../../utils/sessionSync';
+import './Header.scss';
 
 const Header = ({ isLogin, handleLoginState }) => {
     const navigate = useNavigate();
+    const { isChatPage } = useLogBook(); // 다크모드 상태 구독
     const [showLogin, setShowLogin] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [showMenu, setShowMenu] = useState(false);
@@ -213,7 +215,7 @@ const Header = ({ isLogin, handleLoginState }) => {
     };
 
     return (
-        <header id='Header'>
+        <header id='Header' className={isChatPage ? 'dark-mode' : ''}>
             <div className='container'>
                 <div className='left'>
                     <Link to='/'>

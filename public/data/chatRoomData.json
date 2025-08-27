@@ -1,0 +1,48 @@
+{
+    "chatRooms": [
+        {
+            "id": 1,
+            "name": "일반 채팅방",
+            "admin": "관리자1",
+            "description": "누구나 참여 가능한 일반적인 채팅방입니다",
+            "capacity": 100,
+            "currentUsers": 5,
+            "isPrivate": false,
+            "createdAt": "2024-01-01",
+            "updatedAt": "2024-01-15"
+        },
+        {
+            "id": 2,
+            "name": "개발자 모임",
+            "admin": "개발팀장",
+            "description": "개발 관련 정보와 질문을 공유하는 채팅방",
+            "capacity": 50,
+            "currentUsers": 12,
+            "isPrivate": false,
+            "createdAt": "2024-01-05",
+            "updatedAt": "2024-01-15"
+        },
+        {
+            "id": 3,
+            "name": "게임 토크",
+            "admin": "게임마스터",
+            "description": "게임에 대한 이야기를 나누는 공간",
+            "capacity": 80,
+            "currentUsers": 25,
+            "isPrivate": false,
+            "createdAt": "2024-01-10",
+            "updatedAt": "2024-01-15"
+        },
+        {
+            "id": 4,
+            "name": "VIP 라운지",
+            "admin": "관리자2",
+            "description": "특별 회원을 위한 프리미엄 채팅방",
+            "capacity": 20,
+            "currentUsers": 8,
+            "isPrivate": true,
+            "createdAt": "2024-01-12",
+            "updatedAt": "2024-01-15"
+        }
+    ]
+}
