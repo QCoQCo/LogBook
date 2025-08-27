@@ -1,17 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import RGL, { WidthProvider } from 'react-grid-layout';
 import { useLogBook } from '../../context/LogBookContext';
+import * as Chat from '../chat';
+
 import './ChatPage.scss';
 
 const ReactGridLayout = WidthProvider(RGL);
 
 const ChatPage = () => {
-    const [layout, setLayout] = useState([
-        { i: 'item1', x: 0, y: 0, w: 2, h: 1 },
-        { i: 'item2', x: 2, y: 0, w: 2, h: 1 },
-        { i: 'item3', x: 4, y: 0, w: 2, h: 1 },
-        { i: 'item4', x: 6, y: 0, w: 2, h: 1 },
-    ]);
+    // const [layout, setLayout] = useState([
+    //     { i: 'item1', x: 0, y: 0, w: 2, h: 1 },
+    //     { i: 'item2', x: 2, y: 0, w: 2, h: 1 },
+    //     { i: 'item3', x: 4, y: 0, w: 2, h: 1 },
+    //     { i: 'item4', x: 6, y: 0, w: 2, h: 1 },
+    // ]);
 
     // 현재 포트 감지
     const getCurrentPort = () => {
@@ -44,8 +46,28 @@ const ChatPage = () => {
     }, []);
 
     // LogBook Context 사용
-    const { messages, loading, error, sendMessage, deleteMessage, clearError, updateUserNickname } =
-        useLogBook();
+    const {
+        messages,
+        loading,
+        error,
+        sendMessage,
+        deleteMessage,
+        clearError,
+        updateUserNickname,
+        setIsChatPage,
+        currentChatRoom,
+        chatRoomList,
+    } = useLogBook();
+
+    // ChatPage 진입 시 다크모드 활성화
+    useEffect(() => {
+        setIsChatPage(true);
+
+        // ChatPage 이탈 시 다크모드 비활성화
+        return () => {
+            setIsChatPage(false);
+        };
+    }, [setIsChatPage]);
 
     // 메시지 영역 스크롤을 위한 ref
     const messagesEndRef = useRef(null);
@@ -168,7 +190,15 @@ const ChatPage = () => {
                 <div className='chat-area'>
                     <div className='chat-area-header'>
                         <div className='chat-area-header-title'>
-                            <h1>Chat-Area</h1>
+                            {currentChatRoom && (
+                                <div className='current-chat-room'>
+                                    <span className='room-indicator'>📍</span>
+                                    <span className='room-name'>{currentChatRoom.name}</span>
+                                    <span className='room-users'>
+                                        ({currentChatRoom.currentUsers}/{currentChatRoom.capacity})
+                                    </span>
+                                </div>
+                            )}
                         </div>
                         <div className='chat-nick-name-section'>
                             {isEditingNickname ? (
@@ -209,7 +239,7 @@ const ChatPage = () => {
                                         <span className='nickname-value'>{currentUser.name}</span>
                                     </div>
                                     <button onClick={handleStartEditNickname} className='edit-btn'>
-                                        ✏️ 수정
+                                        닉네임 수정
                                     </button>
                                 </div>
                             )}
@@ -227,44 +257,22 @@ const ChatPage = () => {
                             </div>
                         )}
 
-                        <div className='messages-container'>
-                            {/* 실시간 메시지 렌더링 */}
-                            {messages.map((message) => {
-                                // 메시지 소유권 판별: 같은 사용자 ID이거나 같은 포트에서 온 메시지
-                                const isOwnMessage =
-                                    message.userId === currentUser.id ||
-                                    (message.port && message.port === currentUser.port);
+                        {/* 디버깅 정보 (개발 모드에서만 표시) */}
+                        {process.env.NODE_ENV === 'development' && currentChatRoom && (
+                            <div className='debug-info'>
+                                <small>
+                                    현재 채팅방: {currentChatRoom.name} | 메시지 수:{' '}
+                                    {messages.length}
+                                </small>
+                            </div>
+                        )}
 
-                                return (
-                                    <div
-                                        key={message.id}
-                                        className={`message ${
-                                            isOwnMessage ? 'own-message' : 'other-message'
-                                        }`}
-                                    >
-                                        <div className='message-header'>
-                                            <span className='user-name'>{message.userName}</span>
-                                            <span className='timestamp'>
-                                                {message.timestamp
-                                                    ?.toDate?.()
-                                                    ?.toLocaleTimeString() || '방금 전'}
-                                            </span>
-                                            {isOwnMessage && (
-                                                <button
-                                                    onClick={() => handleDeleteMessage(message.id)}
-                                                    className='delete-button'
-                                                    title='메시지 삭제'
-                                                >
-                                                    🗑️
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className='message-content'>{message.text}</div>
-                                    </div>
-                                );
-                            })}
-                            <div ref={messagesEndRef} />
-                        </div>
+                        <Chat.ChatMessage
+                            messages={messages}
+                            currentUser={currentUser}
+                            handleDeleteMessage={handleDeleteMessage}
+                            messagesEndRef={messagesEndRef}
+                        />
                     </div>
                     <div className='chat-area-input'>
                         <input
@@ -280,64 +288,7 @@ const ChatPage = () => {
                     </div>
                 </div>
                 <div className='list-area'>
-                    {/* 리스트 컴포넌트로 대체될 항목 */}
-                    {/* <div className='list grid-container'>
-                        <ReactGridLayout
-                            className='layout'
-                            onLayoutChange={onLayoutChange}
-                            layout={layout}
-                            rowHeight={30}
-                            compactType='horizontal'
-                            isDraggable={true}
-                            isResizable={true}
-                            autoSize={false}
-                            preventCollision={false}
-                            bounds='parent'
-                            margin={[5, 5]}
-                            containerPadding={[10, 10]}
-                            useCSSTransforms={true}
-                            transformScale={1}
-                            isBounded={true}
-                            resizeHandles={[]}
-                        >
-                            <div key='item1' className='grid-item'>
-                                <span className='text'>항목1</span>
-                            </div>
-                            <div key='item2' className='grid-item'>
-                                <span className='text'>항목2</span>
-                            </div>
-                            <div key='item3' className='grid-item'>
-                                <span className='text'>항목3</span>
-                            </div>
-                            <div key='item4' className='grid-item'>
-                                <span className='text'>항목4</span>
-                            </div>
-                        </ReactGridLayout>
-                    </div>
-                    <div className='list'>
-                        <ul>
-                            <li>리스트</li>
-                            <li>리스트</li>
-                            <li>리스트</li>
-                            <li>리스트</li>
-                        </ul>
-                    </div>
-                    <div className='list'>
-                        <ul>
-                            <li>리스트</li>
-                            <li>리스트</li>
-                            <li>리스트</li>
-                            <li>리스트</li>
-                        </ul>
-                    </div>
-                    <div className='list'>
-                        <ul>
-                            <li>리스트</li>
-                            <li>리스트</li>
-                            <li>리스트</li>
-                        </ul>
-                    </div> */}
-                    {/* 리스트 컴포넌트로 대체될 항목 */}
+                    <Chat.ChatRoomList />
                 </div>
             </div>
         </div>

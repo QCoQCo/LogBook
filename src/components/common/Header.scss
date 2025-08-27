@@ -284,4 +284,97 @@
             }
         }
     }
+    // 다크모드 스타일
+    &.dark-mode {
+        background-color: #1a1a1a;
+        border-bottom: 1px solid #333;
+
+        .container {
+            .left {
+                a {
+                    .title {
+                        filter: invert(1) brightness(2);
+                    }
+                }
+            }
+
+            .right {
+                .search-area {
+                    background: #2a2a2a;
+                    border-color: #444;
+
+                    .search-input {
+                        background: linear-gradient(180deg, #2a2a2a, #222);
+                        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+                    }
+
+                    .input-icon {
+                        color: #aaa;
+                    }
+
+                    input {
+                        color: #fff;
+
+                        &::placeholder {
+                            color: #888;
+                        }
+                    }
+
+                    .clear-btn {
+                        color: #aaa;
+
+                        &:hover {
+                            color: #fff;
+                        }
+                    }
+                }
+
+                .search-btn {
+                    .search-toggle {
+                        color: #aaa;
+
+                        &:hover {
+                            color: #fff;
+                        }
+                    }
+                }
+
+                .notification-btn {
+                    color: #aaa;
+
+                    &:hover {
+                        color: #fff;
+                    }
+                }
+
+                .user-area {
+                    .user-profile {
+                        border-color: #444;
+                    }
+
+                    .user-name {
+                        color: #ddd;
+                    }
+
+                    .user-menu {
+                        background: #2a2a2a;
+                        border-color: #444;
+                        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+
+                        li {
+                            a,
+                            button,
+                            .link {
+                                color: #ddd;
+
+                                &:hover {
+                                    background: #3a3a3a;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

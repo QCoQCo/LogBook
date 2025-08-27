@@ -60,3 +60,41 @@
         }
     }
 }
+
+// 다크모드 스타일
+#Footer.dark-mode {
+    background-color: #1a1a1a;
+    border-top: 1px solid #333;
+
+    .container {
+        .top {
+            .icons {
+                .title {
+                    filter: brightness(0.9) contrast(1.1);
+                }
+            }
+
+            .terms {
+                .left {
+                    color: #aaa;
+                }
+
+                .right {
+                    color: #aaa;
+
+                    a {
+                        color: #aaa;
+
+                        &:hover {
+                            color: #fff;
+                        }
+                    }
+
+                    .skull {
+                        color: #aaa;
+                    }
+                }
+            }
+        }
+    }
+}
