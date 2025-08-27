@@ -1,171 +1,190 @@
 #MyPage {
     position: relative;
-    display: flex;
-    gap: 30px;
+    padding: 60px 0px;
 
-    .user-info-area {
+    .mypage-wrapper {
+        position: relative;
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 40px;
-        padding-top: 60px;
-        flex: 0.3;
+        gap: 30px;
 
-        .profile-photo {
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            background-color: bisque;
-        }
+        .user-info-area {
+            position: sticky;
+            top: 60px;
+            left: 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 500px;
+            gap: 40px;
+            flex: 0.3;
 
-        .user-introduction {
-            width: 100%;
+            .profile-photo {
+                width: 250px;
+                height: 250px;
+                border: 1px solid #cccccc;
+                border-radius: 50%;
+                overflow: hidden;
+                text-align: center;
+                align-content: center;
+                #user-profile-photo {
+                    width: 85%;
+                }
+            }
 
-            textarea {
+            .user-introduction {
                 width: 100%;
-                height: 150px;
+
+                textarea {
+                    font-family: 'Pretendard Variable', Pretendard, sans-serif;
+                    width: 100%;
+                    height: 150px;
+                    resize: none;
+                    padding: 20px;
+                    font-size: 18px;
+                }
             }
         }
-    }
 
-    .blog-area {
-        flex: 1;
+        .blog-area {
+            flex: 1;
 
-        .react-grid-layout {
-            position: relative;
-            transition: height 200ms ease;
-            background-color: azure;
-            margin: 0 auto;
-            overflow: hidden;
+            .react-grid-layout {
+                position: relative;
+                transition: height 200ms ease;
+                background-color: azure;
+                margin: 0 auto;
+                min-height: 550px;
+                overflow: hidden;
 
-            .react-grid-item {
-                cursor: pointer;
-                transition: all 200ms ease;
-                background-color: #9ee7e7;
-                transition-property: left, top, width, height;
-                border-radius: 10px;
+                .react-grid-item {
+                    cursor: pointer;
+                    transition: all 200ms ease;
+                    background-color: #9ee7e7;
+                    transition-property: left, top, width, height;
+                    border-radius: 10px;
 
-                a {
-                    display: block;
-                    width: 100%;
-                    height: 100%;
-                }
+                    a {
+                        display: block;
+                        width: 100%;
+                        height: 100%;
+                    }
 
-                img {
-                    pointer-events: none;
-                    user-select: none;
-                }
+                    img {
+                        pointer-events: none;
+                        user-select: none;
+                    }
 
-                &.cssTransforms {
-                    transition-property: transform, width, height;
-                }
+                    &.cssTransforms {
+                        transition-property: transform, width, height;
+                    }
 
-                &.resizing {
-                    transition: none;
-                    z-index: 1;
-                    will-change: width, height;
-                }
-
-                &.react-draggable-dragging {
-                    transition: none;
-                    z-index: 3;
-                    will-change: transform;
-                }
-
-                &.dropping {
-                    visibility: hidden;
-                }
-
-                &.react-grid-placeholder {
-                    border: 3px dashed #c80cf7;
-                    opacity: 0.2;
-                    transition-duration: 100ms;
-                    z-index: 2;
-                    user-select: none;
-                    -webkit-user-select: none;
-                    -moz-user-select: none;
-                    -ms-user-select: none;
-                    -o-user-select: none;
-                    &.placeholder-resizing {
+                    &.resizing {
                         transition: none;
+                        z-index: 1;
+                        will-change: width, height;
                     }
-                }
 
-                > .react-resizable-handle {
-                    position: absolute;
-                    width: 20px;
-                    height: 20px;
+                    &.react-draggable-dragging {
+                        transition: none;
+                        z-index: 3;
+                        will-change: transform;
+                    }
 
-                    &::after {
-                        content: '';
+                    &.dropping {
+                        visibility: hidden;
+                    }
+
+                    &.react-grid-placeholder {
+                        border: 3px dashed #c80cf7;
+                        opacity: 0.2;
+                        transition-duration: 100ms;
+                        z-index: 2;
+                        user-select: none;
+                        -webkit-user-select: none;
+                        -moz-user-select: none;
+                        -ms-user-select: none;
+                        -o-user-select: none;
+                        &.placeholder-resizing {
+                            transition: none;
+                        }
+                    }
+
+                    > .react-resizable-handle {
                         position: absolute;
-                        right: 6px;
-                        bottom: 6px;
-                        width: 5px;
-                        height: 5px;
-                        border-right: 2px solid #00000066;
-                        border-bottom: 2px solid #00000066;
-                    }
+                        width: 20px;
+                        height: 20px;
 
-                    &.react-resizable-handle-sw {
-                        bottom: 0;
-                        left: 0;
-                        cursor: sw-resize;
-                        transform: rotate(90deg);
-                    }
+                        &::after {
+                            content: '';
+                            position: absolute;
+                            right: 6px;
+                            bottom: 6px;
+                            width: 5px;
+                            height: 5px;
+                            border-right: 2px solid #00000066;
+                            border-bottom: 2px solid #00000066;
+                        }
 
-                    &.react-resizable-handle-se {
-                        bottom: 0;
-                        right: 0;
-                        cursor: se-resize;
-                    }
+                        &.react-resizable-handle-sw {
+                            bottom: 0;
+                            left: 0;
+                            cursor: sw-resize;
+                            transform: rotate(90deg);
+                        }
 
-                    &.react-resizable-handle-nw {
-                        top: 0;
-                        left: 0;
-                        cursor: nw-resize;
-                        transform: rotate(180deg);
-                    }
+                        &.react-resizable-handle-se {
+                            bottom: 0;
+                            right: 0;
+                            cursor: se-resize;
+                        }
 
-                    &.react-resizable-handle-ne {
-                        top: 0;
-                        right: 0;
-                        cursor: ne-resize;
-                        transform: rotate(270deg);
-                    }
+                        &.react-resizable-handle-nw {
+                            top: 0;
+                            left: 0;
+                            cursor: nw-resize;
+                            transform: rotate(180deg);
+                        }
 
-                    &.react-resizable-handle-w,
-                    &.react-resizable-handle-e {
-                        top: 50%;
-                        margin-top: -10px;
-                        cursor: ew-resize;
-                    }
+                        &.react-resizable-handle-ne {
+                            top: 0;
+                            right: 0;
+                            cursor: ne-resize;
+                            transform: rotate(270deg);
+                        }
 
-                    &.react-resizable-handle-w {
-                        left: 0;
-                        transform: rotate(135deg);
-                    }
+                        &.react-resizable-handle-w,
+                        &.react-resizable-handle-e {
+                            top: 50%;
+                            margin-top: -10px;
+                            cursor: ew-resize;
+                        }
 
-                    &.react-resizable-handle-e {
-                        right: 0;
-                        transform: rotate(315deg);
-                    }
+                        &.react-resizable-handle-w {
+                            left: 0;
+                            transform: rotate(135deg);
+                        }
 
-                    &.react-resizable-handle-n,
-                    &.react-resizable-handle-s {
-                        left: 50%;
-                        margin-left: -10px;
-                        cursor: ns-resize;
-                    }
+                        &.react-resizable-handle-e {
+                            right: 0;
+                            transform: rotate(315deg);
+                        }
 
-                    &.react-resizable-handle-n {
-                        top: 0;
-                        transform: rotate(225deg);
-                    }
+                        &.react-resizable-handle-n,
+                        &.react-resizable-handle-s {
+                            left: 50%;
+                            margin-left: -10px;
+                            cursor: ns-resize;
+                        }
 
-                    &.react-resizable-handle-s {
-                        bottom: 0;
-                        transform: rotate(45deg);
+                        &.react-resizable-handle-n {
+                            top: 0;
+                            transform: rotate(225deg);
+                        }
+
+                        &.react-resizable-handle-s {
+                            bottom: 0;
+                            transform: rotate(45deg);
+                        }
                     }
                 }
             }
@@ -173,23 +192,61 @@
     }
 
     .floating-droppables-ui {
-        position: fixed;
+        position: sticky;
         bottom: 5%;
         left: 50%;
-        margin-left: -150px;
+        transform: translateX(-50%);
         display: flex;
         justify-content: space-between;
-        width: 300px;
-        height: 50px;
+        width: 500px;
+        height: 70px;
+        padding: 10px 50px;
+        border: 2px dashed #b9b9b9;
+        border-radius: 35px;
         z-index: 5;
-        background-color: pink;
+        background-color: #fafafa;
+        box-shadow: 10px 10px 15px #9b9b9b;
 
-        .droppable-element {
-            width: 80px;
+        > div {
+            position: relative;
+            width: 50px;
             height: 50px;
+            cursor: pointer;
             text-align: center;
             border-radius: 10px;
             background-color: #9ee7e7;
+
+            &:hover i,
+            &:focus i {
+                display: block;
+            }
+
+            i {
+                position: absolute;
+                display: none;
+                height: 2.3em;
+                width: 8em;
+                bottom: -2.8em;
+                left: calc(-50% + 1.25em);
+                padding: 0.5em 0.5em;
+                text-align: center;
+                color: #fff;
+                font-size: 18px;
+                background-color: #585858;
+                box-sizing: border-box;
+                transform: translateX(calc(-20%));
+                border-radius: 0.4em;
+            }
+
+            img {
+                width: 100%;
+                padding: 8px;
+                object-fit: contain;
+            }
+
+            .link-element {
+                padding: 10px;
+            }
         }
     }
 
