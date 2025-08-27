@@ -220,11 +220,6 @@ const Header = () => {
                                             </a>
                                         </li>
                                         <li role='menuitem'>
-                                            <Link to='/settings' onClick={() => setShowMenu(false)}>
-                                                설정
-                                            </Link>
-                                        </li>
-                                        <li role='menuitem'>
                                             <button type='button' onClick={handleLogout}>
                                                 로그아웃
                                             </button>
