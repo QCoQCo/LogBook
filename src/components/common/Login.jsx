@@ -48,7 +48,9 @@ const Login = ({ onClose = () => {}, handleLoginState }) => {
                 );
                 // broadcast login to other tabs
                 try {
-                    sendAuthEvent('login', { id: user?.id, email: user?.email });
+                    const payload = { id: user?.id, email: user?.email };
+                    console.debug('[Login] broadcasting login', payload);
+                    sendAuthEvent('login', payload);
                 } catch (e) {
                     // ignore
                 }
