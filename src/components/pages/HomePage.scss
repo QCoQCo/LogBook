@@ -1,0 +1,121 @@
+/* HomePage styles for card grid */
+#HomePage {
+    padding: 32px 24px;
+
+    .container {
+        margin: 0 auto;
+    }
+
+    .layout {
+        /* react-grid-layout container tweaks */
+        display: block;
+        position: relative;
+    }
+
+    .post-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(10, 10, 10, 0.06);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+
+        .card-link {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+            height: 100%;
+            width: 100%;
+        }
+
+        .card-thumb {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #fafafa, #f2f2f2);
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+            box-sizing: border-box;
+            /* ensure image fills and broken icon is visually handled */
+            overflow: hidden;
+            line-height: 0; /* hide alt text baseline */
+
+            img {
+                width: 100%;
+                height: 100%;
+                display: block;
+                object-fit: cover;
+                object-position: center;
+                transition: opacity 160ms ease;
+                opacity: 1;
+            }
+
+            .img-placeholder {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #999;
+                font-size: 13px;
+            }
+        }
+
+        .card-body {
+            padding: 12px 14px;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 14px;
+            margin: 0 0 8px 0;
+            line-height: 1.25;
+            color: #111;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-excerpt {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+            flex: 1 1 auto;
+            overflow: hidden;
+        }
+
+        &:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(10, 10, 10, 0.12);
+        }
+    }
+
+    /* Responsive: visual column sizing for when grid width changes */
+    @media (max-width: 1100px) {
+        #HomePage .container {
+            max-width: 960px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        #HomePage .container {
+            max-width: 680px;
+        }
+    }
+
+    @media (max-width: 560px) {
+        #HomePage .container {
+            max-width: 360px;
+        }
+        .post-card .card-thumb {
+            height: 100px;
+        }
+    }
+}

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import Login from './login.jsx';
-import { useLogBook } from '../../context/LogBookContext';
+import { useLogBook, useAuth } from '../../context/LogBookContext';
 import {
     initAuthChannel,
     addAuthListener,
@@ -10,11 +10,11 @@ import {
 } from '../../utils/sessionSync';
 import './Header.scss';
 
-const Header = ({ isLogin, handleLoginState }) => {
+const Header = () => {
     const navigate = useNavigate();
     const { isChatPage } = useLogBook(); // 다크모드 상태 구독
     const [showLogin, setShowLogin] = useState(false);
-    const [currentUser, setCurrentUser] = useState(null);
+    const { currentUser, isLogin, logout } = useAuth();
     const [showMenu, setShowMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -22,111 +22,6 @@ const Header = ({ isLogin, handleLoginState }) => {
     const searchAreaRef = useRef(null);
     const searchAreaElRef = useRef(null);
     const menuRef = useRef(null);
-
-    useEffect(() => {
-        // init channel and migrate any legacy localStorage entry
-        try {
-            initAuthChannel();
-        } catch (e) {
-            // ignore
-        }
-        try {
-            migrateLocalToSession();
-        } catch (e) {
-            // ignore
-        }
-        try {
-            const raw =
-                sessionStorage.getItem('logbook_current_user') ||
-                localStorage.getItem('logbook_current_user');
-            if (raw) setCurrentUser(JSON.parse(raw));
-        } catch (e) {
-            // ignore
-        }
-        // request current-session from other tabs (they will reply with 'login' payload)
-        try {
-            console.debug('[Header] sending request for session to other tabs');
-            sendAuthEvent('request');
-        } catch (e) {
-            // ignore
-        }
-    }, []);
-
-    // auth events listener for multi-tab sync
-    useEffect(() => {
-        const unsub = addAuthListener((data) => {
-            if (!data || !data.type) return;
-            // console.debug('[Header] auth event received', data);
-            // if another tab requests current session, respond with login payload if available
-            if (data.type === 'request') {
-                try {
-                    const raw =
-                        sessionStorage.getItem('logbook_current_user') ||
-                        localStorage.getItem('logbook_current_user');
-                    if (raw) {
-                        try {
-                            const payload = JSON.parse(raw);
-                            console.debug(
-                                '[Header] replying with login payload to requester',
-                                payload
-                            );
-                            sendAuthEvent('login', payload);
-                        } catch (e) {
-                            // ignore
-                        }
-                    }
-                } catch (e) {
-                    // ignore
-                }
-                return;
-            }
-            if (data.type === 'login') {
-                try {
-                    if (data.payload) {
-                        // ensure this tab has session data
-                        try {
-                            console.debug(
-                                '[Header] writing login payload to sessionStorage',
-                                data.payload
-                            );
-                            sessionStorage.setItem(
-                                'logbook_current_user',
-                                JSON.stringify(data.payload)
-                            );
-                        } catch (e) {
-                            // ignore
-                        }
-                        setCurrentUser(data.payload);
-                    } else {
-                        const raw =
-                            sessionStorage.getItem('logbook_current_user') ||
-                            localStorage.getItem('logbook_current_user');
-                        setCurrentUser(raw ? JSON.parse(raw) : null);
-                    }
-                } catch (e) {
-                    // ignore
-                }
-            }
-            if (data.type === 'logout') {
-                try {
-                    sessionStorage.removeItem('logbook_current_user');
-                } catch (e) {
-                    // ignore
-                }
-                console.debug('[Header] received logout event, cleared sessionStorage');
-                setCurrentUser(null);
-                setShowMenu(false);
-                if (typeof handleLoginState === 'function') handleLoginState(false);
-            }
-        });
-        return () => {
-            try {
-                unsub();
-            } catch (e) {
-                // ignore
-            }
-        };
-    }, [handleLoginState]);
 
     const toggleLogin = () => setShowLogin((s) => !s);
     const toggleMenu = () => setShowMenu((s) => !s);
@@ -180,21 +75,11 @@ const Header = ({ isLogin, handleLoginState }) => {
 
     const handleLogout = () => {
         try {
-            sessionStorage.removeItem('logbook_current_user');
-            // also remove localStorage entry for compatibility/migration
-            localStorage.removeItem('logbook_current_user');
+            logout();
         } catch (e) {
             // ignore
         }
-        // broadcast logout so other tabs can clear state
-        try {
-            sendAuthEvent('logout');
-        } catch (e) {
-            // ignore
-        }
-        setCurrentUser(null);
         setShowMenu(false);
-        if (typeof handleLoginState === 'function') handleLoginState(false);
         navigate('/');
     };
 
@@ -335,16 +220,11 @@ const Header = ({ isLogin, handleLoginState }) => {
                                         <li role='menuitem'>
                                             <a
                                                 href='/myPage'
-                                                target='_blank'
+                                                target='_self'
                                                 rel='noopener noreferrer'
                                             >
                                                 내 블로그
                                             </a>
-                                        </li>
-                                        <li role='menuitem'>
-                                            <Link to='/settings' onClick={() => setShowMenu(false)}>
-                                                설정
-                                            </Link>
                                         </li>
                                         <li role='menuitem'>
                                             <button type='button' onClick={handleLogout}>
@@ -357,12 +237,7 @@ const Header = ({ isLogin, handleLoginState }) => {
                         ) : (
                             <div>
                                 <button onClick={toggleLogin}>로그인</button>
-                                {showLogin && (
-                                    <Login
-                                        onClose={toggleLogin}
-                                        handleLoginState={handleLoginState}
-                                    />
-                                )}
+                                {showLogin && <Login onClose={toggleLogin} />}
                             </div>
                         )}
                     </div>
