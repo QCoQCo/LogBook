@@ -2,18 +2,10 @@ import { Link } from 'react-router-dom';
 
 import * as Common from '../common';
 import './HomePage.scss';
+import { useAuth } from '../../context/LogBookContext';
 
 const HomePage = () => {
-    // quick client-side login detection using session/local storage key used elsewhere in the app
-    let isLogin = false;
-    try {
-        const raw =
-            sessionStorage.getItem('logbook_current_user') ||
-            localStorage.getItem('logbook_current_user');
-        isLogin = !!raw;
-    } catch (e) {
-        isLogin = false;
-    }
+    const { isLogin } = useAuth();
 
     return (
         <div id='HomePage'>

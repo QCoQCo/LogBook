@@ -3,16 +3,16 @@ import ReactDOM from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import './login.scss';
 import { loginClient } from '../../utils/auth';
-import { initAuthChannel, sendAuthEvent, migrateLocalToSession } from '../../utils/sessionSync';
+import { useAuth } from '../../context/LogBookContext';
 
-const Login = ({ onClose = () => {}, handleLoginState }) => {
+const Login = ({ onClose = () => {} }) => {
+    const { login } = useAuth();
+
     useEffect(() => {
         const onKey = (e) => {
             if (e.key === 'Escape') onClose();
         };
-        // init auth channel and perform migration if needed
-        initAuthChannel();
-        migrateLocalToSession();
+        // auth channel/migration are handled by AuthProvider; only modal key/overflow here
         document.addEventListener('keydown', onKey);
         const prevOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
@@ -36,30 +36,65 @@ const Login = ({ onClose = () => {}, handleLoginState }) => {
         }
 
         try {
+            // 1) Try static data file (plaintext passwords) first
+            let user = null;
+            try {
+                const resp = await fetch('/data/userData.json');
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const users = Array.isArray(data) ? data : data.users || [];
+                    // note: file uses `userId` and `password` fields
+                    user = users.find((u) => u.userId === userId);
+                    if (user && user.password === password) {
+                        const payload = { id: user.userId, email: user.userEmail };
+                        try {
+                            login(payload, false);
+                        } catch (e) {}
+                        onClose();
+                        navigate('/myPage');
+                        return;
+                    }
+                }
+            } catch (err) {
+                // ignore fetch errors; fall through to loginClient
+            }
+
+            // 2) Fallback to local hashed users via loginClient
             const ok = await loginClient(userId, password);
             if (ok) {
-                const usersJson = localStorage.getItem('logbook_users');
-                const users = usersJson ? JSON.parse(usersJson) : [];
-                const user = users.find((u) => u.id === userId);
-                // save current user in sessionStorage (session-only)
-                sessionStorage.setItem(
-                    'logbook_current_user',
-                    JSON.stringify({ id: user?.id, email: user?.email })
-                );
-                // broadcast login to other tabs
+                // try to find user info in localStorage
+                let storedUser = null;
                 try {
-                    const payload = { id: user?.id, email: user?.email };
-                    console.debug('[Login] broadcasting login', payload);
-                    sendAuthEvent('login', payload);
-                } catch (e) {
-                    // ignore
+                    const usersJson = localStorage.getItem('logbook_users');
+                    const users = usersJson ? JSON.parse(usersJson) : [];
+                    storedUser = users.find((u) => u.id === userId || u.userId === userId);
+                } catch (e) {}
+
+                // if not found, try static file again to get profile/email
+                if (!storedUser) {
+                    try {
+                        const resp2 = await fetch('/data/userData.json');
+                        if (resp2.ok) {
+                            const data2 = await resp2.json();
+                            const users2 = Array.isArray(data2) ? data2 : data2.users || [];
+                            storedUser = users2.find((u) => u.userId === userId || u.id === userId);
+                        }
+                    } catch (e) {}
                 }
-                handleLoginState(true);
+
+                const payload = {
+                    id: storedUser?.id || storedUser?.userId || userId,
+                    email: storedUser?.userEmail || storedUser?.email,
+                };
+                try {
+                    login(payload, false);
+                } catch (e) {}
                 onClose();
                 navigate('/myPage');
-            } else {
-                setError('아이디 또는 비밀번호가 일치하지 않습니다.');
+                return;
             }
+
+            setError('아이디 또는 비밀번호가 일치하지 않습니다.');
         } catch (err) {
             // console.error('로그인 처리 오류', err);
             setError('로그인 중 오류가 발생했습니다. 콘솔을 확인하세요.');

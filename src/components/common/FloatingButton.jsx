@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FloatingButton.scss';
+import { useAuth } from '../../context/LogBookContext';
 
 const FloatingButton = () => {
     const [open, setOpen] = useState(false);
+    const { isLogin } = useAuth();
     const navigate = useNavigate();
 
     const toggle = () => setOpen((s) => !s);
@@ -22,6 +24,8 @@ const FloatingButton = () => {
         setOpen(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
+    if (!isLogin) return null;
 
     const actions = [
         {

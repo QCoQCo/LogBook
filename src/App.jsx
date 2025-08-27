@@ -3,59 +3,15 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import * as Common from './components/common';
 import * as Pages from './components/pages';
-import { LogBookProvider } from './context/LogBookContext';
+import { LogBookProvider, AuthProvider } from './context/LogBookContext';
 
 import './App.css';
-import { initAuthChannel, addAuthListener, migrateLocalToSession } from './utils/sessionSync';
 
 const Layout = () => {
-    const [isLogin, setLogin] = useState(false);
-
-    const handleLoginState = (state) => {
-        setLogin(state);
-    };
-
-    useEffect(() => {
-        // initialize auth channel and migrate any legacy storage
-        try {
-            initAuthChannel();
-        } catch (e) {
-            // ignore
-        }
-        try {
-            migrateLocalToSession();
-        } catch (e) {
-            // ignore
-        }
-        // set initial login state from sessionStorage (fallback to localStorage)
-        try {
-            const raw =
-                sessionStorage.getItem('logbook_current_user') ||
-                localStorage.getItem('logbook_current_user');
-            setLogin(!!raw);
-        } catch (e) {
-            // ignore
-        }
-
-        // listen for auth events from other tabs
-        const unsub = addAuthListener((data) => {
-            if (!data || !data.type) return;
-            if (data.type === 'login') setLogin(true);
-            if (data.type === 'logout') setLogin(false);
-        });
-        return () => {
-            try {
-                unsub();
-            } catch (e) {
-                // ignore
-            }
-        };
-    }, []);
-
     return (
         // 체팅페이지 다크모드 판별
         <div id='Layout'>
-            <Common.Header isLogin={isLogin} handleLoginState={handleLoginState} />
+            <Common.Header />
             <main>
                 <Outlet />
             </main>
@@ -110,29 +66,31 @@ function App() {
     };
 
     return (
-        <LogBookProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path='/' element={<Layout />}>
-                        <Route index element={<Pages.HomePage />} />
-                        <Route path='/chat' element={<Pages.ChatPage />} />
-                        <Route
-                            path='/playlist/:playId'
-                            element={
-                                <Pages.Playlist
-                                    playlist={playlist}
-                                    addSong={addSong}
-                                    updatePlaylistSongs={updatePlaylistSongs}
-                                    deletePlaylistSongs={deletePlaylistSongs}
-                                />
-                            }
-                        />
-                        <Route path='/myPage' element={<Pages.MyPage />} />
-                        <Route path='/signUp' element={<Pages.SignUp />} />
-                    </Route>
-                </Routes>
-            </BrowserRouter>
-        </LogBookProvider>
+        <AuthProvider>
+            <LogBookProvider>
+                <BrowserRouter>
+                    <Routes>
+                        <Route path='/' element={<Layout />}>
+                            <Route index element={<Pages.HomePage />} />
+                            <Route path='/chat' element={<Pages.ChatPage />} />
+                            <Route
+                                path='/playlist/:playId'
+                                element={
+                                    <Pages.Playlist
+                                        playlist={playlist}
+                                        addSong={addSong}
+                                        updatePlaylistSongs={updatePlaylistSongs}
+                                        deletePlaylistSongs={deletePlaylistSongs}
+                                    />
+                                }
+                            />
+                            <Route path='/myPage' element={<Pages.MyPage />} />
+                            <Route path='/signUp' element={<Pages.SignUp />} />
+                        </Route>
+                    </Routes>
+                </BrowserRouter>
+            </LogBookProvider>
+        </AuthProvider>
     );
 }
 

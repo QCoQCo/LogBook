@@ -11,6 +11,12 @@ import {
     doc,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import {
+    initAuthChannel,
+    addAuthListener,
+    migrateLocalToSession,
+    sendAuthEvent,
+} from '../utils/sessionSync';
 
 // LogBookContext 생성
 const LogBookContext = createContext();
@@ -155,4 +161,114 @@ export const useLogBook = () => {
         throw new Error('useLogBook must be used within a LogBookProvider');
     }
     return context;
+};
+
+// AuthContext 생성
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        try {
+            initAuthChannel();
+        } catch (e) {}
+        try {
+            migrateLocalToSession();
+        } catch (e) {}
+
+        try {
+            const raw =
+                sessionStorage.getItem('logbook_current_user') ||
+                localStorage.getItem('logbook_current_user');
+            setCurrentUser(raw ? JSON.parse(raw) : null);
+        } catch (e) {
+            setCurrentUser(null);
+        }
+
+        const unsub = addAuthListener((data) => {
+            if (!data || !data.type) return;
+            if (data.type === 'request') {
+                // respond with login payload if available
+                try {
+                    const raw =
+                        sessionStorage.getItem('logbook_current_user') ||
+                        localStorage.getItem('logbook_current_user');
+                    if (raw) {
+                        const payload = JSON.parse(raw);
+                        sendAuthEvent('login', payload);
+                    }
+                } catch (e) {
+                    // ignore
+                }
+                return;
+            }
+            if (data.type === 'login') {
+                try {
+                    if (data.payload) {
+                        try {
+                            sessionStorage.setItem(
+                                'logbook_current_user',
+                                JSON.stringify(data.payload)
+                            );
+                        } catch (e) {}
+                        setCurrentUser(data.payload);
+                    } else {
+                        const raw =
+                            sessionStorage.getItem('logbook_current_user') ||
+                            localStorage.getItem('logbook_current_user');
+                        setCurrentUser(raw ? JSON.parse(raw) : null);
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+            if (data.type === 'logout') {
+                try {
+                    sessionStorage.removeItem('logbook_current_user');
+                } catch (e) {}
+                setCurrentUser(null);
+            }
+        });
+
+        return () => {
+            try {
+                unsub && unsub();
+            } catch (e) {}
+        };
+    }, []);
+
+    const login = useCallback((payload, persist = false) => {
+        try {
+            sessionStorage.setItem('logbook_current_user', JSON.stringify(payload));
+            if (persist) localStorage.setItem('logbook_current_user', JSON.stringify(payload));
+        } catch (e) {}
+        setCurrentUser(payload);
+        try {
+            sendAuthEvent('login', payload);
+        } catch (e) {}
+    }, []);
+
+    const logout = useCallback(() => {
+        try {
+            sessionStorage.removeItem('logbook_current_user');
+            localStorage.removeItem('logbook_current_user');
+        } catch (e) {}
+        setCurrentUser(null);
+        try {
+            sendAuthEvent('logout');
+        } catch (e) {}
+    }, []);
+
+    return (
+        <AuthContext.Provider value={{ currentUser, isLogin: !!currentUser, login, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+export const useAuth = () => {
+    const ctx = useContext(AuthContext);
+    if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+    return ctx;
 };
