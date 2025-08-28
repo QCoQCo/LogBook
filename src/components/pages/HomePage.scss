@@ -1,13 +1,14 @@
-/* HomePage styles for card grid */
+/* HomePage.scss */
 #HomePage {
     padding: 32px 24px;
+    position: relative;
 
     .container {
         margin: 0 auto;
+        position: relative; /* new: allow absolutely positioned dropped snippets */
     }
 
     .layout {
-        /* react-grid-layout container tweaks */
         display: block;
         position: relative;
     }
@@ -40,9 +41,8 @@
             font-size: 14px;
             color: #666;
             box-sizing: border-box;
-            /* ensure image fills and broken icon is visually handled */
             overflow: hidden;
-            line-height: 0; /* hide alt text baseline */
+            line-height: 0;
 
             img {
                 width: 100%;
@@ -97,7 +97,6 @@
         }
     }
 
-    /* Responsive: visual column sizing for when grid width changes */
     @media (max-width: 1100px) {
         #HomePage .container {
             max-width: 960px;
@@ -117,5 +116,133 @@
         .post-card .card-thumb {
             height: 100px;
         }
+    }
+
+    .side-panel {
+        position: fixed;
+        top: 400px;
+        right: 0;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 100%;
+        min-height: 140px;
+        max-height: 600px;
+        background: #fff;
+        border: 1px solid #e6e6e6;
+        border-radius: 8px 0 0 8px;
+        box-shadow: -4px 6px 18px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        transition: width 260ms cubic-bezier(0.2, 0.9, 0.3, 1), transform 200ms ease;
+        z-index: 900;
+
+        .panel-handle {
+            width: 30px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #f6f6f6;
+            border-radius: 8px 0 0 8px;
+            transition: background 160ms ease;
+
+            span {
+                display: inline-block;
+                transform: translateX(0);
+                transition: transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1);
+                font-size: 16px;
+                color: #666;
+            }
+
+            &:hover {
+                background: #f0f0f0;
+
+                span {
+                    transform: translateX(-2px);
+                }
+            }
+        }
+
+        &:hover {
+            width: 42px;
+        }
+
+        .panel-content {
+            position: absolute;
+            top: 0;
+            left: 30px;
+            width: calc(300px - 30px);
+            height: 100%;
+            padding: 12px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 260ms ease, visibility 260ms ease;
+        }
+
+        &.open {
+            width: 300px;
+
+            .panel-content {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .panel-handle span {
+                transform: translateX(0);
+            }
+        }
+    }
+
+    /* drag & drop UI */
+    .drop-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    .drop-overlay.active {
+        pointer-events: auto;
+        background: rgba(0, 120, 212, 0.06);
+        border: 2px dashed rgba(0, 120, 212, 0.2);
+    }
+
+    .dropped-snippet {
+        border: 1px dashed #cee;
+        background: #fff;
+        padding: 8px;
+        margin: 12px 0;
+        border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+        z-index: 50;
+    }
+
+    .dropped-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .swiper-placeholder {
+        background: linear-gradient(90deg, #f8f8f8, #fff);
+        border: 1px solid #eee;
+        padding: 8px;
+        border-radius: 6px;
+    }
+
+    .snippet-palette {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .snippet-item {
+        padding: 8px 10px;
+        background: #fafafa;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        cursor: grab;
+        user-select: none;
     }
 }

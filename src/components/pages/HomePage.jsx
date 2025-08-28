@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/LogBookContext';
 import * as Common from '../common';
+import SwiperFeatureControls from '../common/SwiperFeatureControls';
+import SimpleSwiper from '../common/SimpleSwiper';
 import ReactGridLayout from 'react-grid-layout';
 import './HomePage.scss';
 
@@ -175,21 +177,91 @@ const HomePage = () => {
     // persisted layout so user moves are kept
     const [gridLayout, setGridLayout] = useState([]);
 
+    // side panel state (우측 패널 열림 여부)
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    // drag & drop snippets state
+    const [droppedSnippets, setDroppedSnippets] = useState([]);
+    const [isDropActive, setIsDropActive] = useState(false);
+    const SNIPPET_MIME = 'application/x-logbook-snippet';
+
+    const handleDragStart = (e, type) => {
+        // use a custom mime so normal element drags don't accidentally create snippets
+        try {
+            e.dataTransfer.setData(SNIPPET_MIME, type);
+            e.dataTransfer.effectAllowed = 'copy';
+        } catch (err) {
+            // some browsers may restrict custom types; fallback to text/plain
+            e.dataTransfer.setData('text/plain', type);
+            e.dataTransfer.effectAllowed = 'copy';
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        if (!isDropActive) setIsDropActive(true);
+    };
+
+    const handleDragLeave = () => {
+        if (isDropActive) setIsDropActive(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        // read our custom mime first; ignore other drops
+        const type = e.dataTransfer.getData(SNIPPET_MIME) || '';
+        if (type) {
+            const rect = containerRef.current?.getBoundingClientRect();
+            const x = rect ? e.clientX - rect.left : 0;
+            const y = rect ? e.clientY - rect.top : 0;
+            // compute grid coords using RGL margins so placement matches visual grid
+            const MARGIN_X = 16;
+            const MARGIN_Y = 16;
+            const colWidth = (containerWidth - MARGIN_X * (cols - 1)) / cols;
+            const rowH = Math.max(120, Math.floor(containerWidth / cols));
+            const gx = Math.min(Math.max(0, Math.floor(x / (colWidth + MARGIN_X))), cols - 1);
+            // place new drops at the top row so they appear first
+            const gy = 0;
+
+            const id = `snippet-${Date.now()}`;
+            const layoutItem = { i: id, x: gx, y: gy, w: 1, h: 1 };
+
+            setGridLayout((prev) => {
+                const next = [...prev, layoutItem];
+                // sort so layout array reflects spatial order (helps visual predictability)
+                next.sort((a, b) => a.y - b.y || a.x - b.x);
+                return next;
+            });
+            // enable dragging so user can immediately pick up the newly added item
+            setDragEnabled(true);
+            setDroppedSnippets((s) => [...s, { id, type }]);
+        }
+        setIsDropActive(false);
+    };
+
+    const removeDropped = (id) => {
+        setDroppedSnippets((s) => s.filter((it) => it.id !== id));
+        setGridLayout((prev) => prev.filter((it) => String(it.i) !== String(id)));
+    };
+
     // ensure layout has entries for newly visible posts (append only)
     useEffect(() => {
         if (!visiblePosts || visiblePosts.length === 0) return;
         setGridLayout((prev) => {
             const next = [...prev];
-            for (let i = prev.length; i < visiblePosts.length; i++) {
-                const p = visiblePosts[i];
-                next.push({
-                    i: String(p.postId || i),
-                    x: i % cols,
-                    y: Math.floor(i / cols),
-                    w: 1,
-                    h: 1,
-                });
-            }
+            // ensure each visible post has a layout entry (by id)
+            visiblePosts.forEach((p, idx) => {
+                const id = String(p.postId || idx);
+                if (!next.find((it) => String(it.i) === id)) {
+                    next.push({
+                        i: id,
+                        x: idx % cols,
+                        y: Math.floor(idx / cols),
+                        w: 1,
+                        h: 1,
+                    });
+                }
+            });
             return next;
         });
     }, [visiblePosts.length, cols]);
@@ -262,7 +334,20 @@ const HomePage = () => {
 
     return (
         <div id='HomePage'>
-            <div className='container' ref={containerRef}>
+            <div
+                className='container'
+                ref={containerRef}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
+                {/* Drop overlay for snippets */}
+                <div
+                    className={`drop-overlay ${isDropActive ? 'active' : ''}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                />
                 <ReactGridLayout
                     key={`${cols}-${Math.floor(containerWidth)}`}
                     className='layout'
@@ -380,10 +465,111 @@ const HomePage = () => {
                             </Link>
                         </div>
                     ))}
+                    {droppedSnippets.map((snip) => (
+                        <div
+                            key={snip.id}
+                            className='dropped-snippet'
+                            onPointerDown={(e) => {
+                                // enable long-press drag for snippets as well
+                                if (e.pointerType === 'mouse' && e.button !== 0) return;
+                                startPress(snip.id, e.currentTarget, {
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                });
+                            }}
+                            onPointerUp={() => endPress()}
+                            onPointerCancel={() => cancelPress()}
+                            onMouseDown={(e) => {
+                                if (e.button !== 0) return;
+                                startPress(snip.id, e.currentTarget, {
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                });
+                            }}
+                            onMouseUp={() => endPress()}
+                            onMouseLeave={() => cancelPress()}
+                            onTouchStart={(e) => {
+                                const t = e.touches && e.touches[0];
+                                startPress(
+                                    snip.id,
+                                    e.currentTarget,
+                                    t ? { x: t.clientX, y: t.clientY } : undefined
+                                );
+                            }}
+                            onTouchEnd={() => endPress()}
+                        >
+                            <div className='dropped-header'>
+                                <strong>{snip.type}</strong>
+                                <div className='header-controls'>
+                                    <button className='drag-handle' title='Drag'></button>
+                                    <button onClick={() => removeDropped(snip.id)}>삭제</button>
+                                </div>
+                            </div>
+                            <div className='dropped-body'>
+                                {snip.type === 'swiper' && (
+                                    <SimpleSwiper width={260} height={160} />
+                                )}
+                                {snip.type !== 'swiper' && (
+                                    <div className='snippet-placeholder'>{snip.type}</div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
                 </ReactGridLayout>
-                {/* sentinel for loading more */}
                 <div ref={loadMoreRef} style={{ height: 1 }} />
             </div>
+            {/* Side Panel */}
+            <div className={`side-panel ${isPanelOpen ? 'open' : ''}`}>
+                <div
+                    className='panel-handle'
+                    onMouseEnter={() => {
+                        /* hover 효과: 너비가 살짝 나옴 */
+                    }}
+                    onClick={() => setIsPanelOpen((s) => !s)}
+                >
+                    <span>{isPanelOpen ? '▶' : '◀'}</span>
+                </div>
+                <div className='panel-content' aria-hidden={!isPanelOpen}>
+                    <div className='snippet-palette'>
+                        <div
+                            className='snippet-item'
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, 'swiper')}
+                        >
+                            .swiper (Swiper container)
+                        </div>
+                        <div
+                            className='snippet-item'
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, 'pagination')}
+                        >
+                            .swiper-pagination
+                        </div>
+                        <div
+                            className='snippet-item'
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, 'navigation')}
+                        >
+                            .swiper-button-prev / .swiper-button-next
+                        </div>
+                        <div
+                            className='snippet-item'
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, 'scrollbar')}
+                        >
+                            .swiper-scrollbar
+                        </div>
+                    </div>
+                    <SwiperFeatureControls
+                        value={null}
+                        onChange={(cfg) => {
+                            // 예: 현재 설정을 콘솔에 찍음. 실제로는 Swiper 인스턴스에 전달.
+                            console.log('swiper cfg', cfg);
+                        }}
+                    />
+                </div>
+            </div>
+
             {isLogin && <Common.FloatingButton />}
         </div>
     );
