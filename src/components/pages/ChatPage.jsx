@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import RGL, { WidthProvider } from 'react-grid-layout';
-import { useLogBook } from '../../context/LogBookContext';
+import { useLogBook, useAuth } from '../../context/LogBookContext';
 import * as Chat from '../chat';
 
 import './ChatPage.scss';
@@ -8,42 +8,10 @@ import './ChatPage.scss';
 const ReactGridLayout = WidthProvider(RGL);
 
 const ChatPage = () => {
-    // const [layout, setLayout] = useState([
-    //     { i: 'item1', x: 0, y: 0, w: 2, h: 1 },
-    //     { i: 'item2', x: 2, y: 0, w: 2, h: 1 },
-    //     { i: 'item3', x: 4, y: 0, w: 2, h: 1 },
-    //     { i: 'item4', x: 6, y: 0, w: 2, h: 1 },
-    // ]);
-
     // 현재 포트 감지
     const getCurrentPort = () => {
         return window.location.port || '3000';
     };
-
-    // 채팅 관련 상태
-    const [messageInput, setMessageInput] = useState('');
-    const [currentUser, setCurrentUser] = useState({
-        id: `user_${getCurrentPort()}`, // 포트를 포함한 사용자 ID
-        name: `사용자_${getCurrentPort()}`, // 포트를 포함한 사용자 이름
-        port: getCurrentPort(),
-    });
-
-    // 닉네임 편집 상태
-    const [isEditingNickname, setIsEditingNickname] = useState(false);
-    const [tempNickname, setTempNickname] = useState(currentUser.name);
-    const [nicknameError, setNicknameError] = useState('');
-
-    // 현재 사용자 정보를 useEffect로 초기화 (포트 변경 감지)
-    useEffect(() => {
-        const port = getCurrentPort();
-        setCurrentUser((prev) => ({
-            ...prev,
-            id: `user_${port}`,
-            name: `사용자_${port}`,
-            port: port,
-        }));
-        setTempNickname(`사용자_${port}`);
-    }, []);
 
     // LogBook Context 사용
     const {
@@ -59,6 +27,51 @@ const ChatPage = () => {
         chatRoomList,
     } = useLogBook();
 
+    // Auth Context 사용
+    const { currentUser: authUser, isLogin } = useAuth();
+
+    // 채팅 관련 상태 - 초기값을 함수로 지연 초기화
+    const [messageInput, setMessageInput] = useState('');
+    const [currentUser, setCurrentUser] = useState(() => {
+        const port = getCurrentPort();
+        return {
+            id: `user_${port}`, // 포트를 포함한 사용자 ID
+            name: `사용자_${port}`, // 포트를 포함한 사용자 이름
+            port: port,
+        };
+    });
+
+    // 닉네임 편집 상태
+    const [isEditingNickname, setIsEditingNickname] = useState(false);
+    const [tempNickname, setTempNickname] = useState('');
+    const [nicknameError, setNicknameError] = useState('');
+
+    // 현재 사용자 정보를 useEffect로 초기화 (포트 변경 감지 및 로그인 사용자 반영)
+    useEffect(() => {
+        const port = getCurrentPort();
+        let userName;
+        let userId;
+
+        if (isLogin && authUser) {
+            // 로그인한 사용자의 nickName과 userId 사용
+            userName = authUser.nickName;
+            userId = authUser.id;
+        } else {
+            // 로그인하지 않은 경우 기본 포트 기반 이름 사용
+            userName = `사용자_${port}`;
+            userId = `user_${port}`;
+        }
+
+        const newUserData = {
+            id: userId,
+            name: userName,
+            port: port,
+        };
+
+        setCurrentUser(newUserData);
+        setTempNickname(userName);
+    }, [isLogin, authUser]);
+
     // ChatPage 진입 시 다크모드 활성화
     useEffect(() => {
         setIsChatPage(true);
@@ -72,13 +85,21 @@ const ChatPage = () => {
     // 메시지 영역 스크롤을 위한 ref
     const messagesEndRef = useRef(null);
 
-    const onLayoutChange = (newLayout) => {
-        setLayout(newLayout);
-    };
+    // 레이아웃 변경 핸들러 (현재 사용되지 않음)
+    // const onLayoutChange = (newLayout) => {
+    //     setLayout(newLayout);
+    // };
 
     // 메시지 전송 핸들러
     const handleSendMessage = async () => {
         if (messageInput.trim()) {
+            // userId가 undefined인지 확인
+            if (!currentUser.id) {
+                console.error('currentUser.id가 없습니다:', currentUser);
+                alert('사용자 정보가 없습니다. 페이지를 새로고침해주세요.');
+                return;
+            }
+
             // Firebase를 통한 메시지 전송 (포트 정보 포함)
             await sendMessage(messageInput, currentUser.id, currentUser.name, currentUser.port);
             setMessageInput('');

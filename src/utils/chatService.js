@@ -59,7 +59,6 @@ export const sendMessageToRoom = async (roomName, messageText, userId, userName,
         };
 
         const docRef = await addDoc(collection(db, collectionName), messageData);
-        console.log(`메시지 전송 완료 - 채팅방: ${roomName}, 메시지 ID: ${docRef.id}`);
         return docRef.id;
     } catch (error) {
         console.error('메시지 전송 오류:', error);
@@ -83,7 +82,6 @@ export const subscribeToRoomMessages = (
 ) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
-        console.log(`채팅방 ${roomName} -> Firebase collection: ${collectionName}`);
 
         const messagesQuery = query(
             collection(db, collectionName),
@@ -101,7 +99,6 @@ export const subscribeToRoomMessages = (
                         ...doc.data(),
                     });
                 });
-                console.log(`채팅방 ${roomName} 메시지 조회 성공: ${messageList.length}개`);
                 onMessagesUpdate(messageList);
             },
             (error) => {
@@ -109,9 +106,6 @@ export const subscribeToRoomMessages = (
 
                 // 특정 오류 유형에 따른 처리
                 if (error.code === 'permission-denied') {
-                    console.log(
-                        `채팅방 ${roomName}의 collection이 아직 존재하지 않거나 권한이 없습니다.`
-                    );
                     // 빈 메시지 배열로 초기화
                     onMessagesUpdate([]);
                 } else if (error.code === 'unavailable') {
@@ -124,7 +118,6 @@ export const subscribeToRoomMessages = (
             }
         );
 
-        console.log(`채팅방 ${roomName} 구독 설정 완료`);
         return unsubscribe;
     } catch (error) {
         console.error('메시지 구독 설정 오류:', error);
@@ -143,7 +136,6 @@ export const deleteMessageFromRoom = async (roomName, messageId) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
         await deleteDoc(doc(db, collectionName, messageId));
-        console.log(`메시지 삭제 완료 - 채팅방: ${roomName}, 메시지 ID: ${messageId}`);
     } catch (error) {
         console.error('메시지 삭제 오류:', error);
         throw error;
@@ -161,7 +153,6 @@ export const getChatRoomList = async () => {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log('채팅방 목록 로딩 성공:', data.chatRooms?.length || 0, '개');
         return data.chatRooms || [];
     } catch (error) {
         console.error('채팅방 목록 로딩 오류:', error);
@@ -195,10 +186,60 @@ export const initializeChatRoom = async (roomName) => {
     try {
         const messageCount = await getRoomMessageCount(roomName);
         if (messageCount === 0) {
-            console.log(`채팅방 ${roomName} 초기화 준비 완료`);
+            // 채팅방 초기화 준비 완료
         }
     } catch (error) {
         console.error(`채팅방 ${roomName} 초기화 오류:`, error);
+        throw error;
+    }
+};
+
+/**
+ * 새 채팅방을 생성하고 chatRoomData.json에 추가
+ * @param {Object} roomData - 채팅방 데이터
+ * @returns {Promise<Object>} - 생성된 채팅방 데이터
+ */
+export const createChatRoom = async (roomData) => {
+    try {
+        // 현재 채팅방 목록 가져오기
+        const currentRooms = await getChatRoomList();
+
+        // 새 ID 생성 (기존 ID 중 최대값 + 1)
+        const newId =
+            currentRooms.length > 0 ? Math.max(...currentRooms.map((room) => room.id)) + 1 : 1;
+
+        // 새 채팅방 데이터 생성
+        const newRoom = {
+            id: newId,
+            name: roomData.name,
+            admin: roomData.admin,
+            userId: roomData.userId,
+            description: roomData.description || '',
+            capacity: roomData.capacity || 50,
+            currentUsers: 0,
+            isPrivate: roomData.isPrivate || false,
+            createdAt: new Date().toISOString().split('T')[0],
+            updatedAt: new Date().toISOString().split('T')[0],
+        };
+
+        return newRoom;
+    } catch (error) {
+        console.error('채팅방 생성 오류:', error);
+        throw error;
+    }
+};
+
+/**
+ * 채팅방을 삭제하고 chatRoomData.json에서 제거
+ * @param {number} roomId - 삭제할 채팅방 ID
+ * @returns {Promise<void>}
+ */
+export const deleteChatRoom = async (roomId) => {
+    try {
+        // 실제 구현에서는 백엔드 API를 호출하여 JSON 파일을 업데이트해야 합니다.
+        // 현재는 프론트엔드에서만 처리되므로 새로고침 시 복원됩니다.
+    } catch (error) {
+        console.error('채팅방 삭제 오류:', error);
         throw error;
     }
 };

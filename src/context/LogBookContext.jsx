@@ -23,6 +23,8 @@ import {
     deleteMessageFromRoom,
     getChatRoomList,
     initializeChatRoom,
+    createChatRoom as createChatRoomService,
+    deleteChatRoom as deleteChatRoomService,
 } from '../utils/chatService';
 
 // LogBookContext 생성
@@ -47,9 +49,10 @@ export const LogBookProvider = ({ children }) => {
             const rooms = await getChatRoomList();
             setChatRoomList(rooms);
 
-            // 첫 번째 채팅방을 기본으로 선택 (한 번만)
+            // 기본 채팅방 선택 (일반 채팅방 우선)
             if (rooms.length > 0 && !currentChatRoom) {
-                setCurrentChatRoom(rooms[0]);
+                const defaultRoom = rooms.find((room) => room.name === '일반 채팅방') || rooms[0];
+                setCurrentChatRoom(defaultRoom);
             }
         } catch (err) {
             console.error('채팅방 목록 로드 오류:', err);
@@ -71,7 +74,6 @@ export const LogBookProvider = ({ children }) => {
             // 새 채팅방 설정
             setCurrentChatRoom(chatRoom);
             setMessages([]);
-            console.log(`채팅방 변경: ${chatRoom.name}`);
         },
         [currentChatRoom, messagesUnsubscribe]
     );
@@ -90,18 +92,17 @@ export const LogBookProvider = ({ children }) => {
 
                 // 채팅방별 메시지 전송
                 await sendMessageToRoom(currentChatRoom.name, messageText, userId, userName, port);
-
-                console.log(
-                    '메시지 전송 완료:',
-                    messageText,
-                    '채팅방:',
-                    currentChatRoom.name,
-                    '포트:',
-                    port
-                );
             } catch (err) {
-                setError('메시지 전송에 실패했습니다.');
+                const errorMessage = `메시지 전송에 실패했습니다: ${err.message}`;
+                setError(errorMessage);
                 console.error('메시지 전송 오류:', err);
+                console.error('Firebase 설정:', {
+                    currentChatRoom,
+                    messageText,
+                    userId,
+                    userName,
+                    port,
+                });
             } finally {
                 setLoading(false);
             }
@@ -114,24 +115,14 @@ export const LogBookProvider = ({ children }) => {
         if (!currentChatRoom) return null;
 
         try {
-            console.log(`채팅방 ${currentChatRoom.name} 메시지 구독 시작`);
-
             const unsubscribe = subscribeToRoomMessages(
                 currentChatRoom.name,
                 (messageList) => {
-                    console.log(
-                        `채팅방 ${currentChatRoom.name} 메시지 업데이트:`,
-                        messageList.length,
-                        '개'
-                    );
                     setMessages(messageList);
                 },
                 (error) => {
                     // 권한 오류인 경우 빈 배열로 설정 (collection이 아직 없는 경우)
                     if (error.code === 'permission-denied') {
-                        console.log(
-                            `채팅방 ${currentChatRoom.name}의 collection이 아직 생성되지 않음`
-                        );
                         setMessages([]);
                         return;
                     }
@@ -159,13 +150,10 @@ export const LogBookProvider = ({ children }) => {
         let unsubscribe = null;
 
         if (currentChatRoom) {
-            console.log(`새로운 채팅방 구독 설정: ${currentChatRoom.name}`);
-
             // 이전 구독 해제
             if (messagesUnsubscribe) {
                 try {
                     messagesUnsubscribe();
-                    console.log('이전 구독 해제 완료');
                 } catch (error) {
                     console.error('이전 구독 해제 오류:', error);
                 }
@@ -184,7 +172,6 @@ export const LogBookProvider = ({ children }) => {
             if (unsubscribe) {
                 try {
                     unsubscribe();
-                    console.log('구독 정리 완료');
                 } catch (error) {
                     console.error('구독 정리 오류:', error);
                 }
@@ -205,7 +192,6 @@ export const LogBookProvider = ({ children }) => {
                 setError(null);
 
                 await deleteMessageFromRoom(currentChatRoom.name, messageId);
-                console.log('메시지 삭제 완료:', messageId, '채팅방:', currentChatRoom.name);
             } catch (err) {
                 setError('메시지 삭제에 실패했습니다.');
                 console.error('메시지 삭제 오류:', err);
@@ -231,7 +217,6 @@ export const LogBookProvider = ({ children }) => {
         try {
             // 여기에서는 로컬 상태 업데이트만 처리
             // 실제 데이터베이스 업데이트는 ChatPage에서 처리
-            console.log('닉네임 업데이트:', userId, newNickname);
             return true;
         } catch (err) {
             setError('닉네임 업데이트에 실패했습니다.');
@@ -239,6 +224,61 @@ export const LogBookProvider = ({ children }) => {
             return false;
         }
     }, []);
+
+    // 채팅방 생성 함수
+    const createChatRoom = useCallback(async (roomData) => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const newRoom = await createChatRoomService(roomData);
+
+            // 현재 목록에 새 채팅방 추가
+            setChatRoomList((prevRooms) => [...prevRooms, newRoom]);
+
+            return newRoom;
+        } catch (err) {
+            const errorMessage = '채팅방 생성에 실패했습니다.';
+            setError(errorMessage);
+            console.error('채팅방 생성 오류:', err);
+            throw new Error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // 채팅방 삭제 함수
+    const deleteChatRoom = useCallback(
+        async (roomId) => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                await deleteChatRoomService(roomId);
+
+                // 현재 목록에서 채팅방 제거
+                setChatRoomList((prevRooms) => prevRooms.filter((room) => room.id !== roomId));
+
+                // 삭제된 채팅방이 현재 선택된 채팅방인 경우 다른 채팅방으로 변경
+                if (currentChatRoom?.id === roomId) {
+                    const remainingRooms = chatRoomList.filter((room) => room.id !== roomId);
+                    if (remainingRooms.length > 0) {
+                        setCurrentChatRoom(remainingRooms[0]);
+                    } else {
+                        setCurrentChatRoom(null);
+                    }
+                }
+            } catch (err) {
+                const errorMessage = '채팅방 삭제에 실패했습니다.';
+                setError(errorMessage);
+                console.error('채팅방 삭제 오류:', err);
+                throw new Error(errorMessage);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [currentChatRoom, chatRoomList]
+    );
 
     const value = {
         // 메시지 관련
@@ -254,6 +294,8 @@ export const LogBookProvider = ({ children }) => {
         chatRoomList,
         switchChatRoom,
         loadChatRoomList,
+        createChatRoom,
+        deleteChatRoom,
 
         // 사용자 관련
         onlineUsers,
