@@ -41,6 +41,11 @@ export const LogBookProvider = ({ children }) => {
     const [currentChatRoom, setCurrentChatRoom] = useState(null);
     const [chatRoomList, setChatRoomList] = useState([]);
     const [messagesUnsubscribe, setMessagesUnsubscribe] = useState(null);
+
+    // Blog GridLayout 관련 상태
+    const [draggingItem, setDraggingItem] = useState(null);
+    const [clickedItem, setClickedItem] = useState(null);
+
     // 채팅방 목록 로드
     const loadChatRoomList = useCallback(async () => {
         try {
@@ -263,6 +268,12 @@ export const LogBookProvider = ({ children }) => {
         // UI 상태
         isChatPage,
         setIsChatPage,
+
+        // Blog 상태
+        draggingItem,
+        setDraggingItem,
+        clickedItem,
+        setClickedItem,
     };
 
     return <LogBookContext.Provider value={value}>{children}</LogBookContext.Provider>;

@@ -3,30 +3,40 @@
         "id": 0,
         "className": "title",
         "imageSource": "/img/icon-title.png",
-        "tooltip": "제목 블럭 추가"
+        "tooltip": "제목 블럭 추가",
+        "w": 5,
+        "h": 1
     },
     {
         "id": 1,
         "className": "post",
         "imageSource": "/img/icon-post.png",
-        "tooltip": "게시글 블럭 추가"
+        "tooltip": "게시글 블럭 추가",
+        "w": 1,
+        "h": 1
     },
     {
         "id": 2,
         "className": "link",
         "imageSource": "/img/icon-link.png",
-        "tooltip": "링크 블럭 추가"
+        "tooltip": "링크 블럭 추가",
+        "w": 1,
+        "h": 1
     },
     {
         "id": 3,
         "className": "image",
         "imageSource": "/img/icon-add-image.png",
-        "tooltip": "이미지 블럭 추가"
+        "tooltip": "이미지 블럭 추가",
+        "w": 1,
+        "h": 1
     },
     {
         "id": 4,
         "className": "map",
         "imageSource": "/img/icon-map.png",
-        "tooltip": "지도 블럭 추가"
+        "tooltip": "지도 블럭 추가",
+        "w": 2,
+        "h": 2
     }
 ]
