@@ -203,11 +203,9 @@ const HomePage = () => {
         if (pointer) lastPointer.current = pointer;
         // record button/type if available
         if (pointer && pointer.button !== undefined) lastPointerButton.current = pointer.button;
-        console.log('startPress');
         pressTimer.current = setTimeout(() => {
             setDragEnabled(true);
             setLongPressedId(id);
-            console.log('startPress enabled');
             // Wait one frame so React/ReactGridLayout sees isDraggable change
             requestAnimationFrame(() => {
                 try {
@@ -296,31 +294,22 @@ const HomePage = () => {
                             onPointerDown={(e) => {
                                 // ignore non-left mouse buttons for pointer events
                                 if (e.pointerType === 'mouse' && e.button !== 0) {
-                                    console.log(
-                                        'pointerdown ignored (non-left)',
-                                        post.postId,
-                                        e.button
-                                    );
                                     return;
                                 }
-                                console.log('pointerdown', post.postId, e.pointerType);
                                 startPress(post.postId, e.currentTarget, {
                                     x: e.clientX,
                                     y: e.clientY,
                                 });
                             }}
                             onPointerUp={(e) => {
-                                console.log('pointerup', post.postId, e.pointerType);
                                 endPress();
                             }}
                             onPointerCancel={() => {
-                                console.log('pointercancel', post.postId);
                                 cancelPress();
                             }}
                             onMouseDown={(e) => {
                                 // only start press for left button (0). ignore right-click (2) or middle (1).
                                 if (e.button !== 0) return;
-                                console.log('mousedown', post.postId);
                                 startPress(post.postId, e.currentTarget, {
                                     x: e.clientX,
                                     y: e.clientY,
@@ -335,7 +324,6 @@ const HomePage = () => {
                             onMouseUp={() => endPress()}
                             onMouseLeave={() => cancelPress()}
                             onTouchStart={(e) => {
-                                console.log('touchstart', post.postId);
                                 const t = e.touches && e.touches[0];
                                 startPress(
                                     post.postId,
