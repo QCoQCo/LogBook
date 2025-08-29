@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import { useLogBook } from '../../context/LogBookContext';
 import BlogLayoutItem from './BlogLayoutItem';
@@ -9,7 +9,7 @@ const BlogGridLayout = ({ enableModal }) => {
     const [layout, setLayout] = useState(initialLayout);
     const [newItemCounter, setNewItemCounter] = useState(0);
 
-    const { draggingItem } = useLogBook();
+    const { draggingItem, setElements } = useLogBook();
 
     const handleClickDelete = (i) => {
         setLayout((prev) => prev.filter((item) => item.i !== i));
@@ -36,6 +36,7 @@ const BlogGridLayout = ({ enableModal }) => {
             y: y,
             w: draggingItem.w,
             h: draggingItem.h,
+            content: null,
         };
 
         if (isOverlap) {
@@ -45,8 +46,10 @@ const BlogGridLayout = ({ enableModal }) => {
                     : item
             );
             setLayout([...newLayout, newItem]);
+            setElements((prev) => [...prev, { i: newId, content: null }]);
         } else {
             setLayout((prevLayout) => [...prevLayout, newItem]);
+            setElements((prev) => [...prev, { i: newId, content: null }]);
         }
 
         setNewItemCounter((prevCounter) => prevCounter + 1);
@@ -54,7 +57,6 @@ const BlogGridLayout = ({ enableModal }) => {
 
     const renderGridItems = () => {
         return layout.map((item) => {
-            const itemText = item.i.replace(/-/g, ' ').toUpperCase();
             if (item.i !== '__dropping-elem__') {
                 return (
                     <div key={item.i}>

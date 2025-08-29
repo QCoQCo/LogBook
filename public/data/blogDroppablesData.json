@@ -26,7 +26,7 @@
     {
         "id": 3,
         "className": "image",
-        "imageSource": "/img/icon-add-image.png",
+        "imageSource": "/img/icon-image.png",
         "tooltip": "이미지 블럭 추가",
         "w": 1,
         "h": 1
