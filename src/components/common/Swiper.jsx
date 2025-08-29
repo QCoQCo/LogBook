@@ -128,8 +128,10 @@ export default function LogBookSwiper({
     }, []);
 
     const wrapperStyle = {
-        width: typeof width === 'number' ? `${width}px` : width || '100%',
-        height: typeof height === 'number' ? `${height}px` : height || '100%',
+        // width: typeof width === 'number' ? `${width}px` : width || '100%',
+        // height: typeof height === 'number' ? `${height}px` : height || '100%',
+        width: '100%',
+        height: '100%',
     };
 
     return (
