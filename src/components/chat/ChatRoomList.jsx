@@ -118,7 +118,7 @@ const ChatRoomList = () => {
                     slideShadows: true,
                 }}
                 modules={[EffectCoverflow]}
-                className='mySwiper'
+                className='chat-room-swiper'
             >
                 {displayRooms.map((room) => (
                     <SwiperSlide key={room.id}>
