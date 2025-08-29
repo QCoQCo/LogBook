@@ -1,28 +1,21 @@
 // MyPage.jsx
 import { BlogFloatingUi, BlogGridLayout, BlogUserInfo } from '../blog';
 import { useLogBook } from '../../context/LogBookContext';
-import { useRef } from 'react';
+import { useState } from 'react';
 import BlogElementModal from '../blog/BlogElementModal';
 
 import './MyPage.scss';
 
 const MyPage = () => {
     const { clickedItem } = useLogBook();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const modalRef = useRef();
-
-    const handleClickConfirm = () => {
-        console.log('confirm');
-        modalRef.current.style.display = 'none';
-    };
-
-    const handleClickCancel = () => {
-        console.log('cancel');
-        modalRef.current.style.display = 'none';
+    const dismissModal = () => {
+        setIsModalOpen(false);
     };
 
     const enableModal = () => {
-        modalRef.current.style.display = 'block';
+        setIsModalOpen(true);
     };
 
     return (
@@ -31,12 +24,7 @@ const MyPage = () => {
                 <BlogUserInfo />
                 <BlogGridLayout enableModal={enableModal} />
             </div>
-            <BlogElementModal
-                item={clickedItem}
-                handleClickConfirm={handleClickConfirm}
-                handleClickCancel={handleClickCancel}
-                ref={modalRef}
-            />
+            {isModalOpen && <BlogElementModal item={clickedItem} dismissModal={dismissModal} />}
             <BlogFloatingUi />
         </div>
     );

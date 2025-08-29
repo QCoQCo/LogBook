@@ -1,27 +1,131 @@
 import { useLogBook } from '../../context/LogBookContext';
 
 const BlogLayoutItem = ({ item, handleClickDelete, enableModal }) => {
-    const { setClickedItem } = useLogBook();
+    const { setClickedItem, elements } = useLogBook();
 
-    const itemText = item.i.replace(/-/g, ' ').toUpperCase();
+    const itemType = item.i.split('-')[0];
+    const itemContent = elements.find((element) => element.i === item.i).content;
+
+    switch (itemType) {
+        case 'title':
+            return (
+                <div
+                    className={item.i}
+                    onClick={() => {
+                        setClickedItem(item);
+                        enableModal();
+                    }}
+                >
+                    <GridItemTop
+                        item={item}
+                        type={itemType}
+                        handleClickDelete={handleClickDelete}
+                    />
+                    <div className='grid-title-content'>
+                        {itemContent ? itemContent : '내용을 입력하기 위해 클릭'}
+                    </div>
+                </div>
+            );
+        case 'post':
+            return (
+                <div
+                    className={item.i}
+                    onClick={() => {
+                        setClickedItem(item);
+                        enableModal();
+                    }}
+                >
+                    <GridItemTop
+                        item={item}
+                        type={itemType}
+                        handleClickDelete={handleClickDelete}
+                    />
+                    <div className='grid-post-content'>
+                        {itemContent ? itemContent : '내용을 입력하기 위해 클릭'}
+                    </div>
+                </div>
+            );
+        case 'link':
+            return (
+                <div
+                    className={item.i}
+                    onClick={() => {
+                        setClickedItem(item);
+                        enableModal();
+                    }}
+                >
+                    <GridItemTop
+                        item={item}
+                        type={itemType}
+                        handleClickDelete={handleClickDelete}
+                    />
+                    <div className='grid-link-content'>
+                        {itemContent ? itemContent : '내용을 입력하기 위해 클릭'}
+                    </div>
+                </div>
+            );
+        case 'image':
+            return (
+                <div
+                    className={item.i}
+                    onClick={() => {
+                        setClickedItem(item);
+                        enableModal();
+                    }}
+                >
+                    <GridItemTop
+                        item={item}
+                        type={itemType}
+                        handleClickDelete={handleClickDelete}
+                    />
+                    <div className='grid-image-content'>
+                        {itemContent ? itemContent : '내용을 입력하기 위해 클릭'}
+                    </div>
+                </div>
+            );
+        case 'map':
+            return (
+                <div
+                    className={item.i}
+                    onClick={() => {
+                        setClickedItem(item);
+                        enableModal();
+                    }}
+                >
+                    <GridItemTop
+                        item={item}
+                        type={itemType}
+                        handleClickDelete={handleClickDelete}
+                    />
+                    <div className='grid-map-content'>
+                        {itemContent ? itemContent : '내용을 입력하기 위해 클릭'}
+                    </div>
+                </div>
+            );
+        default:
+            return;
+    }
+};
+
+const GridItemTop = ({ item, type, handleClickDelete }) => {
+    const { setElements } = useLogBook();
 
     return (
-        <div
-            className={item.i}
-            onClick={(e) => {
-                console.log(e.target.className);
-                setClickedItem(item);
-                enableModal();
-            }}
-        >
-            <div className='grid-item-text'>{itemText}</div>
+        <div className='grid-item-top'>
+            <div className='grid-item-text'>
+                <img src={`/img/icon-${type}.png`} alt='' />
+            </div>
             <button
                 className='grid-item-delete'
-                onClick={() => {
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setElements((prev) => prev.filter((element) => element.i !== item.i));
                     handleClickDelete(item.i);
                 }}
             >
-                삭제
+                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 640'>
+                    <path d='M262.2 48C248.9 48 236.9 56.3 232.2 68.8L216 112L120 112C106.7 112 96 122.7 96 136C96 149.3 106.7 160 120 160L520 160C533.3 160 544 149.3 544 136C544 122.7 533.3 112 520 112L424 112L407.8 68.8C403.1 56.3 391.2 48 377.8 48L262.2 48zM128 208L128 512C128 547.3 156.7 576 192 576L448 576C483.3 576 512 547.3 512 512L512 208L464 208L464 512C464 520.8 456.8 528 448 528L192 528C183.2 528 176 520.8 176 512L176 208L128 208zM288 280C288 266.7 277.3 256 264 256C250.7 256 240 266.7 240 280L240 456C240 469.3 250.7 480 264 480C277.3 480 288 469.3 288 456L288 280zM400 280C400 266.7 389.3 256 376 256C362.7 256 352 266.7 352 280L352 456C352 469.3 362.7 480 376 480C389.3 480 400 469.3 400 456L400 280z' />
+                </svg>
             </button>
         </div>
     );

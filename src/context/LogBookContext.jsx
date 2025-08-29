@@ -52,7 +52,7 @@ export const LogBookProvider = ({ children }) => {
     // Blog GridLayout 관련 상태
     const [draggingItem, setDraggingItem] = useState(null);
     const [clickedItem, setClickedItem] = useState(null);
-
+    const [elements, setElements] = useState([]);
 
     // 실시간 접속 유저 관리
     const [roomUsers, setRoomUsers] = useState({});
@@ -476,6 +476,8 @@ export const LogBookProvider = ({ children }) => {
         setDraggingItem,
         clickedItem,
         setClickedItem,
+        elements,
+        setElements,
     };
 
     return <LogBookContext.Provider value={value}>{children}</LogBookContext.Provider>;
