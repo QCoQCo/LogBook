@@ -633,30 +633,39 @@ const HomePage = () => {
         pressTimer.current = setTimeout(() => {
             setDragEnabled(true);
             setLongPressedId(id);
-            if (pos && typeof pos.x === 'number' && typeof pos.y === 'number') {
-                lastPointer.current = { x: pos.x, y: pos.y };
-            }
-            // try to synthesize a small mouse sequence to kick off drag in desktop browsers
-            try {
-                const down = new MouseEvent('mousedown', {
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: lastPointer.current.x,
-                    clientY: lastPointer.current.y,
-                    button: 0,
-                });
-                target.dispatchEvent(down);
-                const move = new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: lastPointer.current.x + 1,
-                    clientY: lastPointer.current.y + 1,
-                });
-                target.dispatchEvent(move);
-            } catch (err) {
-                // ignore synthetic event errors
-            }
-        }, 500); // 500ms long-press threshold
+            // Wait one frame so React/ReactGridLayout sees isDraggable change
+            requestAnimationFrame(() => {
+                try {
+                    let target = null;
+                    if (el && el.closest) target = el.closest('.react-grid-item');
+                    if (!target)
+                        target = document.elementFromPoint(
+                            lastPointer.current.x,
+                            lastPointer.current.y
+                        );
+                    if (target) {
+                        const down = new MouseEvent('mousedown', {
+                            bubbles: true,
+                            cancelable: true,
+                            clientX: lastPointer.current.x,
+                            clientY: lastPointer.current.y,
+                            button: 0,
+                        });
+                        target.dispatchEvent(down);
+
+                        const move = new MouseEvent('mousemove', {
+                            bubbles: true,
+                            cancelable: true,
+                            clientX: lastPointer.current.x + 1,
+                            clientY: lastPointer.current.y + 1,
+                        });
+                        target.dispatchEvent(move);
+                    }
+                } catch (err) {
+                    // ignore synthetic event errors
+                }
+            });
+        }, 500); // 400ms long-press threshold
     };
 
     const cancelPress = () => {

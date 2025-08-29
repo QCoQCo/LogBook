@@ -46,7 +46,13 @@ const Login = ({ onClose = () => {} }) => {
                     // note: file uses `userId` and `password` fields
                     user = users.find((u) => u.userId === userId);
                     if (user && user.password === password) {
-                        const payload = { id: user.userId, email: user.userEmail };
+                        const payload = {
+                            id: user.userId,
+                            email: user.userEmail,
+                            nickName: user.nickName,
+                            profilePhoto: user.profilePhoto,
+                            introduction: user.introduction,
+                        };
                         try {
                             login(payload, false);
                         } catch (e) {}
@@ -85,6 +91,9 @@ const Login = ({ onClose = () => {} }) => {
                 const payload = {
                     id: storedUser?.id || storedUser?.userId || userId,
                     email: storedUser?.userEmail || storedUser?.email,
+                    nickName: storedUser?.nickName,
+                    profilePhoto: storedUser?.profilePhoto,
+                    introduction: storedUser?.introduction,
                 };
                 try {
                     login(payload, false);

@@ -17,8 +17,6 @@ const BlogGridLayout = () => {
         const droppedItemJSON = JSON.parse(droppedItemData);
         const { x, y } = droppedItemProps;
 
-        console.log(droppedItemJSON);
-
         const isOverlap = layout.some((item) => {
             return item.x <= x && item.x + (item.w - 1) >= x && item.y === y;
         });
