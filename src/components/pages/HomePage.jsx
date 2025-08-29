@@ -443,7 +443,7 @@ const HomePage = () => {
         pressTimer.current = setTimeout(() => {
             setDragEnabled(true);
             setLongPressedId(id);
-
+            // Wait one frame so React/ReactGridLayout sees isDraggable change
             requestAnimationFrame(() => {
                 try {
                     let target = null;
