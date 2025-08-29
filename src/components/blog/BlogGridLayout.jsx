@@ -1,11 +1,19 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import ReactGridLayout from 'react-grid-layout';
+import { useLogBook } from '../../context/LogBookContext';
+import BlogLayoutItem from './BlogLayoutItem';
 
-const BlogGridLayout = () => {
+const BlogGridLayout = ({ enableModal }) => {
     const initialLayout = [];
 
     const [layout, setLayout] = useState(initialLayout);
     const [newItemCounter, setNewItemCounter] = useState(0);
+
+    const { draggingItem } = useLogBook();
+
+    const handleClickDelete = (i) => {
+        setLayout((prev) => prev.filter((item) => item.i !== i));
+    };
 
     const onLayoutChange = (newLayout) => {
         setLayout(newLayout);
@@ -13,23 +21,21 @@ const BlogGridLayout = () => {
 
     const onDrop = (currentLayout, droppedItemProps, e) => {
         // droppedItemProps에서 드롭된 아이템의 정보를 가져옵니다.
-        const droppedItemData = e.dataTransfer.getData('text/plain');
-        const droppedItemJSON = JSON.parse(droppedItemData);
+        const droppedItemData = draggingItem;
         const { x, y } = droppedItemProps;
 
         const isOverlap = layout.some((item) => {
             return item.x <= x && item.x + (item.w - 1) >= x && item.y === y;
         });
 
-        const newId = `${droppedItemJSON.className}-${newItemCounter}`;
-        const newWidth = droppedItemJSON.className === 'title' ? 5 : 1;
+        const newId = `${droppedItemData.className}-${newItemCounter}`;
 
         const newItem = {
             i: newId,
             x: x,
             y: y,
-            w: newWidth,
-            h: 1,
+            w: draggingItem.w,
+            h: draggingItem.h,
         };
 
         if (isOverlap) {
@@ -48,14 +54,15 @@ const BlogGridLayout = () => {
 
     const renderGridItems = () => {
         return layout.map((item) => {
-            const isNewItem = item.i.startsWith('new-item');
-            const itemText = isNewItem
-                ? `New Item ${item.i.split('-').pop()}`
-                : item.i.replace(/-/g, ' ').toUpperCase();
+            const itemText = item.i.replace(/-/g, ' ').toUpperCase();
             if (item.i !== '__dropping-elem__') {
                 return (
-                    <div className={isNewItem ? 'new-grid-item' : item.i} key={item.i}>
-                        <div className='grid-item-text'>{itemText}</div>
+                    <div key={item.i}>
+                        <BlogLayoutItem
+                            item={item}
+                            handleClickDelete={handleClickDelete}
+                            enableModal={enableModal}
+                        />
                     </div>
                 );
             } else {
@@ -73,6 +80,12 @@ const BlogGridLayout = () => {
                 width={900}
                 onDrop={onDrop}
                 isDroppable={true}
+                isDraggable={false}
+                droppingItem={{
+                    i: '__dropping-elem__',
+                    w: draggingItem ? draggingItem.w : 1,
+                    h: draggingItem ? draggingItem.h : 1,
+                }}
                 compactType={'vertical'}
                 onLayoutChange={onLayoutChange}
             >

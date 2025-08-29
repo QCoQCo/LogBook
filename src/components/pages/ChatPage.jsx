@@ -8,9 +8,19 @@ import './ChatPage.scss';
 const ReactGridLayout = WidthProvider(RGL);
 
 const ChatPage = () => {
-    // 현재 포트 감지
-    const getCurrentPort = () => {
-        return window.location.port || '3000';
+    // 세션 ID 생성 함수
+    const generateSessionId = () => {
+        return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    };
+
+    // 로컬 스토리지에서 세션 ID 가져오거나 새로 생성
+    const getOrCreateSessionId = () => {
+        let sessionId = sessionStorage.getItem('chatSessionId');
+        if (!sessionId) {
+            sessionId = generateSessionId();
+            sessionStorage.setItem('chatSessionId', sessionId);
+        }
+        return sessionId;
     };
 
     // LogBook Context 사용
@@ -37,11 +47,11 @@ const ChatPage = () => {
     // 채팅 관련 상태 - 초기값을 함수로 지연 초기화
     const [messageInput, setMessageInput] = useState('');
     const [currentUser, setCurrentUser] = useState(() => {
-        const port = getCurrentPort();
+        const sessionId = getOrCreateSessionId();
         return {
-            id: `user_${port}`, // 포트를 포함한 사용자 ID
-            name: `사용자_${port}`, // 포트를 포함한 사용자 이름
-            port: port,
+            id: `guest_${sessionId}`, // 게스트 사용자 ID
+            name: `게스트_${sessionId.slice(-4)}`, // 세션 ID 마지막 4자리로 구분
+            sessionId: sessionId,
         };
     });
 
@@ -50,26 +60,29 @@ const ChatPage = () => {
     const [tempNickname, setTempNickname] = useState('');
     const [nicknameError, setNicknameError] = useState('');
 
-    // 현재 사용자 정보를 useEffect로 초기화 (포트 변경 감지 및 로그인 사용자 반영)
+    // 현재 사용자 정보를 useEffect로 초기화 (로그인 사용자 반영)
     useEffect(() => {
-        const port = getCurrentPort();
+        const sessionId = getOrCreateSessionId();
         let userName;
         let userId;
+        let userSessionId;
 
         if (isLogin && authUser) {
             // 로그인한 사용자의 nickName과 userId 사용
             userName = authUser.nickName;
             userId = authUser.id;
+            userSessionId = null; // 로그인 사용자는 sessionId 불필요
         } else {
-            // 로그인하지 않은 경우 기본 포트 기반 이름 사용
-            userName = `사용자_${port}`;
-            userId = `user_${port}`;
+            // 로그인하지 않은 경우 세션 ID 기반 이름 사용
+            userName = `게스트_${sessionId.slice(-4)}`;
+            userId = `guest_${sessionId}`;
+            userSessionId = sessionId;
         }
 
         const newUserData = {
             id: userId,
             name: userName,
-            port: port,
+            sessionId: userSessionId,
         };
 
         setCurrentUser(newUserData);
@@ -115,7 +128,7 @@ const ChatPage = () => {
     useEffect(() => {
         if (currentChatRoom && currentUser.id) {
             // 새 채팅방 입장
-            joinRoom(currentChatRoom.name, currentUser.id, currentUser.name, currentUser.port);
+            joinRoom(currentChatRoom.name, currentUser.id, currentUser.name, currentUser.sessionId);
 
             // heartbeat 설정
             setupPresenceHeartbeat(currentChatRoom.name, currentUser.id);
@@ -131,7 +144,7 @@ const ChatPage = () => {
                 window.removeEventListener('beforeunload', handleBeforeUnload);
             };
         }
-    }, [currentChatRoom?.name, currentUser.id, currentUser.name, currentUser.port]); // 함수 참조 제거
+    }, [currentChatRoom?.name, currentUser.id, currentUser.name, currentUser.sessionId]); // sessionId로 변경
 
     // 메시지 영역 스크롤을 위한 ref
     const messagesEndRef = useRef(null);
@@ -151,8 +164,13 @@ const ChatPage = () => {
                 return;
             }
 
-            // Firebase를 통한 메시지 전송 (포트 정보 포함)
-            await sendMessage(messageInput, currentUser.id, currentUser.name, currentUser.port);
+            // Firebase를 통한 메시지 전송 (sessionId 정보 포함)
+            await sendMessage(
+                messageInput,
+                currentUser.id,
+                currentUser.name,
+                currentUser.sessionId
+            );
             setMessageInput('');
         }
     };
@@ -360,7 +378,12 @@ const ChatPage = () => {
                     </div>
                 </div>
                 <div className='list-area'>
-                    <Chat.ChatRoomList />
+                    <div className='chat-list-area'>
+                        <Chat.ChatRoomList />
+                    </div>
+                    <div className='user-playlist-area'>
+                        <Chat.UserPlayList />
+                    </div>
                 </div>
             </div>
         </div>
