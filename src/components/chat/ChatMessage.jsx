@@ -4,10 +4,10 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
             <div className='messages-container'>
                 {/* 실시간 메시지 렌더링 */}
                 {messages.map((message) => {
-                    // 메시지 소유권 판별: 같은 사용자 ID이거나 같은 포트에서 온 메시지
+                    // 메시지 소유권 판별: 같은 사용자 ID 또는 sessionId로 구분
                     const isOwnMessage =
                         message.userId === currentUser.id ||
-                        (message.port && message.port === currentUser.port);
+                        (message.sessionId && message.sessionId === currentUser.sessionId);
 
                     return (
                         <div

@@ -45,10 +45,16 @@ export const getChatRoomCollectionName = (roomName) => {
  * @param {string} messageText - 메시지 내용
  * @param {string} userId - 사용자 ID
  * @param {string} userName - 사용자 이름
- * @param {string} port - 포트 번호 (선택사항)
+ * @param {string} sessionId - 세션 ID (비로그인 사용자용, 선택사항)
  * @returns {Promise<string>} - 생성된 메시지 ID
  */
-export const sendMessageToRoom = async (roomName, messageText, userId, userName, port = null) => {
+export const sendMessageToRoom = async (
+    roomName,
+    messageText,
+    userId,
+    userName,
+    sessionId = null
+) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
 
@@ -57,7 +63,7 @@ export const sendMessageToRoom = async (roomName, messageText, userId, userName,
             userId: userId,
             userName: userName,
             roomName: roomName,
-            port: port,
+            sessionId: sessionId,
             timestamp: serverTimestamp(),
         };
 
@@ -256,13 +262,14 @@ export const deleteChatRoom = async (roomId) => {
  * @param {string} roomName - 채팅방 이름
  * @param {string} userId - 사용자 ID
  * @param {string} userName - 사용자 이름
- * @param {string} port - 포트 번호
+ * @param {string} sessionId - 세션 ID (비로그인 사용자용, 선택사항)
  * @returns {Promise<void>}
  */
-export const joinChatRoom = async (roomName, userId, userName, port = null) => {
+export const joinChatRoom = async (roomName, userId, userName, sessionId = null) => {
     try {
         const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
-        const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const internalSessionId =
+            sessionId || `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
         await setDoc(
             presenceRef,
@@ -270,8 +277,7 @@ export const joinChatRoom = async (roomName, userId, userName, port = null) => {
                 roomName,
                 userId,
                 userName,
-                port,
-                sessionId, // 세션 고유 ID 추가
+                sessionId: internalSessionId, // 세션 ID 저장
                 joinedAt: serverTimestamp(),
                 lastSeen: serverTimestamp(),
                 isOnline: true,
@@ -362,10 +368,9 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                         activeUsers.push({
                             id: userData.userId,
                             name: userData.userName,
-                            port: userData.port,
+                            sessionId: userData.sessionId,
                             joinedAt: userData.joinedAt,
                             lastSeen: userData.lastSeen,
-                            sessionId: userData.sessionId,
                         });
                     }
                 });
