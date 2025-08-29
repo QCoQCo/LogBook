@@ -6,9 +6,21 @@ import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 
 const ChatRoomList = () => {
-    const { chatRoomList, currentChatRoom, switchChatRoom, createChatRoom, deleteChatRoom } =
-        useLogBook();
+    const {
+        chatRoomList,
+        currentChatRoom,
+        switchChatRoom,
+        createChatRoom,
+        deleteChatRoom,
+        roomUsers,
+    } = useLogBook();
     const { currentUser, isLogin } = useAuth();
+
+    // 특정 채팅방의 실제 접속 유저수 가져오기
+    const getRoomUserCount = (roomName) => {
+        const users = roomUsers[roomName] || [];
+        return users.length;
+    };
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newRoomData, setNewRoomData] = useState({
         name: '',
@@ -119,7 +131,7 @@ const ChatRoomList = () => {
                             <div className='room-name'>{room.name}</div>
                             <div className='room-info'>
                                 <span className='room-users'>
-                                    {room.currentUsers}/{room.capacity}
+                                    {getRoomUserCount(room.name)}/{room.capacity}
                                 </span>
                                 {room.isPrivate && <span className='room-private'>🔒</span>}
                             </div>

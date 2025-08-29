@@ -10,6 +10,9 @@ import {
     doc,
     where,
     getDocs,
+    setDoc,
+    updateDoc,
+    getDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
@@ -241,5 +244,162 @@ export const deleteChatRoom = async (roomId) => {
     } catch (error) {
         console.error('채팅방 삭제 오류:', error);
         throw error;
+    }
+};
+
+/**
+ * 채팅방별 접속 유저 관리를 위한 함수들
+ */
+
+/**
+ * 채팅방에 사용자 접속 등록
+ * @param {string} roomName - 채팅방 이름
+ * @param {string} userId - 사용자 ID
+ * @param {string} userName - 사용자 이름
+ * @param {string} port - 포트 번호
+ * @returns {Promise<void>}
+ */
+export const joinChatRoom = async (roomName, userId, userName, port = null) => {
+    try {
+        const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
+        await setDoc(presenceRef, {
+            roomName,
+            userId,
+            userName,
+            port,
+            joinedAt: serverTimestamp(),
+            lastSeen: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error('채팅방 접속 등록 오류:', error);
+        throw error;
+    }
+};
+
+/**
+ * 채팅방에서 사용자 접속 해제
+ * @param {string} roomName - 채팅방 이름
+ * @param {string} userId - 사용자 ID
+ * @returns {Promise<void>}
+ */
+export const leaveChatRoom = async (roomName, userId) => {
+    try {
+        const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
+        await deleteDoc(presenceRef);
+    } catch (error) {
+        console.error('채팅방 접속 해제 오류:', error);
+        throw error;
+    }
+};
+
+/**
+ * 사용자의 마지막 활동 시간 업데이트 (heartbeat)
+ * @param {string} roomName - 채팅방 이름
+ * @param {string} userId - 사용자 ID
+ * @returns {Promise<void>}
+ */
+export const updateUserPresence = async (roomName, userId) => {
+    try {
+        const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
+        const presenceDoc = await getDoc(presenceRef);
+
+        if (presenceDoc.exists()) {
+            await updateDoc(presenceRef, {
+                lastSeen: serverTimestamp(),
+            });
+        }
+    } catch (error) {
+        console.error('사용자 활동 시간 업데이트 오류:', error);
+        // heartbeat 실패는 치명적이지 않으므로 에러를 던지지 않음
+    }
+};
+
+/**
+ * 특정 채팅방의 접속 유저 목록을 실시간으로 구독
+ * @param {string} roomName - 채팅방 이름
+ * @param {function} onUsersUpdate - 유저 목록 업데이트 콜백
+ * @param {function} onError - 에러 처리 콜백
+ * @returns {function} - 구독 해제 함수
+ */
+export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
+    try {
+        // 5분 이내에 활동한 사용자만 온라인으로 간주
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+        const usersQuery = query(collection(db, 'presence'), where('roomName', '==', roomName));
+
+        const unsubscribe = onSnapshot(
+            usersQuery,
+            (snapshot) => {
+                const now = new Date();
+                const activeUsers = [];
+
+                snapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+
+                    // 5분 이내에 활동한 사용자만 활성 사용자로 간주
+                    if (now - lastSeen < 5 * 60 * 1000) {
+                        activeUsers.push({
+                            id: userData.userId,
+                            name: userData.userName,
+                            port: userData.port,
+                            joinedAt: userData.joinedAt,
+                            lastSeen: userData.lastSeen,
+                        });
+                    }
+                });
+
+                onUsersUpdate(activeUsers);
+            },
+            (error) => {
+                console.error(`채팅방 ${roomName} 유저 구독 오류:`, error);
+                if (onError) onError(error);
+            }
+        );
+
+        return unsubscribe;
+    } catch (error) {
+        console.error('채팅방 유저 구독 설정 오류:', error);
+        if (onError) onError(error);
+        return null;
+    }
+};
+
+/**
+ * 비활성 사용자 정리 (5분 이상 비활성)
+ * @param {string} roomName - 채팅방 이름 (선택사항, 전체 정리 시 null)
+ * @returns {Promise<void>}
+ */
+export const cleanupInactiveUsers = async (roomName = null) => {
+    try {
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+        let presenceQuery;
+        if (roomName) {
+            presenceQuery = query(collection(db, 'presence'), where('roomName', '==', roomName));
+        } else {
+            presenceQuery = query(collection(db, 'presence'));
+        }
+
+        const snapshot = await getDocs(presenceQuery);
+        const batch = [];
+
+        snapshot.forEach((doc) => {
+            const userData = doc.data();
+            const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+
+            // 5분 이상 비활성 사용자 삭제 대상에 추가
+            if (lastSeen < fiveMinutesAgo) {
+                batch.push(deleteDoc(doc.ref));
+            }
+        });
+
+        // 배치 삭제 실행
+        await Promise.all(batch);
+
+        console.log(`정리된 비활성 사용자 수: ${batch.length}`);
+    } catch (error) {
+        console.error('비활성 사용자 정리 오류:', error);
     }
 };

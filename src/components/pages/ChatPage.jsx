@@ -25,6 +25,10 @@ const ChatPage = () => {
         setIsChatPage,
         currentChatRoom,
         chatRoomList,
+        joinRoom,
+        leaveRoom,
+        setupPresenceHeartbeat,
+        getCurrentRoomUserCount,
     } = useLogBook();
 
     // Auth Context 사용
@@ -81,6 +85,32 @@ const ChatPage = () => {
             setIsChatPage(false);
         };
     }, [setIsChatPage]);
+
+    // 현재 채팅방과 사용자 변경 시 접속 관리
+    useEffect(() => {
+        if (currentChatRoom && currentUser.id) {
+            // 새 채팅방 입장
+            joinRoom(currentChatRoom.name, currentUser.id, currentUser.name, currentUser.port);
+
+            // heartbeat 설정
+            setupPresenceHeartbeat(currentChatRoom.name, currentUser.id);
+
+            // 페이지 이탈 시 퇴장 처리
+            const handleBeforeUnload = () => {
+                leaveRoom(currentChatRoom.name, currentUser.id);
+            };
+
+            window.addEventListener('beforeunload', handleBeforeUnload);
+
+            return () => {
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+                // 채팅방 변경 시 이전 채팅방에서 퇴장
+                if (currentChatRoom && currentUser.id) {
+                    leaveRoom(currentChatRoom.name, currentUser.id);
+                }
+            };
+        }
+    }, [currentChatRoom?.name, currentUser.id, currentUser.name, currentUser.port]); // 함수 참조 제거
 
     // 메시지 영역 스크롤을 위한 ref
     const messagesEndRef = useRef(null);
@@ -216,7 +246,7 @@ const ChatPage = () => {
                                     <span className='room-indicator'>📍</span>
                                     <span className='room-name'>{currentChatRoom.name}</span>
                                     <span className='room-users'>
-                                        ({currentChatRoom.currentUsers}/{currentChatRoom.capacity})
+                                        ({getCurrentRoomUserCount()}/{currentChatRoom.capacity})
                                     </span>
                                 </div>
                             )}

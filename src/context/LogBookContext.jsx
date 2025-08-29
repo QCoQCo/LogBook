@@ -25,6 +25,11 @@ import {
     initializeChatRoom,
     createChatRoom as createChatRoomService,
     deleteChatRoom as deleteChatRoomService,
+    joinChatRoom,
+    leaveChatRoom,
+    updateUserPresence,
+    subscribeToRoomUsers,
+    cleanupInactiveUsers,
 } from '../utils/chatService';
 
 // LogBookContext 생성
@@ -43,6 +48,12 @@ export const LogBookProvider = ({ children }) => {
     const [currentChatRoom, setCurrentChatRoom] = useState(null);
     const [chatRoomList, setChatRoomList] = useState([]);
     const [messagesUnsubscribe, setMessagesUnsubscribe] = useState(null);
+
+    // 실시간 접속 유저 관리
+    const [roomUsers, setRoomUsers] = useState({});
+    const [usersUnsubscribe, setUsersUnsubscribe] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [presenceHeartbeat, setPresenceHeartbeat] = useState(null);
     // 채팅방 목록 로드
     const loadChatRoomList = useCallback(async () => {
         try {
@@ -71,11 +82,17 @@ export const LogBookProvider = ({ children }) => {
                 setMessagesUnsubscribe(null);
             }
 
+            // 이전 유저 구독 해제
+            if (usersUnsubscribe) {
+                usersUnsubscribe();
+                setUsersUnsubscribe(null);
+            }
+
             // 새 채팅방 설정
             setCurrentChatRoom(chatRoom);
             setMessages([]);
         },
-        [currentChatRoom, messagesUnsubscribe]
+        [currentChatRoom, messagesUnsubscribe, usersUnsubscribe]
     );
 
     // 메시지 전송 함수 (채팅방별)
@@ -110,13 +127,13 @@ export const LogBookProvider = ({ children }) => {
         [currentChatRoom]
     );
 
-    // 현재 채팅방의 실시간 메시지 구독
-    const subscribeToCurrentRoomMessages = useCallback(() => {
-        if (!currentChatRoom) return null;
+    // 현재 채팅방의 실시간 메시지 구독 (의존성 제거하여 무한 루프 방지)
+    const subscribeToCurrentRoomMessages = useCallback((roomName) => {
+        if (!roomName) return null;
 
         try {
             const unsubscribe = subscribeToRoomMessages(
-                currentChatRoom.name,
+                roomName,
                 (messageList) => {
                     setMessages(messageList);
                 },
@@ -138,16 +155,17 @@ export const LogBookProvider = ({ children }) => {
             console.error('메시지 구독 설정 오류:', err);
             return null;
         }
-    }, [currentChatRoom]);
+    }, []);
 
     // 채팅방 목록 로드 (컴포넌트 마운트 시)
     useEffect(() => {
         loadChatRoomList();
     }, [loadChatRoomList]);
 
-    // 현재 채팅방 변경 시 메시지 구독
+    // 현재 채팅방 변경 시 메시지 및 유저 구독
     useEffect(() => {
-        let unsubscribe = null;
+        let messageUnsubscribe = null;
+        let userUnsubscribe = null;
 
         if (currentChatRoom) {
             // 이전 구독 해제
@@ -155,29 +173,67 @@ export const LogBookProvider = ({ children }) => {
                 try {
                     messagesUnsubscribe();
                 } catch (error) {
-                    console.error('이전 구독 해제 오류:', error);
+                    console.error('이전 메시지 구독 해제 오류:', error);
+                }
+            }
+
+            if (usersUnsubscribe) {
+                try {
+                    usersUnsubscribe();
+                } catch (error) {
+                    console.error('이전 유저 구독 해제 오류:', error);
                 }
             }
 
             // 새 채팅방 메시지 구독
-            unsubscribe = subscribeToCurrentRoomMessages();
-            setMessagesUnsubscribe(() => unsubscribe);
+            messageUnsubscribe = subscribeToCurrentRoomMessages(currentChatRoom.name);
+            setMessagesUnsubscribe(() => messageUnsubscribe);
+
+            // 새 채팅방 유저 구독
+            userUnsubscribe = subscribeToCurrentRoomUsers(currentChatRoom.name);
+            setUsersUnsubscribe(() => userUnsubscribe);
         } else {
             // 채팅방이 없는 경우 메시지 초기화
             setMessages([]);
+            setRoomUsers({});
         }
 
         // 컴포넌트 언마운트 또는 채팅방 변경 시 구독 해제
         return () => {
-            if (unsubscribe) {
+            if (messageUnsubscribe) {
                 try {
-                    unsubscribe();
+                    messageUnsubscribe();
                 } catch (error) {
-                    console.error('구독 정리 오류:', error);
+                    console.error('메시지 구독 정리 오류:', error);
+                }
+            }
+            if (userUnsubscribe) {
+                try {
+                    userUnsubscribe();
+                } catch (error) {
+                    console.error('유저 구독 정리 오류:', error);
                 }
             }
         };
-    }, [currentChatRoom]); // subscribeToCurrentRoomMessages, messagesUnsubscribe 의존성 제거
+    }, [currentChatRoom]); // subscribeToCurrentRoomMessages, subscribeToCurrentRoomUsers 의존성 제거
+
+    // 컴포넌트 언마운트 시 정리
+    useEffect(() => {
+        return () => {
+            // heartbeat 정리
+            if (presenceHeartbeat) {
+                clearInterval(presenceHeartbeat);
+            }
+
+            // 현재 사용자가 모든 채팅방에서 퇴장 처리
+            if (currentUserId && currentChatRoom) {
+                leaveChatRoom(currentChatRoom.name, currentUserId).catch(console.error);
+            }
+
+            // 비활성 사용자 정리
+            cleanupInactiveUsers().catch(console.error);
+        };
+    }, []); // 컴포넌트 언마운트 시에만 실행되도록 빈 배열
 
     // 메시지 삭제 함수 (채팅방별)
     const deleteMessage = useCallback(
@@ -280,6 +336,87 @@ export const LogBookProvider = ({ children }) => {
         [currentChatRoom, chatRoomList]
     );
 
+    // 실시간 접속 유저 관리 함수들
+    const joinRoom = useCallback(async (roomName, userId, userName, port) => {
+        try {
+            await joinChatRoom(roomName, userId, userName, port);
+            setCurrentUserId(userId);
+        } catch (error) {
+            console.error('채팅방 입장 오류:', error);
+        }
+    }, []);
+
+    const leaveRoom = useCallback(
+        async (roomName, userId) => {
+            try {
+                await leaveChatRoom(roomName, userId);
+
+                // heartbeat 정리
+                if (presenceHeartbeat) {
+                    clearInterval(presenceHeartbeat);
+                    setPresenceHeartbeat(null);
+                }
+            } catch (error) {
+                console.error('채팅방 퇴장 오류:', error);
+            }
+        },
+        [presenceHeartbeat]
+    );
+
+    // heartbeat 설정
+    const setupPresenceHeartbeat = useCallback(
+        (roomName, userId) => {
+            // 기존 heartbeat 정리
+            if (presenceHeartbeat) {
+                clearInterval(presenceHeartbeat);
+            }
+
+            // 30초마다 presence 업데이트
+            const interval = setInterval(async () => {
+                try {
+                    await updateUserPresence(roomName, userId);
+                } catch (error) {
+                    console.error('Presence heartbeat 오류:', error);
+                }
+            }, 30000);
+
+            setPresenceHeartbeat(interval);
+        },
+        [presenceHeartbeat]
+    );
+
+    // 채팅방 유저 구독 (의존성 제거하여 무한 루프 방지)
+    const subscribeToCurrentRoomUsers = useCallback((roomName) => {
+        if (!roomName) return null;
+
+        try {
+            const unsubscribe = subscribeToRoomUsers(
+                roomName,
+                (users) => {
+                    setRoomUsers((prev) => ({
+                        ...prev,
+                        [roomName]: users,
+                    }));
+                },
+                (error) => {
+                    console.error('유저 구독 오류:', error);
+                }
+            );
+
+            return unsubscribe;
+        } catch (error) {
+            console.error('유저 구독 설정 오류:', error);
+            return null;
+        }
+    }, []);
+
+    // 현재 채팅방의 실제 접속 유저수 가져오기
+    const getCurrentRoomUserCount = useCallback(() => {
+        if (!currentChatRoom) return 0;
+        const users = roomUsers[currentChatRoom.name] || [];
+        return users.length;
+    }, [currentChatRoom, roomUsers]);
+
     const value = {
         // 메시지 관련
         messages,
@@ -301,6 +438,13 @@ export const LogBookProvider = ({ children }) => {
         onlineUsers,
         updateOnlineUsers,
         updateUserNickname,
+
+        // 실시간 접속 유저 관련
+        roomUsers,
+        joinRoom,
+        leaveRoom,
+        setupPresenceHeartbeat,
+        getCurrentRoomUserCount,
 
         // UI 상태
         isChatPage,
