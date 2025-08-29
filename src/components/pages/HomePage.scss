@@ -6,11 +6,118 @@
     .container {
         margin: 0 auto;
         position: relative; /* new: allow absolutely positioned dropped snippets */
+        max-width: 1200px;
     }
 
     .layout {
         display: block;
         position: relative;
+        .react-grid-item {
+            cursor: pointer;
+            transition: all 200ms ease;
+            background-color: transparent;
+            transition-property: left, top, width, height;
+            border-radius: 10px;
+
+            &.cssTransforms {
+                transition-property: transform, width, height;
+            }
+
+            &.resizing {
+                transition: none;
+                z-index: 1;
+                will-change: width, height;
+            }
+
+            &.react-draggable-dragging {
+                transition: none;
+                z-index: 3;
+                will-change: transform;
+            }
+
+            > .react-resizable-handle {
+                position: absolute;
+                width: 20px;
+                height: 20px;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    right: 6px;
+                    bottom: 6px;
+                    width: 5px;
+                    height: 5px;
+                    border-right: 2px solid #00000066;
+                    border-bottom: 2px solid #00000066;
+                }
+
+                &.react-resizable-handle-sw {
+                    bottom: 0;
+                    left: 0;
+                    cursor: sw-resize;
+                    transform: rotate(90deg);
+                }
+
+                &.react-resizable-handle-se {
+                    bottom: 0;
+                    right: 0;
+                    cursor: se-resize;
+                }
+
+                &.react-resizable-handle-nw {
+                    top: 0;
+                    left: 0;
+                    cursor: nw-resize;
+                    transform: rotate(180deg);
+                }
+
+                &.react-resizable-handle-ne {
+                    top: 0;
+                    right: 0;
+                    cursor: ne-resize;
+                    transform: rotate(270deg);
+                }
+
+                &.react-resizable-handle-w,
+                &.react-resizable-handle-e {
+                    top: 50%;
+                    margin-top: -10px;
+                    cursor: ew-resize;
+                }
+
+                &.react-resizable-handle-w {
+                    left: 0;
+                    transform: rotate(135deg);
+                }
+
+                &.react-resizable-handle-e {
+                    right: 0;
+                    transform: rotate(315deg);
+                }
+
+                &.react-resizable-handle-n,
+                &.react-resizable-handle-s {
+                    left: 50%;
+                    margin-left: -10px;
+                    cursor: ns-resize;
+                }
+
+                &.react-resizable-handle-n {
+                    top: 0;
+                    transform: rotate(225deg);
+                }
+
+                &.react-resizable-handle-s {
+                    bottom: 0;
+                    transform: rotate(45deg);
+                }
+            }
+        }
+    }
+
+    /* Hide resize handles for normal post cards so only dropped snippets can be resized */
+    .post-card > .react-resizable-handle {
+        display: none !important;
     }
 
     .post-card {
@@ -177,6 +284,10 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 260ms ease, visibility 260ms ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
         }
 
         &.open {
@@ -210,10 +321,24 @@
         border: 1px dashed #cee;
         background: #fff;
         padding: 8px;
-        margin: 12px 0;
         border-radius: 8px;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
         z-index: 50;
+        > .react-resizable-handle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            &::after {
+                content: '';
+                position: absolute;
+                right: 6px;
+                bottom: 6px;
+                width: 5px;
+                height: 5px;
+                border-right: 2px solid #00000066;
+                border-bottom: 2px solid #00000066;
+            }
+        }
     }
 
     .dropped-header {
@@ -235,6 +360,7 @@
         flex-direction: column;
         gap: 8px;
         margin-bottom: 12px;
+        flex: 1;
     }
 
     .snippet-item {
