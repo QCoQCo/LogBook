@@ -86,6 +86,31 @@ const ChatPage = () => {
         };
     }, [setIsChatPage]);
 
+    // 이전 채팅방 정보 저장 (채팅방 변경 시 퇴장 처리용)
+    const [prevChatRoom, setPrevChatRoom] = useState(null);
+
+    // 채팅방 변경 감지 및 이전 채팅방 퇴장 처리 (강화)
+    useEffect(() => {
+        const handleRoomChange = async () => {
+            if (prevChatRoom && currentUser.id && currentChatRoom?.name !== prevChatRoom.name) {
+                console.log(`이전 채팅방 ${prevChatRoom.name}에서 퇴장 처리 중...`);
+                try {
+                    // 이전 채팅방에서 퇴장
+                    await leaveRoom(prevChatRoom.name, currentUser.id);
+                    console.log(`이전 채팅방 ${prevChatRoom.name}에서 퇴장 완료`);
+                } catch (error) {
+                    console.error('이전 채팅방 퇴장 오류:', error);
+                }
+            }
+            // 현재 채팅방을 이전 채팅방으로 저장
+            if (currentChatRoom) {
+                setPrevChatRoom(currentChatRoom);
+            }
+        };
+
+        handleRoomChange();
+    }, [currentChatRoom?.name, currentUser.id]);
+
     // 현재 채팅방과 사용자 변경 시 접속 관리
     useEffect(() => {
         if (currentChatRoom && currentUser.id) {
@@ -104,10 +129,6 @@ const ChatPage = () => {
 
             return () => {
                 window.removeEventListener('beforeunload', handleBeforeUnload);
-                // 채팅방 변경 시 이전 채팅방에서 퇴장
-                if (currentChatRoom && currentUser.id) {
-                    leaveRoom(currentChatRoom.name, currentUser.id);
-                }
             };
         }
     }, [currentChatRoom?.name, currentUser.id, currentUser.name, currentUser.port]); // 함수 참조 제거

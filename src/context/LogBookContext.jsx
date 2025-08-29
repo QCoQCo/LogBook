@@ -29,7 +29,7 @@ import {
     leaveChatRoom,
     updateUserPresence,
     subscribeToRoomUsers,
-    cleanupInactiveUsers,
+    forceRemoveUserFromAllRooms,
 } from '../utils/chatService';
 
 // LogBookContext 생성
@@ -71,28 +71,46 @@ export const LogBookProvider = ({ children }) => {
         }
     }, []); // currentChatRoom 의존성 제거
 
-    // 채팅방 변경
+    // 채팅방 변경 (강력한 퇴장 처리 포함)
     const switchChatRoom = useCallback(
-        (chatRoom) => {
+        async (chatRoom) => {
             if (currentChatRoom?.name === chatRoom.name) return;
 
-            // 이전 구독 해제
-            if (messagesUnsubscribe) {
-                messagesUnsubscribe();
-                setMessagesUnsubscribe(null);
-            }
+            try {
+                // 이전 채팅방에서 강제 퇴장 처리
+                if (currentChatRoom && currentUserId) {
+                    console.log(`이전 채팅방 ${currentChatRoom.name}에서 퇴장 처리 중...`);
+                    await leaveChatRoom(currentChatRoom.name, currentUserId);
 
-            // 이전 유저 구독 해제
-            if (usersUnsubscribe) {
-                usersUnsubscribe();
-                setUsersUnsubscribe(null);
-            }
+                    // 추가 보험: 모든 채팅방에서 해당 사용자 제거
+                    await forceRemoveUserFromAllRooms(currentUserId);
+                }
 
-            // 새 채팅방 설정
-            setCurrentChatRoom(chatRoom);
-            setMessages([]);
+                // 이전 구독 해제
+                if (messagesUnsubscribe) {
+                    messagesUnsubscribe();
+                    setMessagesUnsubscribe(null);
+                }
+
+                // 이전 유저 구독 해제
+                if (usersUnsubscribe) {
+                    usersUnsubscribe();
+                    setUsersUnsubscribe(null);
+                }
+
+                // 새 채팅방 설정
+                setCurrentChatRoom(chatRoom);
+                setMessages([]);
+
+                console.log(`새 채팅방 ${chatRoom.name}으로 변경 완료`);
+            } catch (error) {
+                console.error('채팅방 변경 중 오류:', error);
+                // 오류가 있어도 채팅방 변경은 계속 진행
+                setCurrentChatRoom(chatRoom);
+                setMessages([]);
+            }
         },
-        [currentChatRoom, messagesUnsubscribe, usersUnsubscribe]
+        [currentChatRoom, messagesUnsubscribe, usersUnsubscribe, currentUserId]
     );
 
     // 메시지 전송 함수 (채팅방별)
@@ -229,9 +247,6 @@ export const LogBookProvider = ({ children }) => {
             if (currentUserId && currentChatRoom) {
                 leaveChatRoom(currentChatRoom.name, currentUserId).catch(console.error);
             }
-
-            // 비활성 사용자 정리
-            cleanupInactiveUsers().catch(console.error);
         };
     }, []); // 컴포넌트 언마운트 시에만 실행되도록 빈 배열
 
@@ -378,7 +393,7 @@ export const LogBookProvider = ({ children }) => {
                 } catch (error) {
                     console.error('Presence heartbeat 오류:', error);
                 }
-            }, 30000);
+            }, 30000); // 30초로 복원
 
             setPresenceHeartbeat(interval);
         },

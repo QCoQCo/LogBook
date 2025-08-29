@@ -252,7 +252,7 @@ export const deleteChatRoom = async (roomId) => {
  */
 
 /**
- * 채팅방에 사용자 접속 등록
+ * 채팅방에 사용자 접속 등록 (더 강력한 presence 시스템)
  * @param {string} roomName - 채팅방 이름
  * @param {string} userId - 사용자 ID
  * @param {string} userName - 사용자 이름
@@ -262,14 +262,25 @@ export const deleteChatRoom = async (roomId) => {
 export const joinChatRoom = async (roomName, userId, userName, port = null) => {
     try {
         const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
-        await setDoc(presenceRef, {
-            roomName,
-            userId,
-            userName,
-            port,
-            joinedAt: serverTimestamp(),
-            lastSeen: serverTimestamp(),
-        });
+        const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        await setDoc(
+            presenceRef,
+            {
+                roomName,
+                userId,
+                userName,
+                port,
+                sessionId, // 세션 고유 ID 추가
+                joinedAt: serverTimestamp(),
+                lastSeen: serverTimestamp(),
+                isOnline: true,
+                browserTab: document.visibilityState === 'visible',
+            },
+            { merge: true }
+        ); // merge 옵션으로 기존 데이터 보존
+
+        console.log(`사용자 ${userName}(${userId})이 채팅방 ${roomName}에 입장했습니다.`);
     } catch (error) {
         console.error('채팅방 접속 등록 오류:', error);
         throw error;
@@ -277,7 +288,7 @@ export const joinChatRoom = async (roomName, userId, userName, port = null) => {
 };
 
 /**
- * 채팅방에서 사용자 접속 해제
+ * 채팅방에서 사용자 접속 해제 (명시적 퇴장)
  * @param {string} roomName - 채팅방 이름
  * @param {string} userId - 사용자 ID
  * @returns {Promise<void>}
@@ -285,10 +296,18 @@ export const joinChatRoom = async (roomName, userId, userName, port = null) => {
 export const leaveChatRoom = async (roomName, userId) => {
     try {
         const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
-        await deleteDoc(presenceRef);
+
+        // 문서가 존재하는지 먼저 확인
+        const presenceDoc = await getDoc(presenceRef);
+        if (presenceDoc.exists()) {
+            await deleteDoc(presenceRef);
+            console.log(`사용자 ${userId}이 채팅방 ${roomName}에서 퇴장했습니다.`);
+        } else {
+            console.log(`사용자 ${userId}의 presence 정보가 이미 없습니다.`);
+        }
     } catch (error) {
         console.error('채팅방 접속 해제 오류:', error);
-        throw error;
+        // 퇴장 실패는 치명적이지 않으므로 에러를 던지지 않음
     }
 };
 
@@ -338,18 +357,21 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                     const userData = doc.data();
                     const lastSeen = userData.lastSeen?.toDate() || new Date(0);
 
-                    // 5분 이내에 활동한 사용자만 활성 사용자로 간주
-                    if (now - lastSeen < 5 * 60 * 1000) {
+                    // 5분 이내에 활동하고 isOnline이 true인 사용자만 활성 사용자로 간주
+                    if (now - lastSeen < 5 * 60 * 1000 && userData.isOnline) {
                         activeUsers.push({
                             id: userData.userId,
                             name: userData.userName,
                             port: userData.port,
                             joinedAt: userData.joinedAt,
                             lastSeen: userData.lastSeen,
+                            sessionId: userData.sessionId,
                         });
                     }
                 });
 
+                // 콘솔에 현재 활성 사용자 수 로그
+                console.log(`채팅방 ${roomName} 활성 사용자: ${activeUsers.length}명`);
                 onUsersUpdate(activeUsers);
             },
             (error) => {
@@ -367,39 +389,26 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
 };
 
 /**
- * 비활성 사용자 정리 (5분 이상 비활성)
- * @param {string} roomName - 채팅방 이름 (선택사항, 전체 정리 시 null)
+ * 강제로 모든 채팅방에서 특정 사용자 제거
+ * @param {string} userId - 사용자 ID
  * @returns {Promise<void>}
  */
-export const cleanupInactiveUsers = async (roomName = null) => {
+export const forceRemoveUserFromAllRooms = async (userId) => {
     try {
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-
-        let presenceQuery;
-        if (roomName) {
-            presenceQuery = query(collection(db, 'presence'), where('roomName', '==', roomName));
-        } else {
-            presenceQuery = query(collection(db, 'presence'));
-        }
+        const presenceQuery = query(collection(db, 'presence'), where('userId', '==', userId));
 
         const snapshot = await getDocs(presenceQuery);
         const batch = [];
 
         snapshot.forEach((doc) => {
-            const userData = doc.data();
-            const lastSeen = userData.lastSeen?.toDate() || new Date(0);
-
-            // 5분 이상 비활성 사용자 삭제 대상에 추가
-            if (lastSeen < fiveMinutesAgo) {
-                batch.push(deleteDoc(doc.ref));
-            }
+            batch.push(deleteDoc(doc.ref));
         });
 
-        // 배치 삭제 실행
         await Promise.all(batch);
-
-        console.log(`정리된 비활성 사용자 수: ${batch.length}`);
+        console.log(
+            `사용자 ${userId}을 모든 채팅방에서 제거했습니다. (제거된 항목: ${batch.length}개)`
+        );
     } catch (error) {
-        console.error('비활성 사용자 정리 오류:', error);
+        console.error('사용자 강제 제거 오류:', error);
     }
 };
