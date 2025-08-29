@@ -105,28 +105,28 @@ const FloatingButton = () => {
                     );
                 })}
             </div>
-
             <button
                 className='fab-toggle'
                 aria-label={open ? '메뉴 닫기' : '빠른 액션 열기'}
                 aria-expanded={open}
                 onClick={toggle}
             >
-                {open ? (
-                    <svg viewBox='0 0 24 24' width='20' height='20' fill='currentColor'>
-                        <path d='M18.3 5.71a1 1 0 00-1.41 0L12 10.59 7.11 5.7A1 1 0 105.7 7.11L10.59 12l-4.9 4.89a1 1 0 101.41 1.41L12 13.41l4.89 4.9a1 1 0 001.41-1.41L13.41 12l4.9-4.89a1 1 0 000-1.4z' />
-                    </svg>
-                ) : (
-                    <svg viewBox='0 0 24 24' width='20' height='20' fill='currentColor'>
-                        <path
-                            d='M12 5v14M5 12h14'
-                            stroke='currentColor'
-                            strokeWidth='2'
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                        />
-                    </svg>
-                )}
+                {/* single plus icon that rotates when open */}
+                <svg
+                    className={`toggle-icon ${open ? 'open' : ''}`}
+                    viewBox='0 0 24 24'
+                    width='30'
+                    height='30'
+                    fill='currentColor'
+                >
+                    <path
+                        d='M12 5v14M5 12h14'
+                        stroke='currentColor'
+                        strokeWidth='2'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                    />
+                </svg>
             </button>
         </div>
     );

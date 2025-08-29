@@ -22,6 +22,18 @@
         cursor: pointer;
         transition: transform 180ms ease, background 180ms ease;
 
+        /* toggle icon rotation: make it slower */
+        .toggle-icon {
+            display: inline-block;
+            transition: transform 1000ms cubic-bezier(0.2, 0.9, 0.3, 1);
+            transform-origin: center;
+        }
+
+        /* when open, rotate the plus sign 90deg (or desired angle) */
+        & .toggle-icon.open {
+            transform: rotate(-45deg);
+        }
+
         &:active {
             transform: scale(0.96);
         }

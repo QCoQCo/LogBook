@@ -1,0 +1,31 @@
+.swiper-feature-controls {
+    padding: 8px;
+    h4 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+    }
+
+    .feature-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 8px 0;
+        label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+    }
+
+    .small-input {
+        width: 72px;
+        margin-left: 8px;
+    }
+
+    .feature-note {
+        margin-top: 12px;
+        font-size: 12px;
+        color: #666;
+    }
+}
