@@ -2,6 +2,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow } from 'swiper/modules';
 import { useLogBook, useAuth } from '../../context/LogBookContext';
 import { useState } from 'react';
+import { validateRoomPassword } from '../../utils/chatService';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 
@@ -27,10 +28,60 @@ const ChatRoomList = () => {
         description: '',
         capacity: 50,
         isPrivate: false,
+        password: '0000', // 기본 비밀번호
     });
 
+    // 비밀번호 입력 모달 상태
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [passwordInput, setPasswordInput] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+
     const handleRoomClick = (room) => {
-        switchChatRoom(room);
+        // 비공개 채팅방인 경우 비밀번호 확인
+        if (room.isPrivate) {
+            setSelectedRoom(room);
+            setShowPasswordModal(true);
+            setPasswordInput('');
+            setPasswordError('');
+        } else {
+            // 공개 채팅방은 바로 입장
+            switchChatRoom(room);
+        }
+    };
+
+    // 비밀번호 확인 후 채팅방 입장
+    const handlePasswordSubmit = () => {
+        if (!selectedRoom) return;
+
+        if (validateRoomPassword(selectedRoom, passwordInput)) {
+            // 비밀번호 일치 시 채팅방 입장
+            switchChatRoom(selectedRoom);
+            setShowPasswordModal(false);
+            setSelectedRoom(null);
+            setPasswordInput('');
+            setPasswordError('');
+        } else {
+            // 비밀번호 불일치
+            setPasswordError('비밀번호가 틀렸습니다.');
+        }
+    };
+
+    // 비밀번호 모달 취소
+    const handlePasswordCancel = () => {
+        setShowPasswordModal(false);
+        setSelectedRoom(null);
+        setPasswordInput('');
+        setPasswordError('');
+    };
+
+    // Enter 키로 비밀번호 입력
+    const handlePasswordKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handlePasswordSubmit();
+        } else if (e.key === 'Escape') {
+            handlePasswordCancel();
+        }
     };
 
     // 채팅방 생성 핸들러
@@ -52,6 +103,7 @@ const ChatRoomList = () => {
                 description: '',
                 capacity: 50,
                 isPrivate: false,
+                password: '0000',
             });
         } catch (error) {
             alert('채팅방 생성에 실패했습니다.');
@@ -59,9 +111,15 @@ const ChatRoomList = () => {
         }
     };
 
-    // 채팅방 삭제 핸들러
+    // 채팅방 삭제 핸들러 (시스템 채팅방 보호)
     const handleDeleteRoom = async (room, e) => {
         e.stopPropagation();
+
+        // 🔑 시스템 채팅방 삭제 방지
+        if (room.isSystem) {
+            alert('기본 채팅방은 삭제할 수 없습니다.');
+            return;
+        }
 
         if (!isLogin || room.userId !== currentUser?.id) {
             alert('본인이 생성한 채팅방만 삭제할 수 있습니다.');
@@ -72,7 +130,7 @@ const ChatRoomList = () => {
             try {
                 await deleteChatRoom(room.id);
             } catch (error) {
-                alert('채팅방 삭제에 실패했습니다.');
+                alert(error.message || '채팅방 삭제에 실패했습니다.');
                 console.error('채팅방 삭제 오류:', error);
             }
         }
@@ -125,7 +183,7 @@ const ChatRoomList = () => {
                         <div
                             className={`chat-room-card ${
                                 currentChatRoom?.id === room.id ? 'active' : ''
-                            }`}
+                            } ${room.isSystem ? 'system-room' : 'user-room'}`}
                             onClick={() => handleRoomClick(room)}
                         >
                             <div className='room-name'>{room.name}</div>
@@ -133,11 +191,17 @@ const ChatRoomList = () => {
                                 <span className='room-users'>
                                     {getRoomUserCount(room.name)}/{room.capacity}
                                 </span>
-                                {room.isPrivate && <span className='room-private'>🔒</span>}
+                                {room.isPrivate && (
+                                    <span className='room-private' title='비공개 채팅방'>
+                                        🔒
+                                    </span>
+                                )}
                             </div>
                             <div className='room-description'>{room.description}</div>
                             <div className='room-admin'>관리자: {room.admin}</div>
-                            {isLogin && room.userId === currentUser?.id && (
+
+                            {/* 🔑 시스템 채팅방이 아닌 경우에만 삭제 버튼 표시 */}
+                            {isLogin && !room.isSystem && room.userId === currentUser?.id && (
                                 <button
                                     className='delete-room-btn'
                                     onClick={(e) => handleDeleteRoom(room, e)}
@@ -145,6 +209,13 @@ const ChatRoomList = () => {
                                 >
                                     🗑️
                                 </button>
+                            )}
+
+                            {/* 시스템 채팅방 표시 */}
+                            {room.isSystem && (
+                                <div className='system-badge' title='기본 채팅방'>
+                                    🏛️ 기본방
+                                </div>
                             )}
                         </div>
                     </SwiperSlide>
@@ -212,6 +283,25 @@ const ChatRoomList = () => {
                                 비공개 채팅방
                             </label>
                         </div>
+                        {newRoomData.isPrivate && (
+                            <div className='form-group'>
+                                <label>비밀번호 (4자리)</label>
+                                <input
+                                    type='password'
+                                    value={newRoomData.password}
+                                    onChange={(e) =>
+                                        setNewRoomData({
+                                            ...newRoomData,
+                                            password: e.target.value,
+                                        })
+                                    }
+                                    placeholder='비밀번호를 입력하세요'
+                                    maxLength={4}
+                                    minLength={4}
+                                />
+                                <small>기본값: 0000</small>
+                            </div>
+                        )}
                         <div className='modal-buttons'>
                             <button onClick={handleCreateRoom} className='create-btn'>
                                 생성
@@ -220,6 +310,46 @@ const ChatRoomList = () => {
                                 onClick={() => setShowCreateModal(false)}
                                 className='cancel-btn'
                             >
+                                취소
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 비밀번호 입력 모달 */}
+            {showPasswordModal && selectedRoom && (
+                <div className='modal-overlay' onClick={handlePasswordCancel}>
+                    <div
+                        className='modal-content password-modal'
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3>🔒 비공개 채팅방</h3>
+                        <p>
+                            <strong>{selectedRoom.name}</strong>에 입장하려면 비밀번호를 입력하세요.
+                        </p>
+                        <div className='form-group'>
+                            <label>비밀번호</label>
+                            <input
+                                type='password'
+                                value={passwordInput}
+                                onChange={(e) => {
+                                    setPasswordInput(e.target.value);
+                                    setPasswordError(''); // 입력 시 에러 초기화
+                                }}
+                                onKeyDown={handlePasswordKeyPress}
+                                placeholder='4자리 비밀번호를 입력하세요'
+                                maxLength={4}
+                                autoFocus
+                                className={passwordError ? 'error' : ''}
+                            />
+                            {passwordError && <div className='error-message'>{passwordError}</div>}
+                        </div>
+                        <div className='modal-buttons'>
+                            <button onClick={handlePasswordSubmit} className='submit-btn'>
+                                입장
+                            </button>
+                            <button onClick={handlePasswordCancel} className='cancel-btn'>
                                 취소
                             </button>
                         </div>

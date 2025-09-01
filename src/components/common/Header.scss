@@ -206,40 +206,81 @@
                     position: relative; // for absolute-positioned dropdown
 
                     .user-profile {
-                        width: 44px;
-                        height: 44px;
-                        padding: 0;
-                        border-radius: 50%;
-                        overflow: hidden;
-                        border: 2px solid rgba(0, 0, 0, 0.06);
-                        background: transparent;
-                        display: inline-flex;
+                        display: flex;
                         align-items: center;
                         justify-content: center;
                         cursor: pointer;
-                        transition: transform 0.15s ease, box-shadow 0.15s ease;
+                        transition: all 0.2s ease;
+                        background: transparent;
+                        border: none;
 
+                        // 프로필 사진이 있을 때 - 동그란 원형 버튼
                         img {
-                            width: 100%;
-                            height: 100%;
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
                             object-fit: cover;
                             display: block;
+                            border: 2px solid #e0e0e0;
+                            transition: all 0.2s ease;
+
+                            &:hover {
+                                transform: scale(1.1);
+                                border-color: #1d9bf0;
+                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                            }
                         }
 
-                        &:hover {
-                            transform: scale(1.08);
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-                        }
-                    }
+                        // 프로필 사진이 없을 때 - 텍스트 버튼
+                        .user-name {
+                            font-size: 14px;
+                            font-weight: 600;
+                            color: #222;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            max-width: 120px;
+                            padding: 8px 16px;
+                            border-radius: 20px;
+                            border: 2px solid rgba(0, 0, 0, 0.06);
+                            transition: all 0.2s ease;
 
-                    .user-name {
-                        font-size: 14px;
-                        font-weight: 600;
-                        color: #222;
-                        max-width: 120px;
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
+                            &.no-profile-image {
+                                background-color: #1d9bf0;
+                                color: white;
+                                border-color: #1d9bf0;
+                                font-weight: 700;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                                min-width: 60px;
+                                text-align: center;
+                            }
+
+                            &.fallback-user-name {
+                                background-color: #1d9bf0;
+                                color: white;
+                                border-color: #1d9bf0;
+                                font-weight: 700;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                                min-width: 60px;
+                                text-align: center;
+                            }
+                        }
+
+                        // 호버 효과 (프로필 사진이 없을 때)
+                        &:hover .user-name {
+                            &.no-profile-image,
+                            &.fallback-user-name {
+                                background-color: #1a8cd8;
+                                transform: translateY(-1px);
+                                box-shadow: 0 4px 12px rgba(29, 155, 240, 0.3);
+                            }
+                        }
+
+                        &:active {
+                            transform: translateY(0);
+                        }
                     }
 
                     // dropdown menu positioned below the profile button
@@ -349,11 +390,32 @@
 
                 .user-area {
                     .user-profile {
-                        border-color: #444;
-                    }
+                        img {
+                            border-color: #555;
 
-                    .user-name {
-                        color: #ddd;
+                            &:hover {
+                                border-color: #1d9bf0;
+                            }
+                        }
+
+                        .user-name {
+                            color: #ddd;
+                            border-color: #555;
+
+                            &.no-profile-image,
+                            &.fallback-user-name {
+                                background-color: #1d9bf0;
+                                color: white;
+                                border-color: #1d9bf0;
+                            }
+                        }
+
+                        &:hover .user-name {
+                            &.no-profile-image,
+                            &.fallback-user-name {
+                                background-color: #1a8cd8;
+                            }
+                        }
                     }
 
                     .user-menu {

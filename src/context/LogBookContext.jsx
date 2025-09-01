@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import {
     collection,
     addDoc,
@@ -28,8 +28,14 @@ import {
     joinChatRoom,
     leaveChatRoom,
     updateUserPresence,
+    updateUserOnlineStatus,
     subscribeToRoomUsers,
     forceRemoveUserFromAllRooms,
+    subscribeToChatRooms,
+    initializeDefaultChatRooms,
+    cleanupExpiredPresence,
+    cleanupOfflinePresence,
+    cleanupOfflinePresenceForRoom,
 } from '../utils/chatService';
 
 // LogBookContext 생성
@@ -43,6 +49,11 @@ export const LogBookProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
+
+    // 사용자 데이터 관리
+    const [userData, setUserData] = useState([]);
+    const [userDataLoading, setUserDataLoading] = useState(false);
+    const [userDataLoaded, setUserDataLoaded] = useState(false);
 
     // 채팅방 관련 상태
     const [currentChatRoom, setCurrentChatRoom] = useState(null);
@@ -60,22 +71,110 @@ export const LogBookProvider = ({ children }) => {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [presenceHeartbeat, setPresenceHeartbeat] = useState(null);
 
-    // 채팅방 목록 로드
+    // 채팅방 목록 실시간 구독
+    const [chatRoomsUnsubscribe, setChatRoomsUnsubscribe] = useState(null);
+
+    // 사용자 데이터 로딩 함수
+    const loadUserData = useCallback(async () => {
+        if (userDataLoaded || userDataLoading) return; // 이미 로드되었거나 로딩 중이면 중복 실행 방지
+
+        try {
+            setUserDataLoading(true);
+            const response = await fetch('/data/userData.json');
+            if (!response.ok) {
+                throw new Error('사용자 데이터 로딩 실패');
+            }
+            const users = await response.json();
+            setUserData(users);
+            setUserDataLoaded(true);
+        } catch (error) {
+            console.error('사용자 데이터 로드 실패:', error);
+            setError('사용자 데이터 로딩에 실패했습니다.');
+        } finally {
+            setUserDataLoading(false);
+        }
+    }, [userDataLoaded, userDataLoading]);
+
+    // 사용자 데이터를 Map으로 변환하여 검색 성능 향상
+    const userDataMap = useMemo(() => {
+        const map = new Map();
+        userData.forEach((user) => {
+            // userId로 인덱싱
+            if (user.userId) {
+                map.set(user.userId, user);
+            }
+            // nickName으로도 인덱싱 (중복 허용)
+            if (user.nickName && !map.has(user.nickName)) {
+                map.set(user.nickName, user);
+            }
+        });
+        return map;
+    }, [userData]);
+
+    // userId 또는 userName으로 사용자 프로필 사진 가져오기 (성능 최적화)
+    const getUserProfilePhoto = useCallback(
+        (userId, userName) => {
+            // 게스트 사용자인 경우 null 반환
+            if (!userId || userId.startsWith('guest_')) {
+                return null;
+            }
+
+            // Map을 사용하여 O(1) 검색
+            const user = userDataMap.get(userId) || userDataMap.get(userName);
+            return user?.profilePhoto || null;
+        },
+        [userDataMap]
+    );
+
+    // 사용자 정보 전체 가져오기 (성능 최적화)
+    const getUserInfo = useCallback(
+        (userId, userName) => {
+            // 게스트 사용자인 경우 null 반환
+            if (!userId || userId.startsWith('guest_')) {
+                return null;
+            }
+
+            // Map을 사용하여 O(1) 검색
+            return userDataMap.get(userId) || userDataMap.get(userName) || null;
+        },
+        [userDataMap]
+    );
+
+    // 채팅방 목록 실시간 구독 설정
     const loadChatRoomList = useCallback(async () => {
         try {
-            const rooms = await getChatRoomList();
-            setChatRoomList(rooms);
+            setLoading(true);
+            setError(null);
 
-            // 기본 채팅방 선택 (일반 채팅방 우선)
-            if (rooms.length > 0 && !currentChatRoom) {
-                const defaultRoom = rooms.find((room) => room.name === '일반 채팅방') || rooms[0];
-                setCurrentChatRoom(defaultRoom);
-            }
-        } catch (err) {
-            console.error('채팅방 목록 로드 오류:', err);
-            setError('채팅방 목록을 불러오는데 실패했습니다.');
+            // 🔑 기본 채팅방 초기화 (최초 1회)
+            await initializeDefaultChatRooms();
+
+            // 실시간 채팅방 목록 구독
+            const unsubscribe = subscribeToChatRooms(
+                (roomList) => {
+                    setChatRoomList(roomList);
+
+                    // 현재 채팅방이 없으면 첫 번째 채팅방으로 설정
+                    if (!currentChatRoom && roomList.length > 0) {
+                        const defaultRoom =
+                            roomList.find((room) => room.name === '일반 채팅방') || roomList[0];
+                        setCurrentChatRoom(defaultRoom);
+                    }
+                },
+                (error) => {
+                    setError('채팅방 목록 로딩에 실패했습니다.');
+                    console.error('채팅방 목록 구독 오류:', error);
+                }
+            );
+
+            setChatRoomsUnsubscribe(() => unsubscribe);
+        } catch (error) {
+            setError('채팅방 목록 초기화에 실패했습니다.');
+            console.error('채팅방 목록 로딩 오류:', error);
+        } finally {
+            setLoading(false);
         }
-    }, []); // currentChatRoom 의존성 제거
+    }, [currentChatRoom]);
 
     // 채팅방 변경 (강력한 퇴장 처리 포함)
     const switchChatRoom = useCallback(
@@ -181,6 +280,11 @@ export const LogBookProvider = ({ children }) => {
         }
     }, []);
 
+    // 사용자 데이터 로드 (컴포넌트 마운트 시)
+    useEffect(() => {
+        loadUserData();
+    }, [loadUserData]);
+
     // 채팅방 목록 로드 (컴포넌트 마운트 시)
     useEffect(() => {
         loadChatRoomList();
@@ -240,6 +344,32 @@ export const LogBookProvider = ({ children }) => {
             }
         };
     }, [currentChatRoom]); // subscribeToCurrentRoomMessages, subscribeToCurrentRoomUsers 의존성 제거
+
+    // 컴포넌트 언마운트 시 채팅방 목록 구독 해제
+    useEffect(() => {
+        return () => {
+            if (chatRoomsUnsubscribe) {
+                try {
+                    chatRoomsUnsubscribe();
+                } catch (error) {
+                    console.error('채팅방 목록 구독 해제 오류:', error);
+                }
+            }
+        };
+    }, [chatRoomsUnsubscribe]);
+
+    // 앱 시작 시 한 번만 정리 작업 실행 (주기적 실행 제거)
+    useEffect(() => {
+        // 앱 시작 후 30초 후에 한 번만 정리
+        const initialCleanupTimeout = setTimeout(() => {
+            cleanupExpiredPresence(10).catch(console.error);
+            cleanupOfflinePresence(20).catch(console.error);
+        }, 30000); // 30초 후 실행
+
+        return () => {
+            clearTimeout(initialCleanupTimeout);
+        };
+    }, []);
 
     // 컴포넌트 언마운트 시 정리
     useEffect(() => {
@@ -384,24 +514,17 @@ export const LogBookProvider = ({ children }) => {
         [presenceHeartbeat]
     );
 
-    // heartbeat 설정
+    // heartbeat 설정 (비활성화 - 실시간 상태 변경만 사용)
     const setupPresenceHeartbeat = useCallback(
         (roomName, userId) => {
             // 기존 heartbeat 정리
             if (presenceHeartbeat) {
                 clearInterval(presenceHeartbeat);
+                setPresenceHeartbeat(null);
             }
 
-            // 30초마다 presence 업데이트
-            const interval = setInterval(async () => {
-                try {
-                    await updateUserPresence(roomName, userId);
-                } catch (error) {
-                    console.error('Presence heartbeat 오류:', error);
-                }
-            }, 30000); // 30초로 복원
-
-            setPresenceHeartbeat(interval);
+            // heartbeat는 더 이상 사용하지 않음 (실시간 상태 변경만 사용)
+            console.log(`채팅방 ${roomName}에서 heartbeat 없이 실시간 상태 관리 시작`);
         },
         [presenceHeartbeat]
     );
@@ -460,12 +583,21 @@ export const LogBookProvider = ({ children }) => {
         updateOnlineUsers,
         updateUserNickname,
 
+        // 사용자 데이터 관련
+        userData,
+        userDataLoading,
+        userDataLoaded,
+        loadUserData,
+        getUserProfilePhoto,
+        getUserInfo,
+
         // 실시간 접속 유저 관련
         roomUsers,
         joinRoom,
         leaveRoom,
         setupPresenceHeartbeat,
         getCurrentRoomUserCount,
+        updateUserOnlineStatus,
 
         // UI 상태
         isChatPage,

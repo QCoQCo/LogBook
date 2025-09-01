@@ -152,7 +152,81 @@ export const deleteMessageFromRoom = async (roomName, messageId) => {
 };
 
 /**
- * 채팅방 목록을 chatRoomData.json에서 가져오기
+ * Firebase에서 채팅방 목록 실시간 구독
+ * @param {function} onRoomsUpdate - 채팅방 목록 업데이트 콜백
+ * @param {function} onError - 에러 처리 콜백
+ * @returns {function} - 구독 해제 함수
+ */
+export const subscribeToChatRooms = (onRoomsUpdate, onError) => {
+    try {
+        const roomsQuery = query(collection(db, 'chatRooms'), orderBy('createdAt', 'asc'));
+
+        const unsubscribe = onSnapshot(
+            roomsQuery,
+            (snapshot) => {
+                const roomList = [];
+                snapshot.forEach((doc) => {
+                    roomList.push({
+                        id: doc.id,
+                        ...doc.data(),
+                    });
+                });
+                onRoomsUpdate(roomList);
+            },
+            (error) => {
+                console.error('채팅방 목록 구독 오류:', error);
+                if (onError) onError(error);
+            }
+        );
+
+        return unsubscribe;
+    } catch (error) {
+        console.error('채팅방 목록 구독 설정 오류:', error);
+        if (onError) onError(error);
+        return null;
+    }
+};
+
+/**
+ * 기본 채팅방들을 Firebase에 초기화 (최초 1회만 실행)
+ */
+export const initializeDefaultChatRooms = async () => {
+    try {
+        // 기존 채팅방이 있는지 확인
+        const roomsSnapshot = await getDocs(collection(db, 'chatRooms'));
+        if (!roomsSnapshot.empty) {
+            console.log('채팅방이 이미 존재합니다. 초기화를 건너뜁니다.');
+            return;
+        }
+
+        // chatRoomData.json에서 기본 채팅방 데이터 가져오기
+        const response = await fetch('/data/chatRoomData.json');
+        const data = await response.json();
+
+        // 기본 채팅방들을 Firebase에 추가
+        const batch = [];
+        for (const room of data.chatRooms) {
+            const roomRef = doc(db, 'chatRooms', `system_room_${room.id}`);
+            batch.push(
+                setDoc(roomRef, {
+                    ...room,
+                    isSystem: true, // 🔑 시스템 채팅방 표시
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                })
+            );
+        }
+
+        await Promise.all(batch);
+        console.log('기본 채팅방 초기화 완료');
+    } catch (error) {
+        console.error('기본 채팅방 초기화 오류:', error);
+        throw error;
+    }
+};
+
+/**
+ * 채팅방 목록을 chatRoomData.json에서 가져오기 (백업용 - 더 이상 사용하지 않음)
  * @returns {Promise<Array>} - 채팅방 목록
  */
 export const getChatRoomList = async () => {
@@ -204,22 +278,13 @@ export const initializeChatRoom = async (roomName) => {
 };
 
 /**
- * 새 채팅방을 생성하고 chatRoomData.json에 추가
+ * 새 채팅방을 Firebase에 생성 (사용자 생성)
  * @param {Object} roomData - 채팅방 데이터
  * @returns {Promise<Object>} - 생성된 채팅방 데이터
  */
 export const createChatRoom = async (roomData) => {
     try {
-        // 현재 채팅방 목록 가져오기
-        const currentRooms = await getChatRoomList();
-
-        // 새 ID 생성 (기존 ID 중 최대값 + 1)
-        const newId =
-            currentRooms.length > 0 ? Math.max(...currentRooms.map((room) => room.id)) + 1 : 1;
-
-        // 새 채팅방 데이터 생성
         const newRoom = {
-            id: newId,
             name: roomData.name,
             admin: roomData.admin,
             userId: roomData.userId,
@@ -227,11 +292,18 @@ export const createChatRoom = async (roomData) => {
             capacity: roomData.capacity || 50,
             currentUsers: 0,
             isPrivate: roomData.isPrivate || false,
-            createdAt: new Date().toISOString().split('T')[0],
-            updatedAt: new Date().toISOString().split('T')[0],
+            password: roomData.isPrivate ? roomData.password || '0000' : null, // 비공개방만 비밀번호 설정
+            isSystem: false, // 🔑 사용자 생성 채팅방
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         };
 
-        return newRoom;
+        const docRef = await addDoc(collection(db, 'chatRooms'), newRoom);
+
+        return {
+            id: docRef.id,
+            ...newRoom,
+        };
     } catch (error) {
         console.error('채팅방 생성 오류:', error);
         throw error;
@@ -239,14 +311,46 @@ export const createChatRoom = async (roomData) => {
 };
 
 /**
- * 채팅방을 삭제하고 chatRoomData.json에서 제거
- * @param {number} roomId - 삭제할 채팅방 ID
+ * 채팅방 비밀번호 검증
+ * @param {Object} room - 채팅방 객체
+ * @param {string} inputPassword - 입력된 비밀번호
+ * @returns {boolean} - 비밀번호 일치 여부
+ */
+export const validateRoomPassword = (room, inputPassword) => {
+    // 공개방은 비밀번호 검증 불필요
+    if (!room.isPrivate) {
+        return true;
+    }
+
+    // 비공개방은 비밀번호 검증 필요
+    return room.password === inputPassword;
+};
+
+/**
+ * 채팅방 삭제 (시스템 채팅방은 삭제 불가)
+ * @param {string} roomId - 삭제할 채팅방 ID
  * @returns {Promise<void>}
  */
 export const deleteChatRoom = async (roomId) => {
     try {
-        // 실제 구현에서는 백엔드 API를 호출하여 JSON 파일을 업데이트해야 합니다.
-        // 현재는 프론트엔드에서만 처리되므로 새로고침 시 복원됩니다.
+        // 채팅방 정보 먼저 확인
+        const roomRef = doc(db, 'chatRooms', roomId);
+        const roomDoc = await getDoc(roomRef);
+
+        if (!roomDoc.exists()) {
+            throw new Error('채팅방을 찾을 수 없습니다.');
+        }
+
+        const roomData = roomDoc.data();
+
+        // 🔑 시스템 채팅방인지 확인
+        if (roomData.isSystem) {
+            throw new Error('기본 채팅방은 삭제할 수 없습니다.');
+        }
+
+        // 사용자 생성 채팅방만 삭제 가능
+        await deleteDoc(roomRef);
+        console.log(`채팅방 ${roomData.name} 삭제 완료`);
     } catch (error) {
         console.error('채팅방 삭제 오류:', error);
         throw error;
@@ -308,6 +412,11 @@ export const leaveChatRoom = async (roomName, userId) => {
         if (presenceDoc.exists()) {
             await deleteDoc(presenceRef);
             console.log(`사용자 ${userId}이 채팅방 ${roomName}에서 퇴장했습니다.`);
+
+            // 퇴장 시 해당 채팅방의 오래된 오프라인 유저들도 정리
+            setTimeout(() => {
+                cleanupOfflinePresenceForRoom(roomName).catch(console.error);
+            }, 1000); // 1초 후 정리
         } else {
             console.log(`사용자 ${userId}의 presence 정보가 이미 없습니다.`);
         }
@@ -340,6 +449,35 @@ export const updateUserPresence = async (roomName, userId) => {
 };
 
 /**
+ * 사용자의 온라인 상태를 즉시 변경 (탭 숨김/표시 시 사용)
+ * @param {string} roomName - 채팅방 이름
+ * @param {string} userId - 사용자 ID
+ * @param {boolean} isOnline - 온라인 상태
+ * @returns {Promise<void>}
+ */
+export const updateUserOnlineStatus = async (roomName, userId, isOnline) => {
+    try {
+        const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
+        const presenceDoc = await getDoc(presenceRef);
+
+        if (presenceDoc.exists()) {
+            await updateDoc(presenceRef, {
+                isOnline: isOnline,
+                browserTab: document.visibilityState === 'visible',
+                lastSeen: serverTimestamp(),
+            });
+            console.log(
+                `사용자 ${userId}의 온라인 상태가 ${
+                    isOnline ? '온라인' : '오프라인'
+                }으로 변경되었습니다.`
+            );
+        }
+    } catch (error) {
+        console.error('사용자 온라인 상태 업데이트 오류:', error);
+    }
+};
+
+/**
  * 특정 채팅방의 접속 유저 목록을 실시간으로 구독
  * @param {string} roomName - 채팅방 이름
  * @param {function} onUsersUpdate - 유저 목록 업데이트 콜백
@@ -348,23 +486,18 @@ export const updateUserPresence = async (roomName, userId) => {
  */
 export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
     try {
-        // 5분 이내에 활동한 사용자만 온라인으로 간주
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-
         const usersQuery = query(collection(db, 'presence'), where('roomName', '==', roomName));
 
         const unsubscribe = onSnapshot(
             usersQuery,
             (snapshot) => {
-                const now = new Date();
                 const activeUsers = [];
 
                 snapshot.forEach((doc) => {
                     const userData = doc.data();
-                    const lastSeen = userData.lastSeen?.toDate() || new Date(0);
 
-                    // 5분 이내에 활동하고 isOnline이 true인 사용자만 활성 사용자로 간주
-                    if (now - lastSeen < 5 * 60 * 1000 && userData.isOnline) {
+                    // isOnline 상태만 확인 (시간 기반 필터링 제거)
+                    if (userData.isOnline === true) {
                         activeUsers.push({
                             id: userData.userId,
                             name: userData.userName,
@@ -375,8 +508,8 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                     }
                 });
 
-                // 콘솔에 현재 활성 사용자 수 로그
-                console.log(`채팅방 ${roomName} 활성 사용자: ${activeUsers.length}명`);
+                // 유저 수가 변경될 때만 로그 출력
+                console.log(`채팅방 ${roomName} 실시간 활성 사용자: ${activeUsers.length}명`);
                 onUsersUpdate(activeUsers);
             },
             (error) => {
@@ -415,5 +548,123 @@ export const forceRemoveUserFromAllRooms = async (userId) => {
         );
     } catch (error) {
         console.error('사용자 강제 제거 오류:', error);
+    }
+};
+
+/**
+ * 만료된 presence 문서들을 정리하는 함수
+ * @param {number} expireMinutes - 만료 시간 (분, 기본값: 5분)
+ * @returns {Promise<number>} - 정리된 문서 수
+ */
+export const cleanupExpiredPresence = async (expireMinutes = 5) => {
+    try {
+        const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
+
+        // 모든 presence 문서들을 조회 (인덱스 없이도 안전)
+        const allPresenceQuery = query(collection(db, 'presence'));
+        const snapshot = await getDocs(allPresenceQuery);
+        const batch = [];
+
+        // 클라이언트 측에서 만료 조건 필터링
+        snapshot.forEach((doc) => {
+            const userData = doc.data();
+            const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+
+            // 만료 시간보다 오래된 문서만 삭제 대상에 추가
+            if (lastSeen < expiredTime) {
+                batch.push(deleteDoc(doc.ref));
+            }
+        });
+
+        if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log(`만료된 presence 문서 ${batch.length}개를 정리했습니다.`);
+        }
+
+        return batch.length;
+    } catch (error) {
+        console.error('만료된 presence 정리 오류:', error);
+        return 0;
+    }
+};
+
+/**
+ * 오프라인 상태이면서 오래된 presence 문서들을 정리하는 함수 (인덱스 불필요 버전)
+ * @param {number} expireMinutes - 만료 시간 (분, 기본값: 10분)
+ * @returns {Promise<number>} - 정리된 문서 수
+ */
+export const cleanupOfflinePresence = async (expireMinutes = 10) => {
+    try {
+        const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
+
+        // 먼저 오프라인 상태인 문서들을 조회
+        const offlineQuery = query(collection(db, 'presence'), where('isOnline', '==', false));
+
+        const snapshot = await getDocs(offlineQuery);
+        const batch = [];
+
+        // 클라이언트 측에서 lastSeen 조건 필터링
+        snapshot.forEach((doc) => {
+            const userData = doc.data();
+            const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+
+            // 만료 시간보다 오래된 문서만 삭제 대상에 추가
+            if (lastSeen < expiredTime) {
+                batch.push(deleteDoc(doc.ref));
+            }
+        });
+
+        if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log(`오프라인 상태의 만료된 presence 문서 ${batch.length}개를 정리했습니다.`);
+        }
+
+        return batch.length;
+    } catch (error) {
+        console.error('오프라인 presence 정리 오류:', error);
+        return 0;
+    }
+};
+
+/**
+ * 특정 채팅방의 오프라인 유저들을 정리하는 함수 (이벤트 기반)
+ * @param {string} roomName - 채팅방 이름
+ * @param {number} expireMinutes - 만료 시간 (분, 기본값: 5분)
+ * @returns {Promise<number>} - 정리된 문서 수
+ */
+export const cleanupOfflinePresenceForRoom = async (roomName, expireMinutes = 5) => {
+    try {
+        const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
+
+        // 특정 채팅방의 오프라인 유저들만 조회
+        const roomOfflineQuery = query(
+            collection(db, 'presence'),
+            where('roomName', '==', roomName),
+            where('isOnline', '==', false)
+        );
+
+        const snapshot = await getDocs(roomOfflineQuery);
+        const batch = [];
+
+        // 클라이언트 측에서 lastSeen 조건 필터링
+        snapshot.forEach((doc) => {
+            const userData = doc.data();
+            const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+
+            // 만료 시간보다 오래된 문서만 삭제 대상에 추가
+            if (lastSeen < expiredTime) {
+                batch.push(deleteDoc(doc.ref));
+            }
+        });
+
+        if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log(`채팅방 ${roomName}의 오프라인 유저 ${batch.length}명을 정리했습니다.`);
+        }
+
+        return batch.length;
+    } catch (error) {
+        console.error(`채팅방 ${roomName} 오프라인 유저 정리 오류:`, error);
+        return 0;
     }
 };
