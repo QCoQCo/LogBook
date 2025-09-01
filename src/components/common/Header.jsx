@@ -267,7 +267,7 @@ const Header = () => {
                                         )}
                                         <li role='menuitem'>
                                             <a
-                                                href='/myPage'
+                                                href={`/myPage?userId=${currentUserInfo.userId}`}
                                                 target='_self'
                                                 rel='noopener noreferrer'
                                             >

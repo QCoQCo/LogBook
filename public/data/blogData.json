@@ -1,0 +1,119 @@
+{
+    "blogData": [
+        {
+            "id": 0,
+            "layout": [
+                {
+                    "w": 5,
+                    "h": 1,
+                    "x": 0,
+                    "y": 0,
+                    "i": "title-0",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 4,
+                    "h": 4,
+                    "x": 0,
+                    "y": 1,
+                    "i": "image-1",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 1,
+                    "h": 4,
+                    "x": 4,
+                    "y": 1,
+                    "i": "map-2",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 1,
+                    "h": 3,
+                    "x": 2,
+                    "y": 6,
+                    "i": "link-3",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 1,
+                    "h": 3,
+                    "x": 0,
+                    "y": 6,
+                    "i": "image-4",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 3,
+                    "h": 1,
+                    "x": 0,
+                    "y": 5,
+                    "i": "title-5",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 2,
+                    "h": 3,
+                    "x": 3,
+                    "y": 5,
+                    "i": "image-6",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 1,
+                    "h": 2,
+                    "x": 1,
+                    "y": 6,
+                    "i": "post-7",
+                    "moved": false,
+                    "static": false
+                }
+            ],
+            "elements": [
+                {
+                    "i": "title-0",
+                    "content": "코딩하는 개발자의 블로그"
+                },
+                {
+                    "i": "image-1",
+                    "content": "https://img.freepik.com/free-photo/fuji-mountain-kawaguchiko-lake-morning-autumn-seasons-fuji-mountain-yamanachi-japan_335224-102.jpg?semt=ais_hybrid&w=740&q=80"
+                },
+                {
+                    "i": "map-2",
+                    "content": null
+                },
+                {
+                    "i": "link-3",
+                    "content": null
+                },
+                {
+                    "i": "image-4",
+                    "content": "https://m.media-amazon.com/images/I/61YXNhfzlzL._UF894,1000_QL80_.jpg"
+                },
+                {
+                    "i": "title-5",
+                    "content": "푸른눈의 백룡"
+                },
+                {
+                    "i": "image-6",
+                    "content": "https://i.pinimg.com/1200x/a2/48/0a/a2480aceb3d0881e5aaa921209cf61c8.jpg"
+                },
+                {
+                    "i": "post-7",
+                    "content": null
+                }
+            ],
+            "userId": "developer123",
+            "createdAt": "2024/11/15",
+            "updatedAt": "2025/09/01",
+            "deletedAt": null
+        }
+    ]
+}
