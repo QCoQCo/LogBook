@@ -30,6 +30,8 @@ import {
     updateUserPresence,
     subscribeToRoomUsers,
     forceRemoveUserFromAllRooms,
+    subscribeToChatRooms,
+    initializeDefaultChatRooms,
 } from '../utils/chatService';
 
 // LogBookContext 생성
@@ -60,22 +62,44 @@ export const LogBookProvider = ({ children }) => {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [presenceHeartbeat, setPresenceHeartbeat] = useState(null);
 
-    // 채팅방 목록 로드
+    // 채팅방 목록 실시간 구독
+    const [chatRoomsUnsubscribe, setChatRoomsUnsubscribe] = useState(null);
+
+    // 채팅방 목록 실시간 구독 설정
     const loadChatRoomList = useCallback(async () => {
         try {
-            const rooms = await getChatRoomList();
-            setChatRoomList(rooms);
+            setLoading(true);
+            setError(null);
 
-            // 기본 채팅방 선택 (일반 채팅방 우선)
-            if (rooms.length > 0 && !currentChatRoom) {
-                const defaultRoom = rooms.find((room) => room.name === '일반 채팅방') || rooms[0];
-                setCurrentChatRoom(defaultRoom);
-            }
-        } catch (err) {
-            console.error('채팅방 목록 로드 오류:', err);
-            setError('채팅방 목록을 불러오는데 실패했습니다.');
+            // 🔑 기본 채팅방 초기화 (최초 1회)
+            await initializeDefaultChatRooms();
+
+            // 실시간 채팅방 목록 구독
+            const unsubscribe = subscribeToChatRooms(
+                (roomList) => {
+                    setChatRoomList(roomList);
+
+                    // 현재 채팅방이 없으면 첫 번째 채팅방으로 설정
+                    if (!currentChatRoom && roomList.length > 0) {
+                        const defaultRoom =
+                            roomList.find((room) => room.name === '일반 채팅방') || roomList[0];
+                        setCurrentChatRoom(defaultRoom);
+                    }
+                },
+                (error) => {
+                    setError('채팅방 목록 로딩에 실패했습니다.');
+                    console.error('채팅방 목록 구독 오류:', error);
+                }
+            );
+
+            setChatRoomsUnsubscribe(() => unsubscribe);
+        } catch (error) {
+            setError('채팅방 목록 초기화에 실패했습니다.');
+            console.error('채팅방 목록 로딩 오류:', error);
+        } finally {
+            setLoading(false);
         }
-    }, []); // currentChatRoom 의존성 제거
+    }, [currentChatRoom]);
 
     // 채팅방 변경 (강력한 퇴장 처리 포함)
     const switchChatRoom = useCallback(
@@ -240,6 +264,19 @@ export const LogBookProvider = ({ children }) => {
             }
         };
     }, [currentChatRoom]); // subscribeToCurrentRoomMessages, subscribeToCurrentRoomUsers 의존성 제거
+
+    // 컴포넌트 언마운트 시 채팅방 목록 구독 해제
+    useEffect(() => {
+        return () => {
+            if (chatRoomsUnsubscribe) {
+                try {
+                    chatRoomsUnsubscribe();
+                } catch (error) {
+                    console.error('채팅방 목록 구독 해제 오류:', error);
+                }
+            }
+        };
+    }, [chatRoomsUnsubscribe]);
 
     // 컴포넌트 언마운트 시 정리
     useEffect(() => {

@@ -152,7 +152,81 @@ export const deleteMessageFromRoom = async (roomName, messageId) => {
 };
 
 /**
- * 채팅방 목록을 chatRoomData.json에서 가져오기
+ * Firebase에서 채팅방 목록 실시간 구독
+ * @param {function} onRoomsUpdate - 채팅방 목록 업데이트 콜백
+ * @param {function} onError - 에러 처리 콜백
+ * @returns {function} - 구독 해제 함수
+ */
+export const subscribeToChatRooms = (onRoomsUpdate, onError) => {
+    try {
+        const roomsQuery = query(collection(db, 'chatRooms'), orderBy('createdAt', 'asc'));
+
+        const unsubscribe = onSnapshot(
+            roomsQuery,
+            (snapshot) => {
+                const roomList = [];
+                snapshot.forEach((doc) => {
+                    roomList.push({
+                        id: doc.id,
+                        ...doc.data(),
+                    });
+                });
+                onRoomsUpdate(roomList);
+            },
+            (error) => {
+                console.error('채팅방 목록 구독 오류:', error);
+                if (onError) onError(error);
+            }
+        );
+
+        return unsubscribe;
+    } catch (error) {
+        console.error('채팅방 목록 구독 설정 오류:', error);
+        if (onError) onError(error);
+        return null;
+    }
+};
+
+/**
+ * 기본 채팅방들을 Firebase에 초기화 (최초 1회만 실행)
+ */
+export const initializeDefaultChatRooms = async () => {
+    try {
+        // 기존 채팅방이 있는지 확인
+        const roomsSnapshot = await getDocs(collection(db, 'chatRooms'));
+        if (!roomsSnapshot.empty) {
+            console.log('채팅방이 이미 존재합니다. 초기화를 건너뜁니다.');
+            return;
+        }
+
+        // chatRoomData.json에서 기본 채팅방 데이터 가져오기
+        const response = await fetch('/data/chatRoomData.json');
+        const data = await response.json();
+
+        // 기본 채팅방들을 Firebase에 추가
+        const batch = [];
+        for (const room of data.chatRooms) {
+            const roomRef = doc(db, 'chatRooms', `system_room_${room.id}`);
+            batch.push(
+                setDoc(roomRef, {
+                    ...room,
+                    isSystem: true, // 🔑 시스템 채팅방 표시
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                })
+            );
+        }
+
+        await Promise.all(batch);
+        console.log('기본 채팅방 초기화 완료');
+    } catch (error) {
+        console.error('기본 채팅방 초기화 오류:', error);
+        throw error;
+    }
+};
+
+/**
+ * 채팅방 목록을 chatRoomData.json에서 가져오기 (백업용 - 더 이상 사용하지 않음)
  * @returns {Promise<Array>} - 채팅방 목록
  */
 export const getChatRoomList = async () => {
@@ -204,22 +278,13 @@ export const initializeChatRoom = async (roomName) => {
 };
 
 /**
- * 새 채팅방을 생성하고 chatRoomData.json에 추가
+ * 새 채팅방을 Firebase에 생성 (사용자 생성)
  * @param {Object} roomData - 채팅방 데이터
  * @returns {Promise<Object>} - 생성된 채팅방 데이터
  */
 export const createChatRoom = async (roomData) => {
     try {
-        // 현재 채팅방 목록 가져오기
-        const currentRooms = await getChatRoomList();
-
-        // 새 ID 생성 (기존 ID 중 최대값 + 1)
-        const newId =
-            currentRooms.length > 0 ? Math.max(...currentRooms.map((room) => room.id)) + 1 : 1;
-
-        // 새 채팅방 데이터 생성
         const newRoom = {
-            id: newId,
             name: roomData.name,
             admin: roomData.admin,
             userId: roomData.userId,
@@ -227,11 +292,18 @@ export const createChatRoom = async (roomData) => {
             capacity: roomData.capacity || 50,
             currentUsers: 0,
             isPrivate: roomData.isPrivate || false,
-            createdAt: new Date().toISOString().split('T')[0],
-            updatedAt: new Date().toISOString().split('T')[0],
+            password: roomData.isPrivate ? roomData.password || '0000' : null, // 비공개방만 비밀번호 설정
+            isSystem: false, // 🔑 사용자 생성 채팅방
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         };
 
-        return newRoom;
+        const docRef = await addDoc(collection(db, 'chatRooms'), newRoom);
+
+        return {
+            id: docRef.id,
+            ...newRoom,
+        };
     } catch (error) {
         console.error('채팅방 생성 오류:', error);
         throw error;
@@ -239,14 +311,46 @@ export const createChatRoom = async (roomData) => {
 };
 
 /**
- * 채팅방을 삭제하고 chatRoomData.json에서 제거
- * @param {number} roomId - 삭제할 채팅방 ID
+ * 채팅방 비밀번호 검증
+ * @param {Object} room - 채팅방 객체
+ * @param {string} inputPassword - 입력된 비밀번호
+ * @returns {boolean} - 비밀번호 일치 여부
+ */
+export const validateRoomPassword = (room, inputPassword) => {
+    // 공개방은 비밀번호 검증 불필요
+    if (!room.isPrivate) {
+        return true;
+    }
+
+    // 비공개방은 비밀번호 검증 필요
+    return room.password === inputPassword;
+};
+
+/**
+ * 채팅방 삭제 (시스템 채팅방은 삭제 불가)
+ * @param {string} roomId - 삭제할 채팅방 ID
  * @returns {Promise<void>}
  */
 export const deleteChatRoom = async (roomId) => {
     try {
-        // 실제 구현에서는 백엔드 API를 호출하여 JSON 파일을 업데이트해야 합니다.
-        // 현재는 프론트엔드에서만 처리되므로 새로고침 시 복원됩니다.
+        // 채팅방 정보 먼저 확인
+        const roomRef = doc(db, 'chatRooms', roomId);
+        const roomDoc = await getDoc(roomRef);
+
+        if (!roomDoc.exists()) {
+            throw new Error('채팅방을 찾을 수 없습니다.');
+        }
+
+        const roomData = roomDoc.data();
+
+        // 🔑 시스템 채팅방인지 확인
+        if (roomData.isSystem) {
+            throw new Error('기본 채팅방은 삭제할 수 없습니다.');
+        }
+
+        // 사용자 생성 채팅방만 삭제 가능
+        await deleteDoc(roomRef);
+        console.log(`채팅방 ${roomData.name} 삭제 완료`);
     } catch (error) {
         console.error('채팅방 삭제 오류:', error);
         throw error;

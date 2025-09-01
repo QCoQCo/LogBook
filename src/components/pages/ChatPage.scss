@@ -666,4 +666,152 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
             }
         }
     }
+
+    // 비밀번호 모달 스타일
+    .password-modal {
+        max-width: 400px;
+        text-align: center;
+
+        h3 {
+            color: $accent-color;
+            margin-bottom: $spacing-md;
+        }
+
+        p {
+            color: $text-secondary;
+            margin-bottom: $spacing-lg;
+            line-height: 1.5;
+
+            strong {
+                color: $text-primary;
+            }
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: $spacing-lg;
+
+            label {
+                display: block;
+                margin-bottom: $spacing-xs;
+                color: $text-secondary;
+                font-size: $font-size-sm;
+            }
+
+            input {
+                width: 100%;
+                padding: $spacing-sm;
+                border: 2px solid $border-light;
+                border-radius: $border-radius-sm;
+                background: $tertiary-bg;
+                color: $text-primary;
+                font-size: $font-size-md;
+                text-align: center;
+                letter-spacing: 2px;
+                transition: $transition-fast;
+
+                &:focus {
+                    outline: none;
+                    border-color: $accent-color;
+                    box-shadow: $box-shadow-focus;
+                }
+
+                &.error {
+                    border-color: $error-color;
+                    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+                }
+
+                &::placeholder {
+                    color: $text-muted;
+                    letter-spacing: normal;
+                }
+            }
+
+            .error-message {
+                color: $error-color;
+                font-size: $font-size-xs;
+                margin-top: $spacing-xs;
+                text-align: center;
+            }
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: $spacing-sm;
+            justify-content: center;
+
+            .submit-btn {
+                background: $accent-color;
+                color: $primary-bg;
+                padding: $spacing-sm $spacing-lg;
+                border: none;
+                border-radius: $border-radius-sm;
+                cursor: pointer;
+                font-size: $font-size-md;
+                transition: $transition-fast;
+
+                &:hover {
+                    background: $accent-hover;
+                    transform: translateY(-1px);
+                }
+            }
+
+            .cancel-btn {
+                background: transparent;
+                color: $text-secondary;
+                border: 1px solid $border-light;
+                padding: $spacing-sm $spacing-lg;
+                border-radius: $border-radius-sm;
+                cursor: pointer;
+                font-size: $font-size-md;
+                transition: $transition-fast;
+
+                &:hover {
+                    background: $bg-light;
+                    color: $text-primary;
+                }
+            }
+        }
+    }
+
+    // 비공개 채팅방 표시 개선
+    .chat-room-card {
+        .room-private {
+            margin-left: $spacing-xs;
+            font-size: $font-size-sm;
+            opacity: 0.8;
+            cursor: help;
+        }
+
+        // 시스템 채팅방 표시
+        .system-badge {
+            position: absolute;
+            top: $spacing-xs;
+            right: $spacing-xs;
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            font-size: $font-size-xs;
+            padding: 2px 6px;
+            border-radius: $border-radius-sm;
+            font-weight: bold;
+            cursor: help;
+            z-index: 2;
+        }
+
+        // 시스템 채팅방 스타일링
+        &.system-room {
+            border: 2px solid #4caf50;
+            background: linear-gradient(135deg, #f0f8f0, #e8f5e8);
+
+            .room-name {
+                color: #2e7d32;
+                font-weight: bold;
+            }
+        }
+
+        &.user-room {
+            border: 2px solid #2196f3;
+            background: linear-gradient(135deg, #f0f8ff, #e8f4ff);
+        }
+    }
 }
