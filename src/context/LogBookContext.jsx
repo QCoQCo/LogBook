@@ -35,6 +35,7 @@ import {
     initializeDefaultChatRooms,
     cleanupExpiredPresence,
     cleanupOfflinePresence,
+    cleanupOfflinePresenceForRoom,
 } from '../utils/chatService';
 
 // LogBookContext 생성
@@ -281,32 +282,16 @@ export const LogBookProvider = ({ children }) => {
         };
     }, [chatRoomsUnsubscribe]);
 
-    // 주기적으로 만료된 presence 문서 정리
+    // 앱 시작 시 한 번만 정리 작업 실행 (주기적 실행 제거)
     useEffect(() => {
-        // 5분마다 정리 작업 실행
-        const cleanupInterval = setInterval(async () => {
-            try {
-                const expiredCount = await cleanupExpiredPresence(5);
-                const offlineCount = await cleanupOfflinePresence(10);
-
-                if (expiredCount > 0 || offlineCount > 0) {
-                    console.log(
-                        `정리 작업 완료: 만료 ${expiredCount}개, 오프라인 ${offlineCount}개`
-                    );
-                }
-            } catch (error) {
-                console.error('정리 작업 오류:', error);
-            }
-        }, 5 * 60 * 1000); // 5분마다 실행
-
-        // 초기 정리 작업은 1분 후에 실행 (앱 시작 시 오류 방지)
-        setTimeout(() => {
-            cleanupExpiredPresence(5).catch(console.error);
-            cleanupOfflinePresence(10).catch(console.error);
-        }, 60000); // 1분 후 실행
+        // 앱 시작 후 30초 후에 한 번만 정리
+        const initialCleanupTimeout = setTimeout(() => {
+            cleanupExpiredPresence(10).catch(console.error);
+            cleanupOfflinePresence(20).catch(console.error);
+        }, 30000); // 30초 후 실행
 
         return () => {
-            clearInterval(cleanupInterval);
+            clearTimeout(initialCleanupTimeout);
         };
     }, []);
 
@@ -453,24 +438,17 @@ export const LogBookProvider = ({ children }) => {
         [presenceHeartbeat]
     );
 
-    // heartbeat 설정
+    // heartbeat 설정 (비활성화 - 실시간 상태 변경만 사용)
     const setupPresenceHeartbeat = useCallback(
         (roomName, userId) => {
             // 기존 heartbeat 정리
             if (presenceHeartbeat) {
                 clearInterval(presenceHeartbeat);
+                setPresenceHeartbeat(null);
             }
 
-            // 30초마다 presence 업데이트
-            const interval = setInterval(async () => {
-                try {
-                    await updateUserPresence(roomName, userId);
-                } catch (error) {
-                    console.error('Presence heartbeat 오류:', error);
-                }
-            }, 30000); // 30초로 복원
-
-            setPresenceHeartbeat(interval);
+            // heartbeat는 더 이상 사용하지 않음 (실시간 상태 변경만 사용)
+            console.log(`채팅방 ${roomName}에서 heartbeat 없이 실시간 상태 관리 시작`);
         },
         [presenceHeartbeat]
     );

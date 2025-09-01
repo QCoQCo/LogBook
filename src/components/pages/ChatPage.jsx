@@ -103,7 +103,7 @@ const ChatPage = () => {
     // 이전 채팅방 정보 저장 (채팅방 변경 시 퇴장 처리용)
     const [prevChatRoom, setPrevChatRoom] = useState(null);
 
-    // 채팅방 변경 감지 및 이전 채팅방 퇴장 처리 (강화)
+    // 채팅방 변경 감지 및 이전 채팅방 퇴장 처리
     useEffect(() => {
         const handleRoomChange = async () => {
             if (prevChatRoom && currentUser.id && currentChatRoom?.name !== prevChatRoom.name) {

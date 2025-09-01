@@ -412,6 +412,11 @@ export const leaveChatRoom = async (roomName, userId) => {
         if (presenceDoc.exists()) {
             await deleteDoc(presenceRef);
             console.log(`사용자 ${userId}이 채팅방 ${roomName}에서 퇴장했습니다.`);
+
+            // 퇴장 시 해당 채팅방의 오래된 오프라인 유저들도 정리
+            setTimeout(() => {
+                cleanupOfflinePresenceForRoom(roomName).catch(console.error);
+            }, 1000); // 1초 후 정리
         } else {
             console.log(`사용자 ${userId}의 presence 정보가 이미 없습니다.`);
         }
@@ -481,23 +486,18 @@ export const updateUserOnlineStatus = async (roomName, userId, isOnline) => {
  */
 export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
     try {
-        // 2분 이내에 활동한 사용자만 온라인으로 간주 (5분에서 단축)
-        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-
         const usersQuery = query(collection(db, 'presence'), where('roomName', '==', roomName));
 
         const unsubscribe = onSnapshot(
             usersQuery,
             (snapshot) => {
-                const now = new Date();
                 const activeUsers = [];
 
                 snapshot.forEach((doc) => {
                     const userData = doc.data();
-                    const lastSeen = userData.lastSeen?.toDate() || new Date(0);
 
-                    // 2분 이내에 활동하고 isOnline이 true인 사용자만 활성 사용자로 간주
-                    if (now - lastSeen < 2 * 60 * 1000 && userData.isOnline) {
+                    // isOnline 상태만 확인 (시간 기반 필터링 제거)
+                    if (userData.isOnline === true) {
                         activeUsers.push({
                             id: userData.userId,
                             name: userData.userName,
@@ -508,8 +508,8 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                     }
                 });
 
-                // 콘솔에 현재 활성 사용자 수 로그
-                console.log(`채팅방 ${roomName} 활성 사용자: ${activeUsers.length}명`);
+                // 유저 수가 변경될 때만 로그 출력
+                console.log(`채팅방 ${roomName} 실시간 활성 사용자: ${activeUsers.length}명`);
                 onUsersUpdate(activeUsers);
             },
             (error) => {
@@ -622,6 +622,49 @@ export const cleanupOfflinePresence = async (expireMinutes = 10) => {
         return batch.length;
     } catch (error) {
         console.error('오프라인 presence 정리 오류:', error);
+        return 0;
+    }
+};
+
+/**
+ * 특정 채팅방의 오프라인 유저들을 정리하는 함수 (이벤트 기반)
+ * @param {string} roomName - 채팅방 이름
+ * @param {number} expireMinutes - 만료 시간 (분, 기본값: 5분)
+ * @returns {Promise<number>} - 정리된 문서 수
+ */
+export const cleanupOfflinePresenceForRoom = async (roomName, expireMinutes = 5) => {
+    try {
+        const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
+
+        // 특정 채팅방의 오프라인 유저들만 조회
+        const roomOfflineQuery = query(
+            collection(db, 'presence'),
+            where('roomName', '==', roomName),
+            where('isOnline', '==', false)
+        );
+
+        const snapshot = await getDocs(roomOfflineQuery);
+        const batch = [];
+
+        // 클라이언트 측에서 lastSeen 조건 필터링
+        snapshot.forEach((doc) => {
+            const userData = doc.data();
+            const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+
+            // 만료 시간보다 오래된 문서만 삭제 대상에 추가
+            if (lastSeen < expiredTime) {
+                batch.push(deleteDoc(doc.ref));
+            }
+        });
+
+        if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log(`채팅방 ${roomName}의 오프라인 유저 ${batch.length}명을 정리했습니다.`);
+        }
+
+        return batch.length;
+    } catch (error) {
+        console.error(`채팅방 ${roomName} 오프라인 유저 정리 오류:`, error);
         return 0;
     }
 };
