@@ -10,7 +10,7 @@ const MyPage = () => {
     const { clickedItem } = useLogBook();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const dismissModal = () => {
+    const releaseModal = () => {
         setIsModalOpen(false);
     };
 
@@ -24,7 +24,11 @@ const MyPage = () => {
                 <BlogUserInfo />
                 <BlogGridLayout enableModal={enableModal} />
             </div>
-            {isModalOpen && <BlogElementModal item={clickedItem} dismissModal={dismissModal} />}
+            {isModalOpen && (
+                <div className='modal-overlay' onClick={releaseModal}>
+                    <BlogElementModal item={clickedItem} releaseModal={releaseModal} />
+                </div>
+            )}
             <BlogFloatingUi />
         </div>
     );
