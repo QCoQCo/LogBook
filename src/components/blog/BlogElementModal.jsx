@@ -1,121 +1,91 @@
 import { useRef, useState } from 'react';
 import { useLogBook } from '../../context/LogBookContext';
 
-const BlogElementModal = ({ item, dismissModal }) => {
-    // item의 타입에 따른 Modal Component 선택을 위한 Boolean
-    const type = item ? item.i : 'NULL';
-    const isTitle = type.startsWith('title');
-    const isPost = type.startsWith('post');
-    const isLink = type.startsWith('link');
-    const isImage = type.startsWith('image');
-    const isMap = type.startsWith('map');
-
-    // content 내용을 위한 Context
+const BlogElementModal = ({ item, releaseModal }) => {
     const { elements, setElements } = useLogBook();
-    const currentContent = elements.find((element) => element.i === type).content;
+    const currentContent = item ? elements.find((element) => element.i === item.i)?.content : '';
 
-    const inputTitleTextRef = useRef();
+    const [modalContent, setModalContent] = useState(currentContent);
+    const inputRef = useRef();
 
-    const [titleText, setTitleText] = useState(currentContent ? currentContent : '');
+    const handleModalClick = (e) => e.stopPropagation();
 
     const handleClickConfirm = () => {
-        dismissModal();
+        if (!modalContent.trim()) {
+            alert('내용 입력해라 임마');
+            return;
+        }
+
+        setElements((prev) =>
+            prev.map((element) =>
+                element.i === item.i ? { ...element, content: modalContent } : element
+            )
+        );
+        releaseModal();
     };
 
-    const handleClickCancel = () => {
-        dismissModal();
+    const handleClickCancel = () => releaseModal();
+
+    const modalData = {
+        title: {
+            title: '제목 블럭의 내용을 입력해 주세요',
+            placeholder: '제목을 입력하세요',
+        },
+        post: {
+            title: '포스트 블럭의 내용을 입력해 주세요',
+            placeholder: '포스트 내용을 입력하세요',
+        },
+        link: {
+            title: '블럭에 추가하시려는 링크를 입력해 주세요',
+            placeholder: '링크를 입력하세요 (예: https://example.com)',
+        },
+        image: {
+            title: '이미지의 링크를 입력해 주세요',
+            placeholder: '이미지 URL을 입력하세요',
+        },
+        map: {
+            title: '지도를 첨부해 주세요',
+            placeholder: '지도 정보를 입력하세요',
+        },
     };
 
-    const handleChangeTitleText = (e) => {
-        setTitleText(e.target.value);
-    };
+    const type = item?.i.split('-')[0];
+    const { title, placeholder } = modalData[type] || {};
 
-    if (isTitle) {
-        return (
-            <div id='BlogElementModal'>
-                <h1>제목 블럭의 내용을 입력해 주세요</h1>
+    return (
+        <div id='BlogElementModal' onClick={handleModalClick}>
+            <h1>{title}</h1>
+            {['title', 'link', 'image'].includes(type) ? (
                 <div>
                     <input
-                        className='input-title-element'
+                        className={`input-${type}-element`}
                         type='text'
-                        value={titleText}
-                        onChange={handleChangeTitleText}
-                        ref={inputTitleTextRef}
+                        value={modalContent}
+                        onChange={(e) => setModalContent(e.target.value)}
+                        ref={inputRef}
+                        placeholder={placeholder}
                     />
                 </div>
-                <ModalBtnArea
-                    handleClickConfirm={() => {
-                        if (!titleText.trim()) {
-                            alert('내용 입력해라 임마');
-                        } else {
-                            setElements((prev) =>
-                                prev.map((element) =>
-                                    element.i === item.i
-                                        ? { ...element, content: titleText }
-                                        : element
-                                )
-                            );
-                            dismissModal();
-                        }
-                    }}
-                    handleClickCancel={handleClickCancel}
-                />
-            </div>
-        );
-    } else if (isPost) {
-        return (
-            <div id='BlogElementModal'>
-                <div>포스트</div>
-                <ModalBtnArea
-                    handleClickConfirm={handleClickConfirm}
-                    handleClickCancel={handleClickCancel}
-                />
-            </div>
-        );
-    } else if (isLink) {
-        return (
-            <div id='BlogElementModal'>
-                <div>링크</div>
-                <ModalBtnArea
-                    handleClickConfirm={handleClickConfirm}
-                    handleClickCancel={handleClickCancel}
-                />
-            </div>
-        );
-    } else if (isImage) {
-        return (
-            <div id='BlogElementModal'>
-                <div>이미지</div>
-                <ModalBtnArea
-                    handleClickConfirm={handleClickConfirm}
-                    handleClickCancel={handleClickCancel}
-                />
-            </div>
-        );
-    } else if (isMap) {
-        return (
-            <div id='BlogElementModal'>
-                <div>지도</div>
-                <ModalBtnArea
-                    handleClickConfirm={handleClickConfirm}
-                    handleClickCancel={handleClickCancel}
-                />
-            </div>
-        );
-    }
-};
-
-const ModalBtnArea = ({ handleClickConfirm, handleClickCancel }) => {
-    return (
-        <div className='modal-btn-area'>
-            <button className='btn-confirm' onClick={handleClickConfirm}>
-                확인
-            </button>
-            <button className='btn-cancel' onClick={handleClickCancel}>
-                취소
-            </button>
+            ) : (
+                <p>{placeholder}</p>
+            )}
+            <ModalBtnArea
+                handleClickConfirm={handleClickConfirm}
+                handleClickCancel={handleClickCancel}
+            />
         </div>
     );
 };
+
+const ModalBtnArea = ({ handleClickConfirm, handleClickCancel }) => (
+    <div className='modal-btn-area'>
+        <button className='btn-confirm' onClick={handleClickConfirm}>
+            확인
+        </button>
+        <button className='btn-cancel' onClick={handleClickCancel}>
+            취소
+        </button>
+    </div>
+);
 
 export default BlogElementModal;

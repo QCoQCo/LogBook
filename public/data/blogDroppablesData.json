@@ -13,7 +13,7 @@
         "imageSource": "/img/icon-post.png",
         "tooltip": "게시글 블럭 추가",
         "w": 1,
-        "h": 1
+        "h": 2
     },
     {
         "id": 2,
@@ -21,15 +21,15 @@
         "imageSource": "/img/icon-link.png",
         "tooltip": "링크 블럭 추가",
         "w": 1,
-        "h": 1
+        "h": 2
     },
     {
         "id": 3,
         "className": "image",
         "imageSource": "/img/icon-image.png",
         "tooltip": "이미지 블럭 추가",
-        "w": 1,
-        "h": 1
+        "w": 2,
+        "h": 3
     },
     {
         "id": 4,
