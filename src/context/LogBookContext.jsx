@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import {
     collection,
     addDoc,
@@ -50,6 +50,11 @@ export const LogBookProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
 
+    // 사용자 데이터 관리
+    const [userData, setUserData] = useState([]);
+    const [userDataLoading, setUserDataLoading] = useState(false);
+    const [userDataLoaded, setUserDataLoaded] = useState(false);
+
     // 채팅방 관련 상태
     const [currentChatRoom, setCurrentChatRoom] = useState(null);
     const [chatRoomList, setChatRoomList] = useState([]);
@@ -68,6 +73,72 @@ export const LogBookProvider = ({ children }) => {
 
     // 채팅방 목록 실시간 구독
     const [chatRoomsUnsubscribe, setChatRoomsUnsubscribe] = useState(null);
+
+    // 사용자 데이터 로딩 함수
+    const loadUserData = useCallback(async () => {
+        if (userDataLoaded || userDataLoading) return; // 이미 로드되었거나 로딩 중이면 중복 실행 방지
+
+        try {
+            setUserDataLoading(true);
+            const response = await fetch('/data/userData.json');
+            if (!response.ok) {
+                throw new Error('사용자 데이터 로딩 실패');
+            }
+            const users = await response.json();
+            setUserData(users);
+            setUserDataLoaded(true);
+        } catch (error) {
+            console.error('사용자 데이터 로드 실패:', error);
+            setError('사용자 데이터 로딩에 실패했습니다.');
+        } finally {
+            setUserDataLoading(false);
+        }
+    }, [userDataLoaded, userDataLoading]);
+
+    // 사용자 데이터를 Map으로 변환하여 검색 성능 향상
+    const userDataMap = useMemo(() => {
+        const map = new Map();
+        userData.forEach((user) => {
+            // userId로 인덱싱
+            if (user.userId) {
+                map.set(user.userId, user);
+            }
+            // nickName으로도 인덱싱 (중복 허용)
+            if (user.nickName && !map.has(user.nickName)) {
+                map.set(user.nickName, user);
+            }
+        });
+        return map;
+    }, [userData]);
+
+    // userId 또는 userName으로 사용자 프로필 사진 가져오기 (성능 최적화)
+    const getUserProfilePhoto = useCallback(
+        (userId, userName) => {
+            // 게스트 사용자인 경우 null 반환
+            if (!userId || userId.startsWith('guest_')) {
+                return null;
+            }
+
+            // Map을 사용하여 O(1) 검색
+            const user = userDataMap.get(userId) || userDataMap.get(userName);
+            return user?.profilePhoto || null;
+        },
+        [userDataMap]
+    );
+
+    // 사용자 정보 전체 가져오기 (성능 최적화)
+    const getUserInfo = useCallback(
+        (userId, userName) => {
+            // 게스트 사용자인 경우 null 반환
+            if (!userId || userId.startsWith('guest_')) {
+                return null;
+            }
+
+            // Map을 사용하여 O(1) 검색
+            return userDataMap.get(userId) || userDataMap.get(userName) || null;
+        },
+        [userDataMap]
+    );
 
     // 채팅방 목록 실시간 구독 설정
     const loadChatRoomList = useCallback(async () => {
@@ -208,6 +279,11 @@ export const LogBookProvider = ({ children }) => {
             return null;
         }
     }, []);
+
+    // 사용자 데이터 로드 (컴포넌트 마운트 시)
+    useEffect(() => {
+        loadUserData();
+    }, [loadUserData]);
 
     // 채팅방 목록 로드 (컴포넌트 마운트 시)
     useEffect(() => {
@@ -506,6 +582,14 @@ export const LogBookProvider = ({ children }) => {
         onlineUsers,
         updateOnlineUsers,
         updateUserNickname,
+
+        // 사용자 데이터 관련
+        userData,
+        userDataLoading,
+        userDataLoaded,
+        loadUserData,
+        getUserProfilePhoto,
+        getUserInfo,
 
         // 실시간 접속 유저 관련
         roomUsers,

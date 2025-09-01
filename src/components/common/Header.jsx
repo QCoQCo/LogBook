@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import Login from './login.jsx';
+import Login from './Login';
 import { useLogBook, useAuth } from '../../context/LogBookContext';
+import UserInfoModal from '../chat/UserInfoModal';
 import {
     initAuthChannel,
     addAuthListener,
@@ -12,22 +13,39 @@ import './Header.scss';
 
 const Header = () => {
     const navigate = useNavigate();
-    const { isChatPage } = useLogBook(); // 다크모드 상태 구독
+    const { isChatPage, getUserInfo, getUserProfilePhoto, userDataLoaded } = useLogBook(); // 다크모드 상태 구독
     const [showLogin, setShowLogin] = useState(false);
     const { currentUser, isLogin, logout } = useAuth();
     const [showMenu, setShowMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showUserModal, setShowUserModal] = useState(false);
     const searchRef = useRef(null);
     const searchAreaRef = useRef(null);
     const searchAreaElRef = useRef(null);
     const menuRef = useRef(null);
+
+    // 현재 로그인한 사용자의 상세 정보 가져오기
+    const currentUserInfo =
+        isLogin && currentUser ? getUserInfo(currentUser.id, currentUser.nickName) : null;
+    const currentUserProfilePhoto =
+        isLogin && currentUser ? getUserProfilePhoto(currentUser.id, currentUser.nickName) : null;
 
     const toggleLogin = () => setShowLogin((s) => !s);
     const toggleMenu = () => setShowMenu((s) => !s);
     const toggleSearch = () => {
         console.debug('[Header] toggleSearch, before:', showSearch);
         setShowSearch((s) => !s);
+    };
+
+    // 사용자 프로필 모달 관련 핸들러
+    const handleProfileClick = () => {
+        setShowUserModal(true);
+        setShowMenu(false); // 메뉴 닫기
+    };
+
+    const handleModalClose = () => {
+        setShowUserModal(false);
     };
 
     useEffect(() => {
@@ -203,20 +221,50 @@ const Header = () => {
                                     aria-expanded={showMenu}
                                     onClick={toggleMenu}
                                 >
-                                    <img
-                                        src={currentUser?.avatar || '/img/logBook_logo.png'}
-                                        alt={
-                                            currentUser?.id
-                                                ? `${currentUser.id} 프로필`
-                                                : '사용자 프로필'
-                                        }
-                                        onError={(e) =>
-                                            (e.currentTarget.src = '/img/logBook_logo.png')
-                                        }
-                                    />
+                                    {currentUserProfilePhoto || currentUser?.profilePhoto ? (
+                                        <img
+                                            src={
+                                                currentUserProfilePhoto ||
+                                                currentUser?.profilePhoto ||
+                                                '/img/userProfile-ex.png'
+                                            }
+                                            alt={
+                                                currentUser?.nickName
+                                                    ? `${currentUser.nickName} 프로필`
+                                                    : '사용자 프로필'
+                                            }
+                                            onError={(e) => {
+                                                // 이미지 로드 실패 시 숨기고 텍스트 표시
+                                                e.currentTarget.style.display = 'none';
+                                                const parent = e.currentTarget.parentElement;
+                                                if (
+                                                    parent &&
+                                                    !parent.querySelector('.fallback-user-name')
+                                                ) {
+                                                    const nameSpan = document.createElement('span');
+                                                    nameSpan.className =
+                                                        'fallback-user-name user-name';
+                                                    nameSpan.textContent =
+                                                        currentUser?.nickName || '사용자';
+                                                    parent.appendChild(nameSpan);
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <span className='user-name no-profile-image'>
+                                            {currentUser?.nickName || '사용자'}
+                                        </span>
+                                    )}
                                 </button>
                                 {showMenu && (
                                     <ul className='user-menu' role='menu'>
+                                        {currentUserInfo && (
+                                            <li role='menuitem'>
+                                                <button type='button' onClick={handleProfileClick}>
+                                                    내 프로필
+                                                </button>
+                                            </li>
+                                        )}
                                         <li role='menuitem'>
                                             <a
                                                 href='/myPage'
@@ -243,6 +291,17 @@ const Header = () => {
                     </div>
                 </div>
             </div>
+
+            {/* 사용자 정보 모달 */}
+            {currentUserInfo && (
+                <UserInfoModal
+                    isOpen={showUserModal}
+                    onClose={handleModalClose}
+                    userInfo={currentUserInfo}
+                    currentUserId={currentUser?.id}
+                    isOwnProfile={true}
+                />
+            )}
         </header>
     );
 };

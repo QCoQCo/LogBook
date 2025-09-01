@@ -54,6 +54,7 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
     // ==========================================
     .container {
         display: flex;
+        flex: 1;
         justify-content: space-between;
         padding: $spacing-lg;
         gap: $spacing-lg;
@@ -67,14 +68,22 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
     // Chat Header
     .chat-area-header {
         width: 100%;
-        height: 100px;
+        min-height: 100px;
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        padding: 0 $spacing-lg;
+        align-items: flex-start;
+        padding: $spacing-md $spacing-lg;
+        gap: $spacing-lg;
+        flex-wrap: wrap;
 
         // Chat Header Title Section
         .chat-area-header-title {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
             h1 {
                 margin: 0;
                 color: $text-primary;
@@ -91,29 +100,40 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                 border-radius: $border-radius-xl;
                 font-size: 0.9rem;
                 color: $text-secondary;
+                flex-wrap: wrap;
 
                 .room-indicator {
                     font-size: 1rem;
+                    flex-shrink: 0;
                 }
 
                 .room-name {
                     font-weight: 600;
                     color: $text-primary;
+                    word-break: break-word;
                 }
 
                 .room-users {
                     font-size: 0.8rem;
                     opacity: 0.7;
+                    flex-shrink: 0;
                 }
             }
         }
 
         // Nickname Section
         .chat-nick-name-section {
+            flex-shrink: 0;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
             .nickname-display-container {
                 display: flex;
                 align-items: center;
                 gap: $spacing-md;
+                flex-wrap: wrap;
 
                 .current-nickname {
                     display: flex;
@@ -247,6 +267,48 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                 }
             }
         }
+
+        // 반응형 디자인
+        @media (max-width: 768px) {
+            flex-direction: column;
+            align-items: stretch;
+            gap: $spacing-md;
+
+            .chat-area-header-title {
+                min-width: unset;
+                text-align: center;
+            }
+
+            .chat-nick-name-section {
+                min-width: unset;
+                align-items: center;
+
+                .nickname-display-container {
+                    justify-content: center;
+                }
+
+                .nickname-edit-container {
+                    align-items: center;
+                    text-align: center;
+                }
+            }
+        }
+
+        @media (max-width: 480px) {
+            .current-chat-room {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .nickname-display-container {
+                flex-direction: column;
+                gap: $spacing-sm;
+            }
+
+            .nickname-edit-container .nickname-buttons {
+                justify-content: center;
+            }
+        }
     }
 
     // Chat Content Area
@@ -296,47 +358,115 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
 
                 .message {
                     max-width: 70%;
-                    padding: $spacing-sm $spacing-md;
-                    border-radius: $spacing-md;
-                    word-wrap: break-word;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: $spacing-sm;
+                    margin-bottom: $spacing-sm;
 
                     &.own-message {
                         align-self: flex-end;
-                        background-color: $accent-color;
-                        color: #000;
+                        flex-direction: row-reverse;
 
-                        .message-header {
-                            text-align: right;
+                        .message-content-wrapper {
+                            background-color: $accent-color;
+                            color: #000;
+
+                            .message-header {
+                                text-align: right;
+                            }
                         }
                     }
 
                     &.other-message {
                         align-self: flex-start;
-                        background-color: #f1f1f1;
-                        color: #000;
+
+                        .message-content-wrapper {
+                            background-color: #f1f1f1;
+                            color: #000;
+
+                            .message-header {
+                                text-align: left;
+                            }
+                        }
+                    }
+
+                    .profile-photo-container {
+                        flex-shrink: 0;
+                        width: 40px;
+                        height: 40px;
+                        margin-top: 4px;
+
+                        .profile-photo {
+                            width: 100%;
+                            height: 100%;
+                            border-radius: 50%;
+                            object-fit: cover;
+                            border: 2px solid #e0e0e0;
+                            transition: $transition-fast;
+
+                            &:hover {
+                                border-color: $accent-color;
+                                transform: scale(1.05);
+                            }
+
+                            &.clickable {
+                                cursor: pointer;
+
+                                &:hover {
+                                    border-color: $accent-color;
+                                    transform: scale(1.1);
+                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                                }
+
+                                &:active {
+                                    transform: scale(1.05);
+                                }
+                            }
+                        }
+                    }
+
+                    .message-content-wrapper {
+                        flex: 1;
+                        padding: $spacing-sm $spacing-md;
+                        border-radius: $spacing-md;
+                        word-wrap: break-word;
+                        min-width: 0; // flexbox에서 텍스트 오버플로우 방지
 
                         .message-header {
-                            text-align: left;
+                            margin-bottom: 5px;
+                            font-size: $font-size-sm;
+
+                            .user-name {
+                                font-weight: 600;
+                                margin-right: $spacing-xs;
+                            }
+
+                            .timestamp {
+                                opacity: 0.7;
+                                font-size: $font-size-xs;
+                            }
+
+                            .delete-button {
+                                background: transparent;
+                                border: none;
+                                color: #ff4444;
+                                cursor: pointer;
+                                font-size: $font-size-xs;
+                                margin-left: $spacing-xs;
+                                padding: 2px 6px;
+                                border-radius: 4px;
+                                transition: $transition-fast;
+
+                                &:hover {
+                                    background-color: rgba(255, 68, 68, 0.1);
+                                }
+                            }
                         }
-                    }
 
-                    .message-header {
-                        margin-bottom: 5px;
-                        font-size: $font-size-sm;
-
-                        .user-name {
-                            font-weight: 600;
-                            margin-right: $spacing-xs;
+                        .message-content {
+                            font-size: $font-size-md;
+                            line-height: 1.4;
                         }
-
-                        .timestamp {
-                            opacity: 0.7;
-                        }
-                    }
-
-                    .message-content {
-                        font-size: $font-size-md;
-                        line-height: 1.4;
                     }
                 }
             }
@@ -399,8 +529,7 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
 // CHAT ROOM LIST
 // ==========================================
 #ChatRoomList {
-    width: 100%;
-
+    width: 75%;
     .chat-room-list-header {
         display: flex;
         justify-content: space-between;
