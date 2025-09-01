@@ -444,6 +444,35 @@ export const updateUserPresence = async (roomName, userId) => {
 };
 
 /**
+ * 사용자의 온라인 상태를 즉시 변경 (탭 숨김/표시 시 사용)
+ * @param {string} roomName - 채팅방 이름
+ * @param {string} userId - 사용자 ID
+ * @param {boolean} isOnline - 온라인 상태
+ * @returns {Promise<void>}
+ */
+export const updateUserOnlineStatus = async (roomName, userId, isOnline) => {
+    try {
+        const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
+        const presenceDoc = await getDoc(presenceRef);
+
+        if (presenceDoc.exists()) {
+            await updateDoc(presenceRef, {
+                isOnline: isOnline,
+                browserTab: document.visibilityState === 'visible',
+                lastSeen: serverTimestamp(),
+            });
+            console.log(
+                `사용자 ${userId}의 온라인 상태가 ${
+                    isOnline ? '온라인' : '오프라인'
+                }으로 변경되었습니다.`
+            );
+        }
+    } catch (error) {
+        console.error('사용자 온라인 상태 업데이트 오류:', error);
+    }
+};
+
+/**
  * 특정 채팅방의 접속 유저 목록을 실시간으로 구독
  * @param {string} roomName - 채팅방 이름
  * @param {function} onUsersUpdate - 유저 목록 업데이트 콜백
@@ -452,8 +481,8 @@ export const updateUserPresence = async (roomName, userId) => {
  */
 export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
     try {
-        // 5분 이내에 활동한 사용자만 온라인으로 간주
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        // 2분 이내에 활동한 사용자만 온라인으로 간주 (5분에서 단축)
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
 
         const usersQuery = query(collection(db, 'presence'), where('roomName', '==', roomName));
 
@@ -467,8 +496,8 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                     const userData = doc.data();
                     const lastSeen = userData.lastSeen?.toDate() || new Date(0);
 
-                    // 5분 이내에 활동하고 isOnline이 true인 사용자만 활성 사용자로 간주
-                    if (now - lastSeen < 5 * 60 * 1000 && userData.isOnline) {
+                    // 2분 이내에 활동하고 isOnline이 true인 사용자만 활성 사용자로 간주
+                    if (now - lastSeen < 2 * 60 * 1000 && userData.isOnline) {
                         activeUsers.push({
                             id: userData.userId,
                             name: userData.userName,
@@ -519,5 +548,80 @@ export const forceRemoveUserFromAllRooms = async (userId) => {
         );
     } catch (error) {
         console.error('사용자 강제 제거 오류:', error);
+    }
+};
+
+/**
+ * 만료된 presence 문서들을 정리하는 함수
+ * @param {number} expireMinutes - 만료 시간 (분, 기본값: 5분)
+ * @returns {Promise<number>} - 정리된 문서 수
+ */
+export const cleanupExpiredPresence = async (expireMinutes = 5) => {
+    try {
+        const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
+
+        // 모든 presence 문서들을 조회 (인덱스 없이도 안전)
+        const allPresenceQuery = query(collection(db, 'presence'));
+        const snapshot = await getDocs(allPresenceQuery);
+        const batch = [];
+
+        // 클라이언트 측에서 만료 조건 필터링
+        snapshot.forEach((doc) => {
+            const userData = doc.data();
+            const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+
+            // 만료 시간보다 오래된 문서만 삭제 대상에 추가
+            if (lastSeen < expiredTime) {
+                batch.push(deleteDoc(doc.ref));
+            }
+        });
+
+        if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log(`만료된 presence 문서 ${batch.length}개를 정리했습니다.`);
+        }
+
+        return batch.length;
+    } catch (error) {
+        console.error('만료된 presence 정리 오류:', error);
+        return 0;
+    }
+};
+
+/**
+ * 오프라인 상태이면서 오래된 presence 문서들을 정리하는 함수 (인덱스 불필요 버전)
+ * @param {number} expireMinutes - 만료 시간 (분, 기본값: 10분)
+ * @returns {Promise<number>} - 정리된 문서 수
+ */
+export const cleanupOfflinePresence = async (expireMinutes = 10) => {
+    try {
+        const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
+
+        // 먼저 오프라인 상태인 문서들을 조회
+        const offlineQuery = query(collection(db, 'presence'), where('isOnline', '==', false));
+
+        const snapshot = await getDocs(offlineQuery);
+        const batch = [];
+
+        // 클라이언트 측에서 lastSeen 조건 필터링
+        snapshot.forEach((doc) => {
+            const userData = doc.data();
+            const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+
+            // 만료 시간보다 오래된 문서만 삭제 대상에 추가
+            if (lastSeen < expiredTime) {
+                batch.push(deleteDoc(doc.ref));
+            }
+        });
+
+        if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log(`오프라인 상태의 만료된 presence 문서 ${batch.length}개를 정리했습니다.`);
+        }
+
+        return batch.length;
+    } catch (error) {
+        console.error('오프라인 presence 정리 오류:', error);
+        return 0;
     }
 };

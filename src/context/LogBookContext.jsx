@@ -28,10 +28,13 @@ import {
     joinChatRoom,
     leaveChatRoom,
     updateUserPresence,
+    updateUserOnlineStatus,
     subscribeToRoomUsers,
     forceRemoveUserFromAllRooms,
     subscribeToChatRooms,
     initializeDefaultChatRooms,
+    cleanupExpiredPresence,
+    cleanupOfflinePresence,
 } from '../utils/chatService';
 
 // LogBookContext 생성
@@ -278,6 +281,35 @@ export const LogBookProvider = ({ children }) => {
         };
     }, [chatRoomsUnsubscribe]);
 
+    // 주기적으로 만료된 presence 문서 정리
+    useEffect(() => {
+        // 5분마다 정리 작업 실행
+        const cleanupInterval = setInterval(async () => {
+            try {
+                const expiredCount = await cleanupExpiredPresence(5);
+                const offlineCount = await cleanupOfflinePresence(10);
+
+                if (expiredCount > 0 || offlineCount > 0) {
+                    console.log(
+                        `정리 작업 완료: 만료 ${expiredCount}개, 오프라인 ${offlineCount}개`
+                    );
+                }
+            } catch (error) {
+                console.error('정리 작업 오류:', error);
+            }
+        }, 5 * 60 * 1000); // 5분마다 실행
+
+        // 초기 정리 작업은 1분 후에 실행 (앱 시작 시 오류 방지)
+        setTimeout(() => {
+            cleanupExpiredPresence(5).catch(console.error);
+            cleanupOfflinePresence(10).catch(console.error);
+        }, 60000); // 1분 후 실행
+
+        return () => {
+            clearInterval(cleanupInterval);
+        };
+    }, []);
+
     // 컴포넌트 언마운트 시 정리
     useEffect(() => {
         return () => {
@@ -503,6 +535,7 @@ export const LogBookProvider = ({ children }) => {
         leaveRoom,
         setupPresenceHeartbeat,
         getCurrentRoomUserCount,
+        updateUserOnlineStatus,
 
         // UI 상태
         isChatPage,

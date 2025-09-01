@@ -39,6 +39,7 @@ const ChatPage = () => {
         leaveRoom,
         setupPresenceHeartbeat,
         getCurrentRoomUserCount,
+        updateUserOnlineStatus,
     } = useLogBook();
 
     // Auth Context 사용
@@ -133,18 +134,55 @@ const ChatPage = () => {
             // heartbeat 설정
             setupPresenceHeartbeat(currentChatRoom.name, currentUser.id);
 
-            // 페이지 이탈 시 퇴장 처리
-            const handleBeforeUnload = () => {
+            // 페이지 이탈 시 퇴장 처리 (개선된 버전)
+            const handleBeforeUnload = (event) => {
+                // 즉시 오프라인 상태로 변경 후 퇴장 처리
+                try {
+                    updateUserOnlineStatus(currentChatRoom.name, currentUser.id, false);
+                    leaveRoom(currentChatRoom.name, currentUser.id);
+                } catch (error) {
+                    console.error('페이지 종료 시 퇴장 처리 오류:', error);
+                }
+            };
+
+            // 추가적인 페이지 종료 이벤트들 처리
+            const handlePageHide = () => {
                 leaveRoom(currentChatRoom.name, currentUser.id);
             };
 
+            const handleUnload = () => {
+                leaveRoom(currentChatRoom.name, currentUser.id);
+            };
+
+            // 탭 가시성 변경 시 온라인 상태 업데이트
+            const handleVisibilityChange = async () => {
+                const isVisible = document.visibilityState === 'visible';
+                try {
+                    await updateUserOnlineStatus(currentChatRoom.name, currentUser.id, isVisible);
+                } catch (error) {
+                    console.error('온라인 상태 업데이트 오류:', error);
+                }
+            };
+
             window.addEventListener('beforeunload', handleBeforeUnload);
+            window.addEventListener('pagehide', handlePageHide);
+            window.addEventListener('unload', handleUnload);
+            document.addEventListener('visibilitychange', handleVisibilityChange);
 
             return () => {
                 window.removeEventListener('beforeunload', handleBeforeUnload);
+                window.removeEventListener('pagehide', handlePageHide);
+                window.removeEventListener('unload', handleUnload);
+                document.removeEventListener('visibilitychange', handleVisibilityChange);
             };
         }
-    }, [currentChatRoom?.name, currentUser.id, currentUser.name, currentUser.sessionId]); // sessionId로 변경
+    }, [
+        currentChatRoom?.name,
+        currentUser.id,
+        currentUser.name,
+        currentUser.sessionId,
+        updateUserOnlineStatus,
+    ]); // updateUserOnlineStatus 의존성 추가
 
     // 메시지 영역 스크롤을 위한 ref
     const messagesEndRef = useRef(null);
