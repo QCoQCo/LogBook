@@ -35,23 +35,18 @@ const HomePage = () => {
     const containerRef = useRef(null);
     const [containerWidth, setContainerWidth] = useState(1200);
     const [cols, setCols] = useState(4);
-    // allow forcing columns (null = automatic)
     const [forceCols, setForceCols] = useState(4);
     const MARGIN_X = 16;
     const MARGIN_Y = 16;
 
     const toggleForce = (val) => {
         setForceCols(val);
-        // bump rglKey so the grid re-initializes cleanly when forcing cols
         setRglKey(
             `${val != null ? `force-${val}` : 'auto'}-${cols}-${Math.floor(
                 containerWidth
             )}-${Date.now()}`
         );
     };
-
-    // placeholder presets object — keep empty to avoid runtime ReferenceError
-    const SNIPPET_PRESETS = {};
 
     const computeCols = (w) => {
         if (w >= 1100) return 4;
@@ -65,7 +60,6 @@ const HomePage = () => {
     };
 
     const resolveCollisions = (arr, target) => {
-        // operate on a shallow copy
         const layout = arr.map((it) => ({ ...it }));
         const maxIter = 2000;
         let iter = 0;
@@ -329,8 +323,6 @@ const HomePage = () => {
         };
     }, []);
 
-    const [resizingId, setResizingId] = useState(null);
-
     useEffect(() => {
         const el = loadMoreRef.current;
         if (!el) return;
@@ -420,21 +412,6 @@ const HomePage = () => {
         }, 0);
     };
 
-    const removeDropped = (id) => {
-        setDroppedSnippets((s) => s.filter((it) => it.id !== id));
-        setGridLayout((prev) => (prev || []).filter((it) => String(it.i) !== String(id)));
-        setTimeout(() => {
-            try {
-                const snapshot = Array.isArray(gridLayoutRef.current)
-                    ? gridLayoutRef.current.slice()
-                    : [];
-                const filled = rebuildPostsIntoGrid(snapshot);
-                setGridLayout(filled);
-                setRglKey(`${cols}-${Math.floor(containerWidth)}-${Date.now()}`);
-            } catch (err) {}
-        }, 0);
-    };
-
     useEffect(() => {
         if (forceMoveRef.current) {
             console.info('Skipping layout rebuild while dragging (forceMove-Ref)');
@@ -521,77 +498,27 @@ const HomePage = () => {
         }
     }, [visibleCount, cols, droppedSnippets.length, gridLayout]);
 
-    // pointer refs used by long-press synthetic dispatch
-    const lastPointer = useRef({ x: 0, y: 0 });
-    // snapshot of the item's prior layout at the moment resize starts
-    const resizingPriorRef = useRef(null);
-    // when true, temporarily allow posts to be moved so snippets can push them
     const forceMoveRef = useRef(false);
-    // rAF ref to throttle live resize updates
     const resizeRaf = useRef(null);
 
-    // ensure we cancel any scheduled rAF on unmount
     useEffect(() => {
         return () => {
             if (resizeRaf.current) cancelAnimationFrame(resizeRaf.current);
         };
     }, []);
 
-    const startPress = (id, target, pos) => {
-        // reset any existing timer
-        if (pressTimer.current) clearTimeout(pressTimer.current);
-        pressTimer.current = setTimeout(() => {
-            setDragEnabled(true);
-            setLongPressedId(id);
-            // Wait one frame so React/ReactGridLayout sees isDraggable change
-            requestAnimationFrame(() => {
-                try {
-                    let target = null;
-                    if (el && el.closest) target = el.closest('.react-grid-item');
-                    if (!target)
-                        target = document.elementFromPoint(
-                            lastPointer.current.x,
-                            lastPointer.current.y
-                        );
-                    if (target) {
-                        const down = new MouseEvent('mousedown', {
-                            bubbles: true,
-                            cancelable: true,
-                            clientX: lastPointer.current.x,
-                            clientY: lastPointer.current.y,
-                            button: 0,
-                        });
-                        target.dispatchEvent(down);
-
-                        const move = new MouseEvent('mousemove', {
-                            bubbles: true,
-                            cancelable: true,
-                            clientX: lastPointer.current.x + 1,
-                            clientY: lastPointer.current.y + 1,
-                        });
-                        target.dispatchEvent(move);
-                    }
-                } catch (err) {
-                    // ignore synthetic event errors
-                }
-            });
-        }, 500); // 400ms long-press threshold
-    };
-
-    const cancelPress = () => {
-        if (pressTimer.current) {
-            clearTimeout(pressTimer.current);
-            pressTimer.current = null;
+    const layout = gridLayout;
+    const handleLayoutChange = (newLayout) => {
+        try {
+            skipRebuildRef.current = true;
+            const filled = rebuildPostsIntoGrid(Array.isArray(newLayout) ? newLayout : []);
+            setGridLayout(filled);
+        } finally {
+            setTimeout(() => {
+                skipRebuildRef.current = false;
+            }, 0);
         }
     };
-
-    const endPress = () => {
-        cancelPress();
-        // if drag wasn't enabled, nothing to do; if it was enabled, keep enabled until drag stops
-    };
-
-    // use persisted gridLayout (ReactGridLayout expects an array)
-    const layout = gridLayout;
 
     return (
         <div id='HomePage'>
@@ -640,6 +567,7 @@ const HomePage = () => {
                     rowHeight={
                         forceCols == 4 ? Math.max(120, Math.floor(containerWidth / cols)) : 150
                     }
+                    onLayoutChange={handleLayoutChange}
                     isDraggable={true}
                     draggableHandle='.post-card'
                     isResizable={true}
@@ -647,48 +575,7 @@ const HomePage = () => {
                     margin={[MARGIN_X, MARGIN_Y]}
                 >
                     {visiblePosts.map((post) => (
-                        <div
-                            key={String(post.postId)}
-                            className='post-card'
-                            onPointerDown={(e) => {
-                                if (e.pointerType === 'mouse' && e.button !== 0) {
-                                    return;
-                                }
-                                startPress(post.postId, e.currentTarget, {
-                                    x: e.clientX,
-                                    y: e.clientY,
-                                });
-                            }}
-                            onPointerUp={(e) => {
-                                endPress();
-                            }}
-                            onPointerCancel={() => {
-                                cancelPress();
-                            }}
-                            onMouseDown={(e) => {
-                                if (e.button !== 0) return;
-                                startPress(post.postId, e.currentTarget, {
-                                    x: e.clientX,
-                                    y: e.clientY,
-                                });
-                            }}
-                            onContextMenu={(e) => {
-                                if (dragEnabled && String(longPressedId) === String(post.postId)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            onMouseUp={() => endPress()}
-                            onMouseLeave={() => cancelPress()}
-                            onTouchStart={(e) => {
-                                const t = e.touches && e.touches[0];
-                                startPress(
-                                    post.postId,
-                                    e.currentTarget,
-                                    t ? { x: t.clientX, y: t.clientY } : undefined
-                                );
-                            }}
-                            onTouchEnd={() => endPress()}
-                        >
+                        <div key={String(post.postId)} className='post-card'>
                             <Link
                                 to={`/post/${post.postId}`}
                                 className='card-link'
