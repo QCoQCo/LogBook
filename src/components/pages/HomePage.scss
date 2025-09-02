@@ -1,12 +1,85 @@
 /* HomePage.scss */
 #HomePage {
-    padding: 32px 24px;
+    padding: 48px 24px;
     position: relative;
 
     .container {
         margin: 0 auto;
         position: relative; /* new: allow absolutely positioned dropped snippets */
         max-width: 1200px;
+    }
+
+    /* Columns toggle UI (top-right) */
+    .ColumnsWrapper {
+        position: absolute;
+        top: 5px;
+        right: 24px;
+        z-index: 950;
+
+        .columns-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px;
+            border-radius: 999px;
+            box-shadow: 0 6px 18px rgba(10, 10, 10, 0.06);
+            border: 1px solid #ececec;
+        }
+
+        .col-btn {
+            border: none;
+            background: transparent;
+            padding: 6px;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 150ms ease, transform 120ms ease, box-shadow 150ms ease;
+
+            img {
+                width: 18px;
+                height: 18px;
+                display: block;
+                filter: grayscale(80%) contrast(90%);
+                opacity: 0.95;
+            }
+
+            &:hover {
+                background: rgba(0, 0, 0, 0.04);
+                transform: translateY(-2px);
+            }
+
+            &.active {
+                background: #0078d4;
+                box-shadow: 0 6px 18px rgba(0, 120, 212, 0.18);
+                img {
+                    filter: none;
+                    opacity: 1;
+                }
+            }
+
+            &:focus {
+                outline: 2px solid rgba(0, 120, 212, 0.18);
+                outline-offset: 2px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            top: 12px;
+            right: 12px;
+            .col-btn {
+                width: 32px;
+                height: 32px;
+                img {
+                    width: 16px;
+                    height: 16px;
+                }
+            }
+        }
     }
 
     .layout {

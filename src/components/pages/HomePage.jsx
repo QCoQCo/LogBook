@@ -2,8 +2,6 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/LogBookContext';
 import * as Common from '../common';
-import LogBookSwiper from '../common/Swiper';
-import { Pagination, EffectCards } from 'swiper/modules';
 import RGL, { WidthProvider } from 'react-grid-layout';
 const ReactGridLayout = WidthProvider(RGL);
 import './HomePage.scss';
@@ -37,8 +35,23 @@ const HomePage = () => {
     const containerRef = useRef(null);
     const [containerWidth, setContainerWidth] = useState(1200);
     const [cols, setCols] = useState(4);
+    // allow forcing columns (null = automatic)
+    const [forceCols, setForceCols] = useState(4);
     const MARGIN_X = 16;
     const MARGIN_Y = 16;
+
+    const toggleForce = (val) => {
+        setForceCols(val);
+        // bump rglKey so the grid re-initializes cleanly when forcing cols
+        setRglKey(
+            `${val != null ? `force-${val}` : 'auto'}-${cols}-${Math.floor(
+                containerWidth
+            )}-${Date.now()}`
+        );
+    };
+
+    // placeholder presets object — keep empty to avoid runtime ReferenceError
+    const SNIPPET_PRESETS = {};
 
     const computeCols = (w) => {
         if (w >= 1100) return 4;
@@ -277,29 +290,28 @@ const HomePage = () => {
 
             setContainerWidth(w);
             setCols((prev) => {
-                const c = computeCols(w);
+                const c = forceCols != null ? forceCols : computeCols(w);
                 return c !== prev ? c : prev;
             });
         };
         update();
         window.addEventListener('resize', update);
         return () => window.removeEventListener('resize', update);
-    }, []);
+    }, [forceCols]);
 
     const visiblePosts = posts.slice(0, visibleCount);
-    // persisted layout so user moves are kept
+
     const [gridLayout, setGridLayout] = useState([]);
-    // force remount key for ReactGridLayout so we can force UI to reflect our state when needed
+
     const [rglKey, setRglKey] = useState(
         () => `${cols}-${Math.floor(containerWidth)}-${Date.now()}`
     );
-    // ref mirror so we can read latest layout synchronously inside event handlers
+
     const gridLayoutRef = useRef(gridLayout);
     useEffect(() => {
         gridLayoutRef.current = gridLayout;
     }, [gridLayout]);
 
-    // expose ref for debugging in the browser console
     useEffect(() => {
         try {
             if (typeof window !== 'undefined') {
@@ -310,7 +322,6 @@ const HomePage = () => {
         return () => {
             try {
                 if (typeof window !== 'undefined') {
-                    // keep __rgl_last but remove debug helpers when unmounting
                     delete window.__gridLayout;
                     delete window.__compareLayoutToDom;
                 }
@@ -318,10 +329,8 @@ const HomePage = () => {
         };
     }, []);
 
-    // track which item is currently being resized (if any)
     const [resizingId, setResizingId] = useState(null);
 
-    // infinite scroll: observe loadMoreRef and increase visibleCount when it enters viewport
     useEffect(() => {
         const el = loadMoreRef.current;
         if (!el) return;
@@ -340,150 +349,8 @@ const HomePage = () => {
     }, [posts.length]);
 
     // side panel / snippets state
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [droppedSnippets, setDroppedSnippets] = useState([]);
     const [isDropActive, setIsDropActive] = useState(false);
-    const SNIPPET_MIME = 'application/x-logbook-snippet';
-
-    const SWIPER_MODULES = [
-        { id: 'Tinder', label: 'Tinder' },
-        { id: 'default', label: 'Default' },
-        { id: 'navigation', label: 'Navigation' },
-        { id: 'pagination', label: 'Pagination' },
-        { id: 'pagination-dynamic', label: 'Pagination (dynamic)' },
-        { id: 'pagination-progress', label: 'Pagination (progress)' },
-        { id: 'pagination-fraction', label: 'Pagination (fraction)' },
-        { id: 'pagination-custom', label: 'Pagination (custom)' },
-        { id: 'scrollbar', label: 'Scrollbar' },
-        { id: 'vertical', label: 'Vertical' },
-        { id: 'space-between', label: 'Space between' },
-        { id: 'slides-per-view', label: 'Slides per view' },
-        { id: 'slides-per-view-auto', label: 'Slides per view (auto)' },
-        { id: 'centered', label: 'Centered' },
-        { id: 'centered-auto', label: 'Centered auto' },
-        { id: 'css-mode', label: 'CSS mode' },
-        { id: 'freemode', label: 'FreeMode' },
-        { id: 'scroll-container', label: 'Scroll container' },
-        { id: 'grid', label: 'Grid' },
-        { id: 'nested', label: 'Nested' },
-        { id: 'grab-cursor', label: 'Grab cursor' },
-        { id: 'infinite-loop', label: 'Infinite loop' },
-        { id: 'slides-per-group-skip', label: 'Slides per group skip' },
-        { id: 'effect-fade', label: 'Effect: Fade' },
-        { id: 'effect-cube', label: 'Effect: Cube' },
-        { id: 'effect-coverflow', label: 'Effect: Coverflow' },
-        { id: 'effect-flip', label: 'Effect: Flip' },
-        { id: 'effect-cards', label: 'Effect: Cards' },
-        { id: 'effect-creative', label: 'Effect: Creative' },
-        { id: 'keyboard', label: 'Keyboard control' },
-        { id: 'mousewheel', label: 'Mousewheel control' },
-        { id: 'autoplay', label: 'Autoplay' },
-        { id: 'autoplay-progress', label: 'Autoplay (progress)' },
-        { id: 'manipulation', label: 'Manipulation' },
-        { id: 'thumbs-gallery', label: 'Thumbs gallery' },
-        { id: 'thumbs-gallery-loop', label: 'Thumbs gallery (loop)' },
-        { id: 'multiple-swipers', label: 'Multiple swipers' },
-        { id: 'hash-navigation', label: 'Hash navigation' },
-        { id: 'history', label: 'History' },
-        { id: 'rtl', label: 'RTL' },
-        { id: 'parallax', label: 'Parallax' },
-        { id: 'lazy-load', label: 'Lazy load images' },
-        { id: 'responsive-breakpoints', label: 'Responsive breakpoints' },
-        { id: 'ratio-breakpoints', label: 'Ratio breakpoints' },
-        { id: 'autoheight', label: 'Autoheight' },
-        { id: 'zoom', label: 'Zoom' },
-        { id: 'virtual-slides', label: 'Virtual slides' },
-        { id: 'watch-slides-visibility', label: 'Watch slides visibility' },
-        { id: 'rewind', label: 'Rewind' },
-    ];
-
-    const SNIPPET_PRESETS = {
-        Tinder: {
-            showNav: false,
-            showPagination: false,
-            effect: 'cards',
-            grabCursor: true,
-            loop: false,
-            slidesPerView: 1,
-            centeredSlides: true,
-            spaceBetween: 12,
-            modules: [EffectCards],
-            className: 'tinder-swiper',
-            simulateTouch: true,
-            allowTouchMove: true,
-        },
-        default: { showNav: false, showPagination: false, showScrollbar: false },
-        navigation: { showNav: true, showPagination: false },
-        pagination: { showNav: false, showPagination: { clickable: true } },
-        'pagination-dynamic': {
-            showNav: false,
-            showPagination: { dynamicBullets: true, clickable: true },
-        },
-        'pagination-progress': { showPagination: { type: 'progressbar', clickable: true } },
-        'pagination-fraction': { showPagination: { type: 'fraction', clickable: true } },
-        'pagination-custom': {
-            showNav: false,
-            showPagination: {
-                clickable: true,
-                renderBullet: (index, className) =>
-                    `<span class="${className}">${index + 1}</span>`,
-            },
-        },
-        scrollbar: { showNav: false, showPagination: false, showScrollbar: true },
-        vertical: {
-            direction: 'vertical',
-            effect: 'slide',
-            showPagination: { clickable: true },
-            modules: [Pagination],
-            className: 'mySwiper',
-        },
-        'space-between': { spaceBetween: 16 },
-        'slides-per-view': { slidesPerView: 1 },
-        'slides-per-view-auto': { slidesPerView: 'auto' },
-        centered: { slidesPerView: 1 },
-        'centered-auto': { slidesPerView: 'auto' },
-        'css-mode': {},
-        freemode: { freeMode: true },
-        grid: { grid: { rows: 1 } },
-        'grab-cursor': { grabCursor: true },
-        'infinite-loop': { loop: true },
-        'effect-fade': { effect: 'fade' },
-        'effect-cube': { effect: 'cube' },
-        'effect-coverflow': { effect: 'coverflow' },
-        'effect-flip': { effect: 'flip' },
-        'effect-cards': { effect: 'cards' },
-        'effect-creative': { effect: 'creative' },
-        keyboard: { keyboard: true },
-        mousewheel: { mousewheel: true },
-        autoplay: { autoplay: true, autoplayDelay: 3000 },
-        manipulation: { simulateTouch: true },
-        'thumbs-gallery': {},
-        'thumbs-gallery-loop': { loop: true },
-        'multiple-swipers': {},
-        'hash-navigation': {},
-        history: {},
-        rtl: { rtl: true },
-        parallax: { parallax: true },
-        'lazy-load': { lazy: true },
-        'responsive-breakpoints': { breakpoints: {} },
-        autoheight: { autoHeight: true },
-        zoom: { zoom: true },
-        'virtual-slides': { virtual: true },
-        'watch-slides-visibility': { watchSlidesVisibility: true },
-        rewind: {},
-    };
-
-    const handleDragStart = (e, type) => {
-        // use a custom mime so normal element drags don't accidentally create snippets
-        try {
-            e.dataTransfer.setData(SNIPPET_MIME, type);
-            e.dataTransfer.effectAllowed = 'copy';
-        } catch (err) {
-            // some browsers may restrict custom types; fallback to text/plain
-            e.dataTransfer.setData('text/plain', type);
-            e.dataTransfer.effectAllowed = 'copy';
-        }
-    };
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -497,7 +364,7 @@ const HomePage = () => {
 
     const handleDrop = (e) => {
         e.preventDefault();
-        const type = e.dataTransfer.getData(SNIPPET_MIME) || '';
+        const type = e.dataTransfer.getData('text/plain') || '';
         if (!type) {
             setIsDropActive(false);
             return;
@@ -656,7 +523,6 @@ const HomePage = () => {
 
     // pointer refs used by long-press synthetic dispatch
     const lastPointer = useRef({ x: 0, y: 0 });
-    const lastPointerButton = useRef(0);
     // snapshot of the item's prior layout at the moment resize starts
     const resizingPriorRef = useRef(null);
     // when true, temporarily allow posts to be moved so snippets can push them
@@ -729,6 +595,36 @@ const HomePage = () => {
 
     return (
         <div id='HomePage'>
+            <div className='ColumnsWrapper'>
+                <div className='columns-controls'>
+                    <button
+                        type='button'
+                        className={`col-btn ${forceCols === 1 ? 'active' : ''}`}
+                        onClick={() => toggleForce(1)}
+                        aria-label='One column'
+                        title='1 column'
+                    >
+                        <img
+                            src='/img/icon-list.svg'
+                            alt='1'
+                            style={{ width: 30, height: 30, display: 'block' }}
+                        />
+                    </button>
+                    <button
+                        type='button'
+                        className={`col-btn ${forceCols === 4 ? 'active' : ''}`}
+                        onClick={() => toggleForce(4)}
+                        aria-label='Four columns'
+                        title='4 columns'
+                    >
+                        <img
+                            src='/img/icon-grid.svg'
+                            alt='4'
+                            style={{ width: 30, height: 30, display: 'block' }}
+                        />
+                    </button>
+                </div>
+            </div>
             <div
                 className='container'
                 ref={containerRef}
@@ -736,317 +632,19 @@ const HomePage = () => {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
-                {/* Drop overlay for snippets */}
-                <div
-                    className={`drop-overlay ${isDropActive ? 'active' : ''}`}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                />
                 <ReactGridLayout
                     key={rglKey}
                     className='layout'
                     layout={layout}
                     cols={cols}
-                    rowHeight={Math.max(120, Math.floor(containerWidth / cols))}
+                    rowHeight={
+                        forceCols == 4 ? Math.max(120, Math.floor(containerWidth / cols)) : 150
+                    }
                     isDraggable={true}
                     draggableHandle='.post-card'
                     isResizable={true}
                     compactType={null}
                     margin={[MARGIN_X, MARGIN_Y]}
-                    onResizeStop={(newLayout, oldItem, newItem) => {
-                        if (!Array.isArray(newLayout)) return;
-
-                        // Normalize incoming layout
-                        const normalized = newLayout.map((it) => ({
-                            i: String(it.i),
-                            x: Number(it.x || 0),
-                            y: Number(it.y || 0),
-                            w: Number(it.w || 1),
-                            h: Number(it.h || 1),
-                            static: String(it.i).startsWith('snippet-') ? false : true,
-                        }));
-
-                        const rawTarget = newItem || oldItem || {};
-                        const id = String(rawTarget.i || '');
-                        const prior =
-                            resizingPriorRef.current ||
-                            (gridLayoutRef.current || []).find((it) => String(it.i) === id) ||
-                            null;
-
-                        const priorX = prior ? Number(prior.x || 0) : Number(rawTarget.x || 0);
-                        const priorY = prior ? Number(prior.y || 0) : Number(rawTarget.y || 0);
-                        const newW =
-                            typeof rawTarget.w === 'number'
-                                ? Number(rawTarget.w)
-                                : prior
-                                ? Number(prior.w || 1)
-                                : 1;
-                        const newH =
-                            typeof rawTarget.h === 'number'
-                                ? Number(rawTarget.h)
-                                : prior
-                                ? Number(prior.h || 1)
-                                : 1;
-
-                        const mergedTarget = { i: id, x: priorX, y: priorY, w: newW, h: newH };
-
-                        const normalizedAnchored = normalized.map((it) =>
-                            String(it.i) === id
-                                ? { ...it, x: mergedTarget.x, y: mergedTarget.y, w: newW, h: newH }
-                                : it
-                        );
-
-                        const resolved = resolveCollisions(normalizedAnchored, mergedTarget);
-                        const mapped = resolved.map((it) => ({
-                            ...it,
-                            i: String(it.i),
-                            static: String(it.i).startsWith('snippet-') ? false : true,
-                        }));
-
-                        const sanitizedMapped = mapped.map((item) => {
-                            const h = Number(item.h);
-                            if (!isFinite(h) || h < 1 || h > 1000) {
-                                return { ...item, h: 1 };
-                            }
-                            return item;
-                        });
-                        setGridLayout(sanitizedMapped);
-
-                        setRglKey(`${cols}-${Math.floor(containerWidth)}-${Date.now()}`);
-
-                        setResizingId(null);
-                        resizingPriorRef.current = null;
-                    }}
-                    onResizeStart={(layout, oldItem, newItem, placeholder, e) => {
-                        try {
-                            const id = String(
-                                (newItem && newItem.i) || (oldItem && oldItem.i) || ''
-                            );
-                            setResizingId(id);
-                            try {
-                                const prior = (gridLayoutRef.current || []).find(
-                                    (it) => String(it.i) === String(id)
-                                );
-                                resizingPriorRef.current = prior ? { ...prior } : null;
-                            } catch (err) {
-                                resizingPriorRef.current = null;
-                            }
-                            window.__rgl_last = {
-                                phase: 'onResizeStart',
-                                id,
-                                layout: Array.isArray(layout)
-                                    ? layout.map((it) => ({
-                                          i: String(it.i),
-                                          x: Number(it.x || 0),
-                                          y: Number(it.y || 0),
-                                          w: Number(it.w || 1),
-                                          h: Number(it.h || 1),
-                                      }))
-                                    : null,
-                                rawOld: oldItem || null,
-                                rawNew: newItem || null,
-                            };
-                            console.info('onResizeStart:', id);
-                        } catch (e) {}
-                    }}
-                    onResize={(layout, oldItem, newItem) => {
-                        const id = String(newItem.i || oldItem.i || '');
-                        if (!id) return;
-                        setGridLayout((prev) =>
-                            (prev || []).map((it) =>
-                                String(it.i) === id
-                                    ? {
-                                          ...it,
-                                          w: newItem.w,
-                                          h: newItem.h,
-                                      }
-                                    : it
-                            )
-                        );
-                    }}
-                    onDragStart={(layout, oldItem, newItem, placeholder, e) => {
-                        try {
-                            const id = String(
-                                (newItem && newItem.i) || (oldItem && oldItem.i) || ''
-                            );
-                            setDragEnabled(true);
-                            setLongPressedId(id);
-                            try {
-                                forceMoveRef.current = true;
-                                setGridLayout((prev) =>
-                                    (prev || []).map((it) => ({
-                                        ...it,
-                                        static: String(it.i).startsWith('snippet-') ? false : false,
-                                    }))
-                                );
-                            } catch (err) {}
-                            window.__rgl_last = {
-                                phase: 'onDragStart',
-                                id,
-                                layout: Array.isArray(layout)
-                                    ? layout.map((it) => ({
-                                          i: String(it.i),
-                                          x: Number(it.x || 0),
-                                          y: Number(it.y || 0),
-                                          w: Number(it.w || 1),
-                                          h: Number(it.h || 1),
-                                      }))
-                                    : null,
-                                rawOld: oldItem || null,
-                                rawNew: newItem || null,
-                            };
-                        } catch (e) {}
-                    }}
-                    onDragStop={(newLayout, oldItem, newItem) => {
-                        try {
-                            window.__rgl_last = {
-                                phase: 'onDragStop',
-                                id: String((newItem && newItem.i) || (oldItem && oldItem.i) || ''),
-                                layout: Array.isArray(newLayout)
-                                    ? newLayout.map((it) => ({
-                                          i: String(it.i),
-                                          x: Number(it.x || 0),
-                                          y: Number(it.y || 0),
-                                          w: Number(it.w || 1),
-                                          h: Number(it.h || 1),
-                                      }))
-                                    : null,
-                                rawOld: oldItem || null,
-                                rawNew: newItem || null,
-                            };
-                            console.info('onDragStop:', window.__rgl_last.id);
-                        } catch (e) {}
-
-                        if (!Array.isArray(newLayout)) return;
-
-                        const base = (
-                            Array.isArray(gridLayoutRef.current) ? gridLayoutRef.current : []
-                        ).map((it) => ({
-                            i: String(it.i),
-                            x: Number(it.x || 0),
-                            y: Number(it.y || 0),
-                            w: Number(it.w || 1),
-                            h: Number(it.h || 1),
-                            static: String(it.i).startsWith('snippet-')
-                                ? false
-                                : Boolean(it.static),
-                        }));
-
-                        const rawRequested =
-                            (window && window.__rgl_last && window.__rgl_last.rawNew) || null;
-                        const desiredTarget =
-                            rawRequested && rawRequested.i
-                                ? {
-                                      i: String(rawRequested.i),
-                                      x: Number.isFinite(Number(rawRequested.x))
-                                          ? Number(rawRequested.x)
-                                          : Number((newItem && newItem.x) || 0),
-                                      y: Number.isFinite(Number(rawRequested.y))
-                                          ? Number(rawRequested.y)
-                                          : Number((newItem && newItem.y) || 0),
-                                      w: Number.isFinite(Number(rawRequested.w))
-                                          ? Number(rawRequested.w)
-                                          : Number((newItem && newItem.w) || 1),
-                                      h: Number.isFinite(Number(rawRequested.h))
-                                          ? Number(rawRequested.h)
-                                          : Number((newItem && newItem.h) || 1),
-                                  }
-                                : newItem
-                                ? {
-                                      i: String(newItem.i),
-                                      x: Number(newItem.x || 0),
-                                      y: Number(newItem.y || 0),
-                                      w: Number(newItem.w || 1),
-                                      h: Number(newItem.h || 1),
-                                  }
-                                : null;
-
-                        let found = false;
-                        const baseWithTarget = base.map((it) => {
-                            if (String(it.i) === String(desiredTarget?.i)) {
-                                found = true;
-                                return {
-                                    ...it,
-                                    x: desiredTarget.x,
-                                    y: desiredTarget.y,
-                                    w: desiredTarget.w,
-                                    h: desiredTarget.h,
-                                    static: false,
-                                };
-                            }
-                            return { ...it };
-                        });
-                        if (!found && desiredTarget) {
-                            baseWithTarget.push({
-                                i: String(desiredTarget.i),
-                                x: desiredTarget.x,
-                                y: desiredTarget.y,
-                                w: desiredTarget.w,
-                                h: desiredTarget.h,
-                                static: false,
-                            });
-                        }
-
-                        const resolved = resolveCollisions(baseWithTarget, desiredTarget);
-                        const mapped = resolved.map((it) => ({
-                            ...it,
-                            i: String(it.i),
-                            static: String(it.i).startsWith('snippet-') ? false : true,
-                        }));
-
-                        try {
-                            console.info('onDragStop incoming newLayout:', newLayout);
-                            console.info(
-                                'onDragStop rawNew:',
-                                (window && window.__rgl_last && window.__rgl_last.rawNew) || null
-                            );
-                            console.info('onDragStop desiredTarget:', desiredTarget);
-                            console.info('onDragStop resolved mapped (pre-set):', mapped);
-                        } catch (err) {}
-
-                        skipRebuildRef.current = true;
-                        const sanitizedMappedOnDrag = mapped.map((item) => {
-                            const h = Number(item.h);
-                            if (!isFinite(h) || h < 1 || h > 1000) {
-                                return { ...item, h: 1 };
-                            }
-                            return item;
-                        });
-                        setGridLayout(sanitizedMappedOnDrag);
-                        setRglKey(`${cols}-${Math.floor(containerWidth)}-${Date.now()}`);
-
-                        setTimeout(
-                            () => compareLayoutToDom(mapped, 'onDragStop after remount'),
-                            50
-                        );
-
-                        setTimeout(() => {
-                            try {
-                                console.info(
-                                    'gridLayoutRef.current (after setGridLayout):',
-                                    gridLayoutRef.current
-                                );
-                            } catch (err) {}
-                        }, 0);
-
-                        try {
-                            if (forceMoveRef.current) {
-                                try {
-                                    const filled = rebuildPostsIntoGrid();
-                                    setGridLayout(filled);
-                                    setRglKey(
-                                        `${cols}-${Math.floor(containerWidth)}-${Date.now()}`
-                                    );
-                                } catch (err) {}
-                                forceMoveRef.current = false;
-                            }
-                        } catch (err) {}
-
-                        setDragEnabled(false);
-                        setLongPressedId(null);
-                        lastPointerButton.current = 0;
-                    }}
                 >
                     {visiblePosts.map((post) => (
                         <div
@@ -1103,151 +701,75 @@ const HomePage = () => {
                                     }
                                 }}
                             >
-                                <div className='card-thumb'>
-                                    <img
-                                        src={post.thumbnail || '/img/logBook_logo.png'}
-                                        alt={post.title || 'thumbnail'}
-                                        loading='lazy'
-                                        onError={(e) => {
-                                            // fallback to local image on error
-                                            e.currentTarget.onerror = null;
-                                            e.currentTarget.src = '/img/logBook_logo.png';
-                                        }}
-                                    />
-                                </div>
-                                <div className='card-body'>
-                                    <h3 className='card-title'>{post.title}</h3>
-                                    <p className='card-excerpt'>
-                                        {(post.content || '').slice(0, 120)}
-                                        {(post.content || '').length > 120 ? '…' : ''}
-                                    </p>
-                                </div>
-                            </Link>
-                        </div>
-                    ))}
-                    {droppedSnippets.map((snip) => (
-                        <div
-                            key={snip.id}
-                            className='dropped-snippet'
-                            onPointerDown={(e) => {
-                                // enable long-press drag for snippets as well
-                                if (e.pointerType === 'mouse' && e.button !== 0) return;
-                                startPress(snip.id, e.currentTarget, {
-                                    x: e.clientX,
-                                    y: e.clientY,
-                                });
-                            }}
-                            onPointerUp={() => endPress()}
-                            onPointerCancel={() => cancelPress()}
-                            onMouseDown={(e) => {
-                                if (e.button !== 0) return;
-                                startPress(snip.id, e.currentTarget, {
-                                    x: e.clientX,
-                                    y: e.clientY,
-                                });
-                            }}
-                            onMouseUp={() => endPress()}
-                            onMouseLeave={() => cancelPress()}
-                            onTouchStart={(e) => {
-                                const t = e.touches && e.touches[0];
-                                startPress(
-                                    snip.id,
-                                    e.currentTarget,
-                                    t ? { x: t.clientX, y: t.clientY } : undefined
-                                );
-                            }}
-                            onTouchEnd={() => endPress()}
-                        >
-                            <div className='dropped-header'>
-                                <strong>{snip.type}</strong>
-                                <div className='header-controls'>
-                                    &nbsp;&nbsp;&nbsp;
-                                    <button
-                                        type='button'
-                                        onPointerDown={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            removeDropped(snip.id);
-                                        }}
-                                        onMouseDown={(e) => {
-                                            e.stopPropagation();
-                                        }}
-                                        onTouchStart={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            removeDropped(snip.id);
-                                        }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            removeDropped(snip.id);
+                                {cols === 1 ? (
+                                    <div
+                                        className='card-row'
+                                        style={{
+                                            display: 'flex',
+                                            gap: 12,
+                                            alignItems: 'flex-start',
                                         }}
                                     >
-                                        삭제
-                                    </button>
-                                </div>
-                            </div>
-                            <div className='dropped-body'>
-                                {(() => {
-                                    const layoutItem = (layout || []).find(
-                                        (it) => String(it.i) === String(snip.id)
-                                    );
-                                    const colWidth =
-                                        (containerWidth - MARGIN_X * (cols - 1)) / cols;
-                                    const rowH = Math.max(120, Math.floor(containerWidth / cols));
-                                    const widthPx = layoutItem
-                                        ? Math.max(
-                                              120,
-                                              Math.floor(
-                                                  layoutItem.w * colWidth +
-                                                      (layoutItem.w - 1) * MARGIN_X
-                                              )
-                                          )
-                                        : 260;
-                                    const heightPx = layoutItem
-                                        ? Math.max(
-                                              80,
-                                              Math.floor(
-                                                  layoutItem.h * rowH +
-                                                      (layoutItem.h - 1) * MARGIN_Y
-                                              )
-                                          )
-                                        : 160;
-                                    return (
-                                        <LogBookSwiper
-                                            width={widthPx}
-                                            height={heightPx}
-                                            slides={snip.slides}
-                                            {...(snip.cfg || {})}
-                                        />
-                                    );
-                                })()}
-                            </div>
+                                        <div
+                                            className='card-thumb'
+                                            style={{
+                                                flex: '0 0 40%',
+                                                maxWidth: 300,
+                                                height: '100%',
+                                            }}
+                                        >
+                                            <img
+                                                src={post.thumbnail || '/img/logBook_logo.png'}
+                                                alt={post.title || 'thumbnail'}
+                                                loading='lazy'
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover',
+                                                    borderRadius: 6,
+                                                }}
+                                                onError={(e) => {
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = '/img/logBook_logo.png';
+                                                }}
+                                            />
+                                        </div>
+                                        <div className='card-body' style={{ flex: 1 }}>
+                                            <h3 className='card-title'>{post.title}</h3>
+                                            <p className='card-excerpt'>
+                                                {(post.content || '').slice(0, 240)}
+                                                {(post.content || '').length > 240 ? '…' : ''}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className='card-thumb'>
+                                            <img
+                                                src={post.thumbnail || '/img/logBook_logo.png'}
+                                                alt={post.title || 'thumbnail'}
+                                                loading='lazy'
+                                                onError={(e) => {
+                                                    // fallback to local image on error
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = '/img/logBook_logo.png';
+                                                }}
+                                            />
+                                        </div>
+                                        <div className='card-body'>
+                                            <h3 className='card-title'>{post.title}</h3>
+                                            <p className='card-excerpt'>
+                                                {(post.content || '').slice(0, 120)}
+                                                {(post.content || '').length > 120 ? '…' : ''}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
+                            </Link>
                         </div>
                     ))}
                 </ReactGridLayout>
                 <div ref={loadMoreRef} style={{ height: 1 }} />
-            </div>
-            {/* Side Panel */}
-            <div className={`side-panel ${isPanelOpen ? 'open' : ''}`}>
-                <div className='panel-handle' onClick={() => setIsPanelOpen((s) => !s)}>
-                    <span>{isPanelOpen ? '▶' : '◀'}</span>
-                </div>
-                <div className='panel-content' aria-hidden={!isPanelOpen}>
-                    <div className='snippet-palette'>
-                        {SWIPER_MODULES.map((m) => (
-                            <div
-                                key={m.id}
-                                className='snippet-item'
-                                draggable
-                                onDragStart={(e) => handleDragStart(e, m.id)}
-                                title={m.label}
-                            >
-                                {m.label}
-                            </div>
-                        ))}
-                    </div>
-                </div>
             </div>
 
             {isLogin && <Common.FloatingButton />}
