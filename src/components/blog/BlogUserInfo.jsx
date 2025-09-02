@@ -17,9 +17,10 @@ const BlogUserInfo = ({ userId }) => {
 
         console.log('user info: ', userId, user);
         if (user) {
+            console.log('user introduction: ', user.introduction);
             setIntroText(user.introduction);
         }
-    }, [userId, userData]);
+    }, [userId, userData, user]);
 
     if (!user) {
         return null;

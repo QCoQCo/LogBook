@@ -65,177 +65,112 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
 // CHAT AREA
 // ==========================================
 .chat-area {
+    position: relative;
+    flex: 0.4;
+    min-width: 0;
+
     // Chat Header
-    .chat-area-header {
-        width: 100%;
-        min-height: 100px;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: $spacing-md $spacing-lg;
-        gap: $spacing-lg;
-        flex-wrap: wrap;
-
-        // Chat Header Title Section
-        .chat-area-header-title {
-            flex: 1;
-            min-width: 200px;
+    .chat-wrapper {
+        padding: sticky;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        .chat-area-header {
+            width: 100%;
+            min-height: 100px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+            padding: $spacing-md $spacing-lg;
+            gap: $spacing-lg;
+            flex-wrap: wrap;
 
-            h1 {
-                margin: 0;
-                color: $text-primary;
-                font-size: $font-size-xl;
-            }
-
-            .current-chat-room {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                margin-top: 0.5rem;
-                padding: 0.5rem 1rem;
-                background: rgba($primary-blue, 0.1);
-                border-radius: $border-radius-xl;
-                font-size: 0.9rem;
-                color: $text-secondary;
-                flex-wrap: wrap;
-
-                .room-indicator {
-                    font-size: 1rem;
-                    flex-shrink: 0;
-                }
-
-                .room-name {
-                    font-weight: 600;
-                    color: $text-primary;
-                    word-break: break-word;
-                }
-
-                .room-users {
-                    font-size: 0.8rem;
-                    opacity: 0.7;
-                    flex-shrink: 0;
-                }
-            }
-        }
-
-        // Nickname Section
-        .chat-nick-name-section {
-            flex-shrink: 0;
-            min-width: 250px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-
-            .nickname-display-container {
-                display: flex;
-                align-items: center;
-                gap: $spacing-md;
-                flex-wrap: wrap;
-
-                .current-nickname {
-                    display: flex;
-                    align-items: center;
-                    gap: $spacing-xs;
-                    background-color: $bg-light;
-                    padding: $spacing-xs $spacing-lg;
-                    border-radius: $border-radius-xl;
-                    border: 1px solid $border-light;
-
-                    .nickname-label {
-                        color: $text-secondary;
-                        font-size: $font-size-md;
-                        font-weight: 500;
-                    }
-
-                    .nickname-value {
-                        color: $text-primary;
-                        font-size: $font-size-lg;
-                        font-weight: 600;
-                        min-width: 60px;
-                    }
-                }
-
-                .edit-btn {
-                    padding: $spacing-xs 12px;
-                    background-color: $accent-color;
-                    color: #000;
-                    border: none;
-                    border-radius: $spacing-md;
-                    font-size: $font-size-md;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: $transition-fast;
-
-                    &:hover {
-                        background-color: $accent-hover;
-                        transform: translateY(-1px);
-                    }
-                }
-            }
-
-            .nickname-edit-container {
+            // Chat Header Title Section
+            .chat-area-header-title {
+                flex: 1;
+                min-width: 200px;
                 display: flex;
                 flex-direction: column;
-                gap: $spacing-sm;
+                justify-content: center;
 
-                .nickname-input-wrapper {
-                    position: relative;
-
-                    .nickname-input {
-                        padding: $spacing-sm $spacing-md;
-                        border: 2px solid $border-medium;
-                        border-radius: $border-radius-xl;
-                        background-color: $bg-light;
-                        color: $text-primary;
-                        font-size: $font-size-lg;
-                        outline: none;
-                        min-width: 200px;
-                        transition: $transition-fast;
-
-                        &::placeholder {
-                            color: rgba(255, 255, 255, 0.6);
-                        }
-
-                        &:focus {
-                            border-color: $accent-color;
-                            background-color: $bg-medium;
-                            box-shadow: $box-shadow-focus;
-                        }
-
-                        &.error {
-                            border-color: $error-color;
-
-                            &:focus {
-                                box-shadow: 0 0 0 3px rgba($error-color, 0.2);
-                            }
-                        }
-                    }
-
-                    .nickname-error {
-                        position: absolute;
-                        top: 100%;
-                        left: 0;
-                        margin-top: 5px;
-                        color: $error-color;
-                        font-size: $font-size-sm;
-                        font-weight: 500;
-                        white-space: nowrap;
-                        background-color: rgba($error-color, 0.1);
-                        padding: 4px $spacing-xs;
-                        border-radius: $border-radius-sm;
-                        border: 1px solid rgba($error-color, 0.3);
-                    }
+                h1 {
+                    margin: 0;
+                    color: $text-primary;
+                    font-size: $font-size-xl;
                 }
 
-                .nickname-buttons {
+                .current-chat-room {
                     display: flex;
-                    gap: $spacing-xs;
+                    align-items: center;
+                    gap: 0.5rem;
+                    margin-top: 0.5rem;
+                    padding: 0.5rem 1rem;
+                    background: rgba($primary-blue, 0.1);
+                    border-radius: $border-radius-xl;
+                    font-size: 0.9rem;
+                    color: $text-secondary;
+                    flex-wrap: wrap;
 
-                    button {
+                    .room-indicator {
+                        font-size: 1rem;
+                        flex-shrink: 0;
+                    }
+
+                    .room-name {
+                        font-weight: 600;
+                        color: $text-primary;
+                        word-break: break-word;
+                    }
+
+                    .room-users {
+                        font-size: 0.8rem;
+                        opacity: 0.7;
+                        flex-shrink: 0;
+                    }
+                }
+            }
+
+            // Nickname Section
+            .chat-nick-name-section {
+                flex-shrink: 0;
+                min-width: 250px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+
+                .nickname-display-container {
+                    display: flex;
+                    align-items: center;
+                    gap: $spacing-md;
+                    flex-wrap: wrap;
+
+                    .current-nickname {
+                        display: flex;
+                        align-items: center;
+                        gap: $spacing-xs;
+                        background-color: $bg-light;
                         padding: $spacing-xs $spacing-lg;
+                        border-radius: $border-radius-xl;
+                        border: 1px solid $border-light;
+
+                        .nickname-label {
+                            color: $text-secondary;
+                            font-size: $font-size-md;
+                            font-weight: 500;
+                        }
+
+                        .nickname-value {
+                            color: $text-primary;
+                            font-size: $font-size-lg;
+                            font-weight: 600;
+                            min-width: 60px;
+                        }
+                    }
+
+                    .edit-btn {
+                        padding: $spacing-xs 12px;
+                        background-color: $accent-color;
+                        color: #000;
                         border: none;
                         border-radius: $spacing-md;
                         font-size: $font-size-md;
@@ -243,273 +178,348 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                         cursor: pointer;
                         transition: $transition-fast;
 
-                        &.save-btn {
-                            background-color: $accent-color;
-                            color: #000;
-
-                            &:hover {
-                                background-color: $accent-hover;
-                                transform: translateY(-1px);
-                            }
-                        }
-
-                        &.cancel-btn {
-                            background-color: $border-light;
-                            color: $text-primary;
-                            border: 1px solid $border-medium;
-
-                            &:hover {
-                                background-color: $border-medium;
-                                transform: translateY(-1px);
-                            }
+                        &:hover {
+                            background-color: $accent-hover;
+                            transform: translateY(-1px);
                         }
                     }
-                }
-            }
-        }
-
-        // 반응형 디자인
-        @media (max-width: 768px) {
-            flex-direction: column;
-            align-items: stretch;
-            gap: $spacing-md;
-
-            .chat-area-header-title {
-                min-width: unset;
-                text-align: center;
-            }
-
-            .chat-nick-name-section {
-                min-width: unset;
-                align-items: center;
-
-                .nickname-display-container {
-                    justify-content: center;
                 }
 
                 .nickname-edit-container {
-                    align-items: center;
+                    display: flex;
+                    flex-direction: column;
+                    gap: $spacing-sm;
+
+                    .nickname-input-wrapper {
+                        position: relative;
+
+                        .nickname-input {
+                            padding: $spacing-sm $spacing-md;
+                            border: 2px solid $border-medium;
+                            border-radius: $border-radius-xl;
+                            background-color: $bg-light;
+                            color: $text-primary;
+                            font-size: $font-size-lg;
+                            outline: none;
+                            min-width: 200px;
+                            transition: $transition-fast;
+
+                            &::placeholder {
+                                color: rgba(255, 255, 255, 0.6);
+                            }
+
+                            &:focus {
+                                border-color: $accent-color;
+                                background-color: $bg-medium;
+                                box-shadow: $box-shadow-focus;
+                            }
+
+                            &.error {
+                                border-color: $error-color;
+
+                                &:focus {
+                                    box-shadow: 0 0 0 3px rgba($error-color, 0.2);
+                                }
+                            }
+                        }
+
+                        .nickname-error {
+                            position: absolute;
+                            top: 100%;
+                            left: 0;
+                            margin-top: 5px;
+                            color: $error-color;
+                            font-size: $font-size-sm;
+                            font-weight: 500;
+                            white-space: nowrap;
+                            background-color: rgba($error-color, 0.1);
+                            padding: 4px $spacing-xs;
+                            border-radius: $border-radius-sm;
+                            border: 1px solid rgba($error-color, 0.3);
+                        }
+                    }
+
+                    .nickname-buttons {
+                        display: flex;
+                        gap: $spacing-xs;
+
+                        button {
+                            padding: $spacing-xs $spacing-lg;
+                            border: none;
+                            border-radius: $spacing-md;
+                            font-size: $font-size-md;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: $transition-fast;
+
+                            &.save-btn {
+                                background-color: $accent-color;
+                                color: #000;
+
+                                &:hover {
+                                    background-color: $accent-hover;
+                                    transform: translateY(-1px);
+                                }
+                            }
+
+                            &.cancel-btn {
+                                background-color: $border-light;
+                                color: $text-primary;
+                                border: 1px solid $border-medium;
+
+                                &:hover {
+                                    background-color: $border-medium;
+                                    transform: translateY(-1px);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 반응형 디자인
+            @media (max-width: 768px) {
+                flex-direction: column;
+                align-items: stretch;
+                gap: $spacing-md;
+
+                .chat-area-header-title {
+                    min-width: unset;
                     text-align: center;
+                }
+
+                .chat-nick-name-section {
+                    min-width: unset;
+                    align-items: center;
+
+                    .nickname-display-container {
+                        justify-content: center;
+                    }
+
+                    .nickname-edit-container {
+                        align-items: center;
+                        text-align: center;
+                    }
+                }
+            }
+
+            @media (max-width: 480px) {
+                .current-chat-room {
+                    justify-content: center;
+                    text-align: center;
+                }
+
+                .nickname-display-container {
+                    flex-direction: column;
+                    gap: $spacing-sm;
+                }
+
+                .nickname-edit-container .nickname-buttons {
+                    justify-content: center;
                 }
             }
         }
 
-        @media (max-width: 480px) {
-            .current-chat-room {
-                justify-content: center;
-                text-align: center;
-            }
-
-            .nickname-display-container {
-                flex-direction: column;
-                gap: $spacing-sm;
-            }
-
-            .nickname-edit-container .nickname-buttons {
-                justify-content: center;
-            }
-        }
-    }
-
-    // Chat Content Area
-    .chat-area-content {
-        height: 600px;
-        margin: 0 auto;
-        background-color: $text-primary;
-        color: #000;
-        border-radius: $border-radius-md;
-        padding: $spacing-lg;
-        overflow-y: auto;
-
-        // Message States
-        .loading,
-        .error {
-            text-align: center;
+        // Chat Content Area
+        .chat-area-content {
+            height: 600px;
+            margin: 0 auto;
+            background-color: $text-primary;
+            color: #000;
+            border-radius: $border-radius-md;
             padding: $spacing-lg;
-            font-weight: 500;
-        }
+            overflow-y: auto;
 
-        .error {
-            color: $error-color;
-        }
-
-        .debug-info {
-            background-color: rgba($primary-blue, 0.1);
-            border: 1px solid rgba($primary-blue, 0.3);
-            color: $primary-blue;
-            padding: $spacing-xs 12px;
-            border-radius: 6px;
-            margin-bottom: $spacing-sm;
-            font-family: monospace;
-            text-align: left;
-
-            small {
-                font-size: $font-size-xs;
-                opacity: 0.8;
+            // Message States
+            .loading,
+            .error {
+                text-align: center;
+                padding: $spacing-lg;
+                font-weight: 500;
             }
-        }
 
-        // Chat Messages
-        .chat-message {
-            .messages-container {
-                display: flex;
-                flex-direction: column;
-                gap: $spacing-sm;
+            .error {
+                color: $error-color;
+            }
 
-                .message {
-                    max-width: 70%;
+            .debug-info {
+                background-color: rgba($primary-blue, 0.1);
+                border: 1px solid rgba($primary-blue, 0.3);
+                color: $primary-blue;
+                padding: $spacing-xs 12px;
+                border-radius: 6px;
+                margin-bottom: $spacing-sm;
+                font-family: monospace;
+                text-align: left;
+
+                small {
+                    font-size: $font-size-xs;
+                    opacity: 0.8;
+                }
+            }
+
+            // Chat Messages
+            .chat-message {
+                .messages-container {
                     display: flex;
-                    align-items: flex-start;
+                    flex-direction: column;
                     gap: $spacing-sm;
-                    margin-bottom: $spacing-sm;
 
-                    &.own-message {
-                        align-self: flex-end;
-                        flex-direction: row-reverse;
+                    .message {
+                        max-width: 70%;
+                        display: flex;
+                        align-items: flex-start;
+                        gap: $spacing-sm;
+                        margin-bottom: $spacing-sm;
 
-                        .message-content-wrapper {
-                            background-color: $accent-color;
-                            color: #000;
+                        &.own-message {
+                            align-self: flex-end;
+                            flex-direction: row-reverse;
 
-                            .message-header {
-                                text-align: right;
-                            }
-                        }
-                    }
+                            .message-content-wrapper {
+                                background-color: $accent-color;
+                                color: #000;
 
-                    &.other-message {
-                        align-self: flex-start;
-
-                        .message-content-wrapper {
-                            background-color: #f1f1f1;
-                            color: #000;
-
-                            .message-header {
-                                text-align: left;
-                            }
-                        }
-                    }
-
-                    .profile-photo-container {
-                        flex-shrink: 0;
-                        width: 40px;
-                        height: 40px;
-                        margin-top: 4px;
-
-                        .profile-photo {
-                            width: 100%;
-                            height: 100%;
-                            border-radius: 50%;
-                            object-fit: cover;
-                            border: 2px solid #e0e0e0;
-                            transition: $transition-fast;
-
-                            &:hover {
-                                border-color: $accent-color;
-                                transform: scale(1.05);
-                            }
-
-                            &.clickable {
-                                cursor: pointer;
-
-                                &:hover {
-                                    border-color: $accent-color;
-                                    transform: scale(1.1);
-                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                                }
-
-                                &:active {
-                                    transform: scale(1.05);
+                                .message-header {
+                                    text-align: right;
                                 }
                             }
                         }
-                    }
 
-                    .message-content-wrapper {
-                        flex: 1;
-                        padding: $spacing-sm $spacing-md;
-                        border-radius: $spacing-md;
-                        word-wrap: break-word;
-                        min-width: 0; // flexbox에서 텍스트 오버플로우 방지
+                        &.other-message {
+                            align-self: flex-start;
 
-                        .message-header {
-                            margin-bottom: 5px;
-                            font-size: $font-size-sm;
+                            .message-content-wrapper {
+                                background-color: #f1f1f1;
+                                color: #000;
 
-                            .user-name {
-                                font-weight: 600;
-                                margin-right: $spacing-xs;
+                                .message-header {
+                                    text-align: left;
+                                }
                             }
+                        }
 
-                            .timestamp {
-                                opacity: 0.7;
-                                font-size: $font-size-xs;
-                            }
+                        .profile-photo-container {
+                            flex-shrink: 0;
+                            width: 40px;
+                            height: 40px;
+                            margin-top: 4px;
 
-                            .delete-button {
-                                background: transparent;
-                                border: none;
-                                color: #ff4444;
-                                cursor: pointer;
-                                font-size: $font-size-xs;
-                                margin-left: $spacing-xs;
-                                padding: 2px 6px;
-                                border-radius: 4px;
+                            .profile-photo {
+                                width: 100%;
+                                height: 100%;
+                                border-radius: 50%;
+                                object-fit: cover;
+                                border: 2px solid #e0e0e0;
                                 transition: $transition-fast;
 
                                 &:hover {
-                                    background-color: rgba(255, 68, 68, 0.1);
+                                    border-color: $accent-color;
+                                    transform: scale(1.05);
+                                }
+
+                                &.clickable {
+                                    cursor: pointer;
+
+                                    &:hover {
+                                        border-color: $accent-color;
+                                        transform: scale(1.1);
+                                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                                    }
+
+                                    &:active {
+                                        transform: scale(1.05);
+                                    }
                                 }
                             }
                         }
 
-                        .message-content {
-                            font-size: $font-size-md;
-                            line-height: 1.4;
+                        .message-content-wrapper {
+                            flex: 1;
+                            padding: $spacing-sm $spacing-md;
+                            border-radius: $spacing-md;
+                            word-wrap: break-word;
+                            min-width: 0; // flexbox에서 텍스트 오버플로우 방지
+
+                            .message-header {
+                                margin-bottom: 5px;
+                                font-size: $font-size-sm;
+
+                                .user-name {
+                                    font-weight: 600;
+                                    margin-right: $spacing-xs;
+                                }
+
+                                .timestamp {
+                                    opacity: 0.7;
+                                    font-size: $font-size-xs;
+                                }
+
+                                .delete-button {
+                                    background: transparent;
+                                    border: none;
+                                    color: #ff4444;
+                                    cursor: pointer;
+                                    font-size: $font-size-xs;
+                                    margin-left: $spacing-xs;
+                                    padding: 2px 6px;
+                                    border-radius: 4px;
+                                    transition: $transition-fast;
+
+                                    &:hover {
+                                        background-color: rgba(255, 68, 68, 0.1);
+                                    }
+                                }
+                            }
+
+                            .message-content {
+                                font-size: $font-size-md;
+                                line-height: 1.4;
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    // Chat Input Area
-    .chat-area-input {
-        height: 100px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: $spacing-lg;
+        // Chat Input Area
+        .chat-area-input {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: $spacing-lg;
 
-        input {
-            width: 80%;
-            height: 50px;
-            padding: $spacing-sm;
-            border: 1px solid #ccc;
-            border-radius: $border-radius-md;
-            font-size: $font-size-md;
-            outline: none;
-        }
-
-        button {
-            width: 100px;
-            height: 50px;
-            border-radius: $border-radius-md;
-            background-color: $accent-color;
-            color: #000;
-            font-size: $font-size-md;
-            font-weight: 600;
-            cursor: pointer;
-            transition: $transition-fast;
-            border: none;
-
-            &:hover:not(:disabled) {
-                background-color: $accent-hover;
+            input {
+                width: 80%;
+                height: 50px;
+                padding: $spacing-sm;
+                border: 1px solid #ccc;
+                border-radius: $border-radius-md;
+                font-size: $font-size-md;
+                outline: none;
             }
 
-            &:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
+            button {
+                width: 100px;
+                height: 50px;
+                border-radius: $border-radius-md;
+                background-color: $accent-color;
+                color: #000;
+                font-size: $font-size-md;
+                font-weight: 600;
+                cursor: pointer;
+                transition: $transition-fast;
+                border: none;
+
+                &:hover:not(:disabled) {
+                    background-color: $accent-hover;
+                }
+
+                &:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
             }
         }
     }
@@ -519,7 +529,8 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
 // LIST AREA (SIDEBAR)
 // ==========================================
 .list-area {
-    width: 100%;
+    flex: 1; // 사이드바 영역을 더 좁게 (1/3 비율)
+    min-width: 300px; // 최소 너비 보장
     display: flex;
     flex-direction: column;
     gap: $spacing-lg;
@@ -529,7 +540,7 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
 // CHAT ROOM LIST
 // ==========================================
 #ChatRoomList {
-    width: 75%;
+    width: 100%; // 사이드바 내에서 전체 너비 사용
     .chat-room-list-header {
         display: flex;
         justify-content: space-between;
@@ -942,5 +953,32 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
             border: 2px solid #2196f3;
             background: linear-gradient(135deg, #f0f8ff, #e8f4ff);
         }
+    }
+}
+
+// ==========================================
+// RESPONSIVE DESIGN
+// ==========================================
+@media (max-width: 1024px) {
+    #ChatPage .container {
+        flex-direction: column;
+        gap: $spacing-md;
+    }
+
+    .chat-area {
+        flex: none;
+        order: 1;
+    }
+
+    .list-area {
+        flex: none;
+        min-width: unset;
+        order: 2;
+    }
+}
+
+@media (max-width: 768px) {
+    #ChatPage .container {
+        padding: $spacing-sm;
     }
 }

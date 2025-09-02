@@ -64,7 +64,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                     <div className='modal-header'>
                         <h3>사용자 정보</h3>
                         <button className='close-button' onClick={onClose}>
-                            ×
+                            닫기
                         </button>
                     </div>
 
@@ -121,7 +121,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                         <div className='modal-header'>
                             <h3>사용자 신고</h3>
                             <button className='close-button' onClick={handleReportModalClose}>
-                                ×
+                                닫기
                             </button>
                         </div>
 

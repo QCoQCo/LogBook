@@ -32,9 +32,7 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
                 message.userId === currentUser.id ||
                 (message.sessionId && message.sessionId === currentUser.sessionId);
 
-            const profilePhoto = !isOwnMessage
-                ? getUserProfilePhoto(message.userId, message.userName)
-                : null;
+            const profilePhoto = !isOwnMessage ? getUserProfilePhoto(message.userId) : null;
 
             return {
                 ...message,
