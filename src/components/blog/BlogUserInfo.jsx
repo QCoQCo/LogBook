@@ -12,10 +12,8 @@ const BlogUserInfo = ({ userId }) => {
     };
 
     useEffect(() => {
-        console.log(userData);
         setUser(userData.find((user) => user.userId === userId));
 
-        console.log('user info: ', userId, user);
         if (user) {
             console.log('user introduction: ', user.introduction);
             setIntroText(user.introduction);
@@ -30,12 +28,19 @@ const BlogUserInfo = ({ userId }) => {
                 <div className='profile-photo'>
                     <img id='user-profile-photo' src={user.profilePhoto} alt='' />
                 </div>
+                <button className='edit-profile-photo'>
+                    <img src='/img/logbook-edit.png' />
+                </button>
                 <div className='user-introduction'>
                     <textarea
                         ref={introTextRef}
                         onChange={handleChangeIntroText}
                         value={introText}
                     ></textarea>
+                </div>
+                <div className='user-info-btns'>
+                    <button className='save-btn'>저 장</button>
+                    <button className='cancel-btn'>취 소</button>
                 </div>
             </div>
         );

@@ -1,18 +1,45 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLogBook } from '../../context/LogBookContext';
 
 const BlogElementModal = ({ item, releaseModal }) => {
     const { elements, setElements } = useLogBook();
     const currentContent = item ? elements.find((element) => element.i === item.i)?.content : '';
 
-    const [modalContent, setModalContent] = useState(currentContent);
+    const [modalContent, setModalContent] = useState(currentContent ? currentContent : '');
     const inputRef = useRef();
+    const alertRef = useRef();
+
+    useEffect(() => {
+        if (['title', 'link', 'image'].includes(type)) {
+            inputRef.current.focus();
+        }
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                releaseModal();
+            } else if (e.key === 'Enter') {
+                handleClickConfirm();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [modalContent]);
 
     const handleModalClick = (e) => e.stopPropagation();
 
+    const handleChangeInput = (e) => {
+        setModalContent(e.target.value);
+        alertRef.current.style.display = 'none';
+    };
+
     const handleClickConfirm = () => {
         if (!modalContent.trim()) {
-            alert('내용 입력해라 임마');
+            alertRef.current.style.display = 'block';
+            inputRef.current.focus();
             return;
         }
 
@@ -54,25 +81,36 @@ const BlogElementModal = ({ item, releaseModal }) => {
 
     return (
         <div id='BlogElementModal' onClick={handleModalClick}>
-            <h1>{title}</h1>
-            {['title', 'link', 'image'].includes(type) ? (
-                <div>
-                    <input
-                        className={`input-${type}-element`}
-                        type='text'
-                        value={modalContent}
-                        onChange={(e) => setModalContent(e.target.value)}
-                        ref={inputRef}
-                        placeholder={placeholder}
-                    />
-                </div>
-            ) : (
-                <p>{placeholder}</p>
-            )}
-            <ModalBtnArea
-                handleClickConfirm={handleClickConfirm}
-                handleClickCancel={handleClickCancel}
-            />
+            <div className='modal-top'>
+                <img className='modal-icon' src={`/img/icon-${type}.png`} alt='모달 아이콘' />
+                <button className='close-modal-btn' onClick={releaseModal}>
+                    모달 닫기
+                </button>
+            </div>
+            <div className='modal-inner'>
+                <h1>{title}</h1>
+                {['title', 'link', 'image'].includes(type) ? (
+                    <div className='modal-content-area'>
+                        <input
+                            className={`input-${type}-element`}
+                            type='text'
+                            value={modalContent}
+                            onChange={handleChangeInput}
+                            ref={inputRef}
+                            placeholder={placeholder}
+                        />
+                        <p className='empty-content-alert' ref={alertRef}>
+                            내용을 입력해 주세요
+                        </p>
+                    </div>
+                ) : (
+                    <p>{placeholder}</p>
+                )}
+                <ModalBtnArea
+                    handleClickConfirm={handleClickConfirm}
+                    handleClickCancel={handleClickCancel}
+                />
+            </div>
         </div>
     );
 };
