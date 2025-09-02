@@ -35,8 +35,8 @@ import './Swiper.scss';
 
 export default function LogBookSwiper({
     slides = [],
-    width = 240,
-    height = 140,
+    width = undefined,
+    height = undefined,
     showNav = true,
     showPagination = true,
     showScrollbar = false,
@@ -57,6 +57,13 @@ export default function LogBookSwiper({
     lazy = false,
     zoom = false,
     grid = undefined,
+    // allow passing native Swiper props through the wrapper
+    direction = 'horizontal',
+    modules: modulesProp = [],
+    // touch controls
+    simulateTouch = false,
+    allowTouchMove = true,
+    className: swiperClassName = '',
 }) {
     const items =
         slides && slides.length
@@ -68,9 +75,13 @@ export default function LogBookSwiper({
               ];
 
     const modules = [];
-    if (showNav) modules.push(Navigation);
-    if (showPagination) modules.push(Pagination);
-    if (showScrollbar) modules.push(Scrollbar);
+    // Support boolean or object for these features so callers can pass option objects
+    const hasNav = !!showNav;
+    const hasPagination = !!showPagination;
+    const hasScrollbar = !!showScrollbar;
+    if (hasNav) modules.push(Navigation);
+    if (hasPagination) modules.push(Pagination);
+    if (hasScrollbar) modules.push(Scrollbar);
     if (autoplay) modules.push(Autoplay);
     if (keyboard) modules.push(Keyboard);
     if (mousewheel) modules.push(Mousewheel);
@@ -86,14 +97,49 @@ export default function LogBookSwiper({
     if (effect === 'cards') modules.push(EffectCards);
     if (effect === 'creative') modules.push(EffectCreative);
 
+    // merge any externally provided Swiper modules (e.g. [Pagination])
+    if (Array.isArray(modulesProp) && modulesProp.length) {
+        modules.push(...modulesProp);
+    }
+
+    // Accept either boolean or option object for pagination/navigation/scrollbar.
+    const paginationVal =
+        typeof showPagination === 'object'
+            ? showPagination
+            : showPagination
+            ? { clickable: true }
+            : false;
+    const navigationVal = typeof showNav === 'object' ? showNav : showNav ? true : false;
+    const scrollbarVal =
+        typeof showScrollbar === 'object'
+            ? showScrollbar
+            : showScrollbar
+            ? { draggable: true }
+            : false;
+
+    const hasCustomRenderBullet = !!(
+        paginationVal &&
+        typeof paginationVal === 'object' &&
+        typeof paginationVal.renderBullet === 'function'
+    );
+
+    // Use native Swiper pagination element by default (do not force custom el)
+    const paginationForSwiper = paginationVal || false;
+
+    // build final swiper props and allow passing direction + extra className
+    let swiperClass =
+        `swiper effect-${effect}` + (hasCustomRenderBullet ? ' pagination-custom' : '');
+    if (swiperClassName) swiperClass += ` ${swiperClassName}`;
+
     const swiperProps = {
         modules,
-        navigation: showNav || false,
-        pagination: showPagination ? { clickable: true } : false,
-        scrollbar: showScrollbar ? { draggable: true } : false,
+        navigation: navigationVal,
+        pagination: paginationForSwiper,
+        scrollbar: scrollbarVal,
         autoplay: autoplay ? { delay: autoplayDelay, disableOnInteraction: false } : false,
         effect: effect === 'slide' ? 'slide' : effect,
-        className: `swiper effect-${effect}`,
+        className: swiperClass,
+        direction,
         slidesPerView,
         spaceBetween,
         loop,
@@ -107,6 +153,10 @@ export default function LogBookSwiper({
         virtual: virtual ? { enabled: true } : false,
         zoom: zoom ? { maxRatio: 2 } : false,
         grid: grid || undefined,
+        simulateTouch: !!simulateTouch,
+        allowTouchMove: !!allowTouchMove,
+        observer: true,
+        observeParents: true,
     };
     const containerRef = useRef(null);
     const swiperRef = useRef(null);
@@ -127,16 +177,187 @@ export default function LogBookSwiper({
         return () => ro.disconnect();
     }, []);
 
-    const wrapperStyle = {
-        // width: typeof width === 'number' ? `${width}px` : width || '100%',
-        // height: typeof height === 'number' ? `${height}px` : height || '100%',
-        width: '100%',
-        height: '100%',
+    // Dynamically compute bullet size from pagination width / item count (preference),
+    // fallback to width/height-based estimates. Set CSS var --sw-bullet-size on the wrapper.
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        const updateBullet = () => {
+            try {
+                // prefer the Swiper-generated pagination element inside the Swiper root
+                const pag =
+                    el.querySelector('.swiper .swiper-pagination') ||
+                    el.querySelector('.swiper-pagination');
+                let size = undefined;
+                const count = (items && items.length) || 1;
+                if (pag) {
+                    const pw = pag.clientWidth || el.clientWidth || 0;
+                    // estimate a reasonable bullet size from available pagination width
+                    // reserve some space for gaps; avoid too small/large values
+                    const base = pw / Math.max(count, 6);
+                    size = Math.max(10, Math.min(32, Math.round(base * 0.8)));
+                    // debug: log pagination element and sizes
+                    try {
+                        // eslint-disable-next-line no-console
+                        console.debug(
+                            '[LogBookSwiper] pagination element:',
+                            pag,
+                            'pw=',
+                            pw,
+                            'count=',
+                            count,
+                            'computed-size=',
+                            size
+                        );
+                        // eslint-disable-next-line no-console
+                        console.debug('[LogBookSwiper] wrapper vars', {
+                            bullet: getComputedStyle(el).getPropertyValue('--sw-bullet-size'),
+                            font: getComputedStyle(el).getPropertyValue('--sw-bullet-font-size'),
+                        });
+                    } catch (e) {}
+                } else if (typeof width === 'number') {
+                    size = Math.max(12, Math.min(28, Math.round(width * 0.06)));
+                } else if (typeof height === 'number') {
+                    size = Math.max(12, Math.min(28, Math.round(height * 0.12)));
+                } else if (bulletSizeVal) {
+                    size = parseInt(String(bulletSizeVal), 10);
+                } else {
+                    size = 12;
+                }
+                if (size) {
+                    el.style.setProperty('--sw-bullet-size', `${size}px`);
+                    // also update derived font-size so numbers scale when bullet size changes
+                    const f = Math.max(10, Math.round(size * 0.7));
+                    el.style.setProperty('--sw-bullet-font-size', `${f}px`);
+                }
+            } catch (e) {
+                // ignore
+            }
+        };
+
+        updateBullet();
+        const ro2 = new ResizeObserver(updateBullet);
+        ro2.observe(el);
+        const pagEl =
+            el.querySelector('.swiper .swiper-pagination') ||
+            el.querySelector('.swiper-pagination');
+        if (pagEl) ro2.observe(pagEl);
+
+        return () => ro2.disconnect();
+    }, [items.length, width, height]);
+
+    const parseSize = (v, fallback) => {
+        if (v === undefined || v === null) return fallback;
+        return typeof v === 'number' ? `${v}px` : v;
     };
 
+    const widthVal = parseSize(width, '100%');
+    const heightVal = parseSize(height, '100%');
+
+    // Compute a reasonable bullet size based on height (if numeric). Keep within min/max.
+    let bulletSizeVal = undefined;
+    if (typeof height === 'number') {
+        bulletSizeVal = Math.max(12, Math.min(28, Math.round(height * 0.12)));
+    }
+
+    const defaultBullet = bulletSizeVal || 10;
+    const wrapperStyle = {
+        width: '100%',
+        height: heightVal,
+        ['--sw-bullet-size']: `${defaultBullet}px`,
+        ['--sw-bullet-font-size']: `${Math.max(10, Math.round(defaultBullet * 0.7))}px`,
+    };
+    const wrapperClass =
+        'wrapper-swiper' +
+        (hasCustomRenderBullet ? ' pagination-custom' : '') +
+        (swiperClassName ? ` ${swiperClassName}` : '');
+
     return (
-        <div ref={containerRef} style={wrapperStyle} className='swiper-wrapper'>
-            <Swiper {...swiperProps} onSwiper={(s) => (swiperRef.current = s)}>
+        <div ref={containerRef} style={wrapperStyle} className={wrapperClass}>
+            {/* allow Swiper to render its own pagination element */}
+            <Swiper
+                {...swiperProps}
+                onSwiper={(s) => {
+                    swiperRef.current = s;
+                    try {
+                        // attach lightweight debug listeners to inspect swipe deltas
+                        if (s && typeof s.on === 'function') {
+                            s.on('touchMove', function (event) {
+                                try {
+                                    const sw = this || s;
+                                    const delta =
+                                        sw &&
+                                        sw.touches &&
+                                        typeof sw.touches.currentX === 'number' &&
+                                        typeof sw.touches.startX === 'number'
+                                            ? sw.touches.currentX - sw.touches.startX
+                                            : undefined;
+                                    console.debug(
+                                        '[LogBookSwiper] touchMove deltaX=',
+                                        delta,
+                                        'activeIndex=',
+                                        sw.activeIndex
+                                    );
+                                } catch (e) {}
+                            });
+                            s.on('slideChangeTransitionStart', function () {
+                                try {
+                                    const sw = this || s;
+                                    console.debug(
+                                        '[LogBookSwiper] slideChange start active=',
+                                        sw.activeIndex,
+                                        'prev=',
+                                        sw.previousIndex
+                                    );
+                                } catch (e) {}
+                            });
+                            // Tinder-specific correction: if wrapper has .tinder-swiper and
+                            // the native swipe didn't change slide, enforce left->prev, right->next
+                            try {
+                                const wrapper = containerRef.current;
+                                if (wrapper && wrapper.classList && wrapper.classList.contains('tinder-swiper')) {
+                                    if (!s.__tinderHandlerAttached) {
+                                        s.__tinderHandlerAttached = true;
+                                        let _startX = null;
+                                        s.on('touchStart', function (ev) {
+                                            try {
+                                                const touch = ev && ev.touches && ev.touches[0];
+                                                _startX = touch ? touch.clientX : (this && this.touches && this.touches.startX) || null;
+                                            } catch (e) {
+                                                _startX = null;
+                                            }
+                                        });
+                                        s.on('touchEnd', function (ev) {
+                                            try {
+                                                const touch = ev && ev.changedTouches && ev.changedTouches[0];
+                                                const endX = touch ? touch.clientX : (this && this.touches && this.touches.currentX) || null;
+                                                if (_startX == null || endX == null) return;
+                                                const delta = endX - _startX;
+                                                const threshold = 40; // px
+                                                // if native didn't trigger a slide change, enforce mapping
+                                                if (Math.abs(delta) > threshold && this.previousIndex === this.activeIndex) {
+                                                    if (delta < 0) {
+                                                        // finger moved left -> treat as PREV
+                                                        try {
+                                                            this.slidePrev();
+                                                        } catch (e) {}
+                                                    } else {
+                                                        // finger moved right -> treat as NEXT
+                                                        try {
+                                                            this.slideNext();
+                                                        } catch (e) {}
+                                                    }
+                                                }
+                                            } catch (e) {}
+                                        });
+                                    }
+                                }
+                            } catch (e) {}
+                        }
+                    } catch (err) {}
+                }}
+            >
                 {items.map((s, i) => (
                     <SwiperSlide key={s.id || i}>
                         <div className='slide-inner'>

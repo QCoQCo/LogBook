@@ -1,10 +1,43 @@
-.swiper-wrapper {
+.wrapper-swiper {
+    --swiper-pagination-bullet-width: var(--sw-bullet-size, 12px);
+    --swiper-pagination-bullet-height: var(--sw-bullet-size, 12px);
+    --pagination-bullet-size: var(--sw-bullet-size, 12px);
+    --sw-bullet-font-size: calc(var(--sw-bullet-size, 12px) * 0.7);
+    --swiper-pagination-bullet-font-size: var(--sw-bullet-font-size);
+    /* default pagination (horizontal, centered) applied to Swiper's own pagination element */
+    .swiper .swiper-pagination,
+    > .swiper-pagination {
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 18px);
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: nowrap;
+        z-index: 10;
+        overflow-x: auto;
+        box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        pointer-events: auto;
+
+        .swiper-pagination-bullet {
+            pointer-events: auto;
+        }
+    }
+
     .swiper {
+        /* allow Swiper to render its own pagination; do not hide it */
         position: relative;
         overflow: hidden;
         background: #fff;
         border: 1px solid #e6e6e6;
         border-radius: 8px;
+        min-height: 0; /* Fix for flexbox/grid height calculation bug */
 
         .slides {
             display: flex;
@@ -50,23 +83,123 @@
             right: 6px;
         }
 
-        .pagination {
+        .swiper-pagination::-webkit-scrollbar {
+            display: none;
+        }
+
+        &:not(.pagination-custom) {
+            .swiper-pagination {
+                .swiper-pagination-bullet {
+                    flex: 0 0 auto;
+                    width: var(--sw-bullet-size, 12px);
+                    height: var(--sw-bullet-size, 12px);
+                    padding: 0;
+                    text-align: center;
+                    line-height: var(--sw-bullet-size, 12px);
+                    font-size: var(--sw-bullet-font-size, calc(var(--sw-bullet-size, 12px) * 0.7));
+                    color: transparent;
+                    opacity: 1;
+                    background: rgba(255, 255, 255, 0.95);
+                    border-radius: 999px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+                    transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+                    margin: 0;
+                }
+            }
+        }
+
+        &.pagination-custom {
+            .swiper-pagination {
+                .swiper-pagination-bullet {
+                    flex: 0 0 auto;
+                    min-width: calc(var(--sw-bullet-size, 12px) * 1.4);
+                    height: calc(var(--sw-bullet-size, 12px) * 1.4);
+                    padding: 0 6px;
+                    text-align: center;
+                    line-height: calc(var(--sw-bullet-size, 12px) * 1.4);
+                    font-size: var(
+                        --sw-bullet-font-size,
+                        calc(var(--sw-bullet-size, 12px) * 0.7)
+                    ) !important;
+                    color: #000;
+                    background: rgba(255, 255, 255, 0.95);
+                    border-radius: 999px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+                    transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+                    margin: 0;
+                }
+            }
+        }
+
+        .swiper-pagination-bullet-active {
+            color: #fff;
+            background: #007aff !important;
+            transform: scale(1.05);
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
+        }
+
+        /* vertical modal when Swiper root has .mySwiper and direction vertical */
+        &.mySwiper {
+            .swiper-pagination.swiper-pagination-vertical {
+                bottom: auto !important;
+                top: 50% !important;
+                right: 8px !important;
+                left: auto !important;
+                transform: translateY(-50%) !important;
+                width: auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+                align-items: center !important;
+                max-height: calc(100% - 18px) !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+            }
+        }
+
+        .swiper-pagination-fraction {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+            bottom: 10px;
+        }
+
+        .swiper-pagination-progressbar {
             position: absolute;
+            left: 8px;
+            right: 8px;
             bottom: 6px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 2px;
+            overflow: hidden;
         }
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ccc;
-            border: none;
+
+        .swiper-pagination-progressbar .swiper-pagination-progressbar-fill {
+            background: #007aff;
+            height: 100%;
         }
-        .dot.active {
-            background: #333;
-        }
+    }
+}
+
+/* Tinder / cards effect small polish */
+.tinder-swiper {
+    .swiper-slide {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none; /* let card gestures be handled by Swiper internals */
+    }
+    .slide-inner {
+        pointer-events: auto;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        overflow: hidden;
+        background: #fff;
     }
 }
