@@ -13,7 +13,7 @@
     animation: fadeIn 0.2s ease-out;
 
     .user-info-modal {
-        background: white;
+        background: #fefefe;
         border-radius: 16px;
         width: 90%;
         max-width: 480px;
@@ -26,8 +26,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 24px;
+            padding: 10px 14px;
             border-bottom: 1px solid #e1e8ed;
+            background-color: #dbdce0;
 
             h3 {
                 margin: 0;
@@ -37,23 +38,31 @@
             }
 
             .close-button {
-                background: none;
-                border: none;
-                font-size: 24px;
                 cursor: pointer;
-                color: #657786;
-                padding: 4px;
-                border-radius: 50%;
-                width: 32px;
-                height: 32px;
+                width: 30px;
+                height: 30px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: all 0.2s ease;
-
-                &:hover {
-                    background-color: #f7f9fa;
-                    color: #14171a;
+                text-align: center;
+                text-indent: -9999px;
+                overflow: hidden;
+                &::after {
+                    content: '';
+                    display: inline-block;
+                    width: 15px;
+                    height: 15px;
+                    background-color: #ff0000;
+                    border-radius: 50%;
+                    text-indent: 0;
+                    transition: all 0.3s ease;
+                }
+                &:hover::after {
+                    content: 'x';
+                    color: #fff;
+                    font-size: 15px;
+                    line-height: 13px;
+                    background-color: #cd0000;
                 }
             }
         }
@@ -201,7 +210,7 @@
     animation: fadeIn 0.2s ease-out;
 
     .report-modal {
-        background: white;
+        background: #fefefe;
         border-radius: 16px;
         width: 90%;
         max-width: 500px;
@@ -214,8 +223,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 24px;
+            padding: 10px 14px;
             border-bottom: 1px solid #e1e8ed;
+            background-color: #dbdce0;
 
             h3 {
                 margin: 0;
@@ -225,23 +235,31 @@
             }
 
             .close-button {
-                background: none;
-                border: none;
-                font-size: 24px;
                 cursor: pointer;
-                color: #657786;
-                padding: 4px;
-                border-radius: 50%;
-                width: 32px;
-                height: 32px;
+                width: 30px;
+                height: 30px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: all 0.2s ease;
-
-                &:hover {
-                    background-color: #f7f9fa;
-                    color: #14171a;
+                text-align: center;
+                text-indent: -9999px;
+                overflow: hidden;
+                &::after {
+                    content: '';
+                    display: inline-block;
+                    width: 15px;
+                    height: 15px;
+                    background-color: #ff0000;
+                    border-radius: 50%;
+                    text-indent: 0;
+                    transition: all 0.3s ease;
+                }
+                &:hover::after {
+                    content: 'x';
+                    color: #fff;
+                    font-size: 15px;
+                    line-height: 13px;
+                    background-color: #cd0000;
                 }
             }
         }

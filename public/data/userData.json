@@ -58,5 +58,41 @@
         "createdAt": "2024/09/10",
         "updatedAt": "2024/12/22",
         "deletedAt": null
+    },
+    {
+        "id": 5,
+        "userId": "belldoor",
+        "password": "wad",
+        "nickName": "종무니",
+        "userEmail": "bookworm@example.com",
+        "profilePhoto": "/img/wad.jpeg",
+        "introduction": "어 내 종문인데 다 댐벼보거라!",
+        "createdAt": "2024/09/10",
+        "updatedAt": "2024/12/22",
+        "deletedAt": null
+    },
+    {
+        "id": 6,
+        "userId": "susybaka",
+        "password": "1234",
+        "nickName": "CO_s_MOS",
+        "userEmail": "kumityou@example.com",
+        "profilePhoto": "/img/1p.JPG",
+        "introduction": "$KULL조 조장",
+        "createdAt": "2025/08/16",
+        "updatedAt": "2025/09/02",
+        "deletedAt": null
+    },
+    {
+        "id": 7,
+        "userId": "devbhkim0707",
+        "password": "1234",
+        "nickName": "baewoolhak",
+        "userEmail": "bhkim0707@example.com",
+        "profilePhoto": "/img/bkp.jpeg",
+        "introduction": "$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter",
+        "createdAt": "2025/08/16",
+        "updatedAt": "2025/09/02",
+        "deletedAt": null
     }
 ]

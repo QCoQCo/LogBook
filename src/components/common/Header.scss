@@ -206,6 +206,7 @@
                     position: relative; // for absolute-positioned dropdown
 
                     .user-profile {
+                        width: 100%;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -239,7 +240,7 @@
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
-                            max-width: 120px;
+                            // max-width: 120px;
                             padding: 8px 16px;
                             border-radius: 20px;
                             border: 2px solid rgba(0, 0, 0, 0.06);
@@ -297,8 +298,6 @@
                         z-index: 1000;
 
                         li {
-                            list-style: none;
-
                             a,
                             button,
                             .link {
@@ -307,6 +306,7 @@
                                 padding: 8px 14px;
                                 color: #222;
                                 font-size: 14px;
+                                font-weight: 600;
                                 text-decoration: none;
                                 background: transparent;
                                 text-align: left;

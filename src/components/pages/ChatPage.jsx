@@ -340,115 +340,120 @@ const ChatPage = () => {
         <div id='ChatPage'>
             <div className='container'>
                 <div className='chat-area'>
-                    <div className='chat-area-header'>
-                        <div className='chat-area-header-title'>
-                            {currentChatRoom && (
-                                <div className='current-chat-room'>
-                                    <span className='room-indicator'>📍</span>
-                                    <span className='room-name'>{currentChatRoom.name}</span>
-                                    <span className='room-users'>
-                                        ({getCurrentRoomUserCount()}/{currentChatRoom.capacity})
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                        <div className='chat-nick-name-section'>
-                            {nicknameState.isEditing ? (
-                                <div className='nickname-edit-container'>
-                                    <div className='nickname-input-wrapper'>
-                                        <input
-                                            type='text'
-                                            value={nicknameState.tempValue}
-                                            onChange={nicknameHandlers.handleInputChange}
-                                            onKeyDown={nicknameHandlers.handleKeyPress}
-                                            placeholder='닉네임을 입력하세요'
-                                            className={`nickname-input ${
-                                                nicknameState.error ? 'error' : ''
-                                            }`}
-                                            maxLength={20}
-                                            autoFocus
-                                        />
-                                        {nicknameState.error && (
-                                            <div className='nickname-error'>
-                                                {nicknameState.error}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className='nickname-buttons'>
-                                        <button
-                                            onClick={nicknameHandlers.save}
-                                            className='save-btn'
-                                        >
-                                            저장
-                                        </button>
-                                        <button
-                                            onClick={nicknameHandlers.cancelEdit}
-                                            className='cancel-btn'
-                                        >
-                                            취소
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className='nickname-display-container'>
-                                    <div className='current-nickname'>
-                                        <span className='nickname-label'>닉네임:</span>
-                                        <span className='nickname-value'>
-                                            {chatState.currentUser.name}
+                    <div className='chat-wrapper'>
+                        <div className='chat-area-header'>
+                            <div className='chat-area-header-title'>
+                                {currentChatRoom && (
+                                    <div className='current-chat-room'>
+                                        <span className='room-indicator'>📍</span>
+                                        <span className='room-name'>{currentChatRoom.name}</span>
+                                        <span className='room-users'>
+                                            ({getCurrentRoomUserCount()}/{currentChatRoom.capacity})
                                         </span>
                                     </div>
-                                    <button
-                                        onClick={nicknameHandlers.startEdit}
-                                        className='edit-btn'
-                                    >
-                                        닉네임 수정
+                                )}
+                            </div>
+                            <div className='chat-nick-name-section'>
+                                {nicknameState.isEditing ? (
+                                    <div className='nickname-edit-container'>
+                                        <div className='nickname-input-wrapper'>
+                                            <input
+                                                type='text'
+                                                value={nicknameState.tempValue}
+                                                onChange={nicknameHandlers.handleInputChange}
+                                                onKeyDown={nicknameHandlers.handleKeyPress}
+                                                placeholder='닉네임을 입력하세요'
+                                                className={`nickname-input ${
+                                                    nicknameState.error ? 'error' : ''
+                                                }`}
+                                                maxLength={20}
+                                                autoFocus
+                                            />
+                                            {nicknameState.error && (
+                                                <div className='nickname-error'>
+                                                    {nicknameState.error}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className='nickname-buttons'>
+                                            <button
+                                                onClick={nicknameHandlers.save}
+                                                className='save-btn'
+                                            >
+                                                저장
+                                            </button>
+                                            <button
+                                                onClick={nicknameHandlers.cancelEdit}
+                                                className='cancel-btn'
+                                            >
+                                                취소
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className='nickname-display-container'>
+                                        <div className='current-nickname'>
+                                            <span className='nickname-label'>닉네임:</span>
+                                            <span className='nickname-value'>
+                                                {chatState.currentUser.name}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={nicknameHandlers.startEdit}
+                                            className='edit-btn'
+                                        >
+                                            닉네임 수정
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className='chat-area-content'>
+                            {/* Firebase 실시간 메시지 표시 */}
+                            {loading && <div className='loading'>메시지 로딩 중...</div>}
+                            {error && (
+                                <div className='error'>
+                                    {error}
+                                    <button onClick={handleCloseError} className='error-close'>
+                                        ×
                                     </button>
                                 </div>
                             )}
+
+                            {/* 디버깅 정보 (개발 모드에서만 표시) */}
+                            {process.env.NODE_ENV === 'development' && currentChatRoom && (
+                                <div className='debug-info'>
+                                    <small>
+                                        현재 채팅방: {currentChatRoom.name} | 메시지 수:{' '}
+                                        {messages.length}
+                                    </small>
+                                </div>
+                            )}
+
+                            <Chat.ChatMessage
+                                messages={messages}
+                                currentUser={chatState.currentUser}
+                                handleDeleteMessage={handleDeleteMessage}
+                                messagesEndRef={messagesEndRef}
+                            />
                         </div>
-                    </div>
-                    <div className='chat-area-content'>
-                        {/* Firebase 실시간 메시지 표시 */}
-                        {loading && <div className='loading'>메시지 로딩 중...</div>}
-                        {error && (
-                            <div className='error'>
-                                {error}
-                                <button onClick={handleCloseError} className='error-close'>
-                                    ×
-                                </button>
-                            </div>
-                        )}
-
-                        {/* 디버깅 정보 (개발 모드에서만 표시) */}
-                        {process.env.NODE_ENV === 'development' && currentChatRoom && (
-                            <div className='debug-info'>
-                                <small>
-                                    현재 채팅방: {currentChatRoom.name} | 메시지 수:{' '}
-                                    {messages.length}
-                                </small>
-                            </div>
-                        )}
-
-                        <Chat.ChatMessage
-                            messages={messages}
-                            currentUser={chatState.currentUser}
-                            handleDeleteMessage={handleDeleteMessage}
-                            messagesEndRef={messagesEndRef}
-                        />
-                    </div>
-                    <div className='chat-area-input'>
-                        <input
-                            type='text'
-                            placeholder='메시지를 입력하세요.'
-                            value={chatState.messageInput}
-                            onChange={(e) =>
-                                setChatState((prev) => ({ ...prev, messageInput: e.target.value }))
-                            }
-                            onKeyPress={handleKeyPress}
-                        />
-                        <button onClick={handleSendMessage} disabled={loading}>
-                            {loading ? '전송 중...' : '전송'}
-                        </button>
+                        <div className='chat-area-input'>
+                            <input
+                                type='text'
+                                placeholder='메시지를 입력하세요.'
+                                value={chatState.messageInput}
+                                onChange={(e) =>
+                                    setChatState((prev) => ({
+                                        ...prev,
+                                        messageInput: e.target.value,
+                                    }))
+                                }
+                                onKeyPress={handleKeyPress}
+                            />
+                            <button onClick={handleSendMessage} disabled={loading}>
+                                {loading ? '전송 중...' : '전송'}
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div className='list-area'>
