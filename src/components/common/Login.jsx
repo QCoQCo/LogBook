@@ -57,7 +57,7 @@ const Login = ({ onClose = () => {} }) => {
                             login(payload, false);
                         } catch (e) {}
                         onClose();
-                        navigate('/myPage');
+                        navigate(`/myPage?userId=${userId}`);
                         return;
                     }
                 }
@@ -99,7 +99,7 @@ const Login = ({ onClose = () => {} }) => {
                     login(payload, false);
                 } catch (e) {}
                 onClose();
-                navigate('/myPage');
+                navigate(`/myPage?userId=${userId}`);
                 return;
             }
 
