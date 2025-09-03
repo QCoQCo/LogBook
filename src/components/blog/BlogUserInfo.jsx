@@ -26,6 +26,10 @@ const BlogUserInfo = ({ userId }) => {
     };
 
     useEffect(() => {
+        setIsBlogEditting(false);
+    }, []);
+
+    useEffect(() => {
         setUser(userData.find((user) => user.userId === userId));
         const currentUserInfo =
             isLogin && currentUser ? getUserInfo(currentUser.id, currentUser.nickName) : null;
