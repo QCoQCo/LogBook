@@ -495,7 +495,7 @@ const ChatPage = () => {
                         <Chat.ChatRoomList />
                     </div>
                     <div className='user-playlist-area'>
-                        <Chat.UserPlayList />
+                        <Chat.UserPlaylist />
                     </div>
                 </div>
             </div>
