@@ -52,12 +52,15 @@ const UserPlayList = () => {
     // 현재 플레이리스트의 모든 노래들을 하나의 배열로 변환
     const allSongs = useMemo(() => {
         return playlistData.flatMap(
-            (playlist) =>
-                playlist.songs?.map((song) => ({
-                    ...song,
-                    playlistTitle: playlist.title,
-                    playlistId: playlist.playId,
-                })) || []
+            (userPlaylistData) =>
+                userPlaylistData.playList?.flatMap(
+                    (playlist) =>
+                        playlist.songs?.map((song) => ({
+                            ...song,
+                            playlistTitle: playlist.title,
+                            playlistId: playlist.playId,
+                        })) || []
+                ) || []
         );
     }, [playlistData]);
 

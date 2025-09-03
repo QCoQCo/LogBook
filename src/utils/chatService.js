@@ -195,7 +195,6 @@ export const initializeDefaultChatRooms = async () => {
         // 기존 채팅방이 있는지 확인
         const roomsSnapshot = await getDocs(collection(db, 'chatRooms'));
         if (!roomsSnapshot.empty) {
-            console.log('채팅방이 이미 존재합니다. 초기화를 건너뜁니다.');
             return;
         }
 
@@ -218,7 +217,6 @@ export const initializeDefaultChatRooms = async () => {
         }
 
         await Promise.all(batch);
-        console.log('기본 채팅방 초기화 완료');
     } catch (error) {
         console.error('기본 채팅방 초기화 오류:', error);
         throw error;
@@ -350,7 +348,6 @@ export const deleteChatRoom = async (roomId) => {
 
         // 사용자 생성 채팅방만 삭제 가능
         await deleteDoc(roomRef);
-        console.log(`채팅방 ${roomData.name} 삭제 완료`);
     } catch (error) {
         console.error('채팅방 삭제 오류:', error);
         throw error;
@@ -389,8 +386,6 @@ export const joinChatRoom = async (roomName, userId, userName, sessionId = null)
             },
             { merge: true }
         ); // merge 옵션으로 기존 데이터 보존
-
-        console.log(`사용자 ${userName}(${userId})이 채팅방 ${roomName}에 입장했습니다.`);
     } catch (error) {
         console.error('채팅방 접속 등록 오류:', error);
         throw error;
@@ -411,14 +406,12 @@ export const leaveChatRoom = async (roomName, userId) => {
         const presenceDoc = await getDoc(presenceRef);
         if (presenceDoc.exists()) {
             await deleteDoc(presenceRef);
-            console.log(`사용자 ${userId}이 채팅방 ${roomName}에서 퇴장했습니다.`);
 
             // 퇴장 시 해당 채팅방의 오래된 오프라인 유저들도 정리
             setTimeout(() => {
                 cleanupOfflinePresenceForRoom(roomName).catch(console.error);
             }, 1000); // 1초 후 정리
         } else {
-            console.log(`사용자 ${userId}의 presence 정보가 이미 없습니다.`);
         }
     } catch (error) {
         console.error('채팅방 접속 해제 오류:', error);
@@ -466,11 +459,6 @@ export const updateUserOnlineStatus = async (roomName, userId, isOnline) => {
                 browserTab: document.visibilityState === 'visible',
                 lastSeen: serverTimestamp(),
             });
-            console.log(
-                `사용자 ${userId}의 온라인 상태가 ${
-                    isOnline ? '온라인' : '오프라인'
-                }으로 변경되었습니다.`
-            );
         }
     } catch (error) {
         console.error('사용자 온라인 상태 업데이트 오류:', error);
@@ -495,9 +483,16 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
 
                 snapshot.forEach((doc) => {
                     const userData = doc.data();
+                    const now = new Date();
+                    const lastSeen = userData.lastSeen?.toDate() || new Date(0);
+                    const timeDiff = now - lastSeen;
+                    const isRecentlyActive = timeDiff < 2 * 60 * 1000; // 2분 이내 활동
 
-                    // isOnline 상태만 확인 (시간 기반 필터링 제거)
-                    if (userData.isOnline === true) {
+                    // 게스트 사용자(비로그인 사용자) 제외 - userId가 'guest_'로 시작하는 경우
+                    const isGuestUser = userData.userId && userData.userId.startsWith('guest_');
+
+                    // isOnline 상태와 최근 활동 시간 둘 다 확인하고, 게스트 사용자는 제외
+                    if (userData.isOnline === true && isRecentlyActive && !isGuestUser) {
                         activeUsers.push({
                             id: userData.userId,
                             name: userData.userName,
@@ -508,8 +503,6 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                     }
                 });
 
-                // 유저 수가 변경될 때만 로그 출력
-                console.log(`채팅방 ${roomName} 실시간 활성 사용자: ${activeUsers.length}명`);
                 onUsersUpdate(activeUsers);
             },
             (error) => {
@@ -543,9 +536,6 @@ export const forceRemoveUserFromAllRooms = async (userId) => {
         });
 
         await Promise.all(batch);
-        console.log(
-            `사용자 ${userId}을 모든 채팅방에서 제거했습니다. (제거된 항목: ${batch.length}개)`
-        );
     } catch (error) {
         console.error('사용자 강제 제거 오류:', error);
     }
@@ -578,7 +568,6 @@ export const cleanupExpiredPresence = async (expireMinutes = 5) => {
 
         if (batch.length > 0) {
             await Promise.all(batch);
-            console.log(`만료된 presence 문서 ${batch.length}개를 정리했습니다.`);
         }
 
         return batch.length;
@@ -616,7 +605,6 @@ export const cleanupOfflinePresence = async (expireMinutes = 10) => {
 
         if (batch.length > 0) {
             await Promise.all(batch);
-            console.log(`오프라인 상태의 만료된 presence 문서 ${batch.length}개를 정리했습니다.`);
         }
 
         return batch.length;
@@ -659,7 +647,6 @@ export const cleanupOfflinePresenceForRoom = async (roomName, expireMinutes = 5)
 
         if (batch.length > 0) {
             await Promise.all(batch);
-            console.log(`채팅방 ${roomName}의 오프라인 유저 ${batch.length}명을 정리했습니다.`);
         }
 
         return batch.length;

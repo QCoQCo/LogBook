@@ -123,7 +123,7 @@ const ChatRoomList = () => {
         try {
             await createChatRoom({
                 ...newRoomData,
-                admin: currentUser.name,
+                admin: currentUser.nickName,
                 userId: currentUser.id,
             });
             setModals((prev) => ({ ...prev, showCreate: false }));

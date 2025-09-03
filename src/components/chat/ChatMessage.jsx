@@ -28,9 +28,8 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
     // 메시지 데이터를 메모이제이션하여 불필요한 재계산 방지
     const processedMessages = useMemo(() => {
         return messages.map((message) => {
-            const isOwnMessage =
-                message.userId === currentUser.id ||
-                (message.sessionId && message.sessionId === currentUser.sessionId);
+            // 로그인한 사용자만 메시지 소유권 확인 (sessionId 로직 제거)
+            const isOwnMessage = currentUser.id && message.userId === currentUser.id;
 
             const profilePhoto = !isOwnMessage ? getUserProfilePhoto(message.userId) : null;
 
@@ -40,7 +39,7 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
                 profilePhoto,
             };
         });
-    }, [messages, currentUser.id, currentUser.sessionId, getUserProfilePhoto]);
+    }, [messages, currentUser.id, getUserProfilePhoto]);
 
     return (
         <div className='chat-message'>

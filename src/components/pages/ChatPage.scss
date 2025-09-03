@@ -110,22 +110,51 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                     font-size: 0.9rem;
                     color: $text-secondary;
                     flex-wrap: wrap;
+                    transition: $transition-fast;
+                    border: 1px solid transparent;
+
+                    &.clickable {
+                        cursor: pointer;
+
+                        &:hover {
+                            background: rgba($primary-blue, 0.2);
+                            border-color: rgba($primary-blue, 0.3);
+                            transform: translateY(-1px);
+                            box-shadow: 0 4px 12px rgba($primary-blue, 0.2);
+
+                            .room-name {
+                                color: $accent-color;
+                            }
+
+                            .room-users {
+                                opacity: 1;
+                                color: $text-primary;
+                            }
+                        }
+
+                        &:active {
+                            transform: translateY(0);
+                        }
+                    }
 
                     .room-indicator {
                         font-size: 1rem;
                         flex-shrink: 0;
+                        transition: $transition-fast;
                     }
 
                     .room-name {
                         font-weight: 600;
                         color: $text-primary;
                         word-break: break-word;
+                        transition: $transition-fast;
                     }
 
                     .room-users {
                         font-size: 0.8rem;
                         opacity: 0.7;
                         flex-shrink: 0;
+                        transition: $transition-fast;
                     }
                 }
             }
@@ -980,5 +1009,49 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
 @media (max-width: 768px) {
     #ChatPage .container {
         padding: $spacing-sm;
+    }
+}
+
+// ==========================================
+// 로그인 요구 메시지 스타일
+// ==========================================
+.login-required-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-md;
+    padding: $spacing-lg;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px dashed #6c757d;
+    border-radius: $border-radius-lg;
+    text-align: center;
+
+    span {
+        color: #495057;
+        font-size: $font-size-md;
+        font-weight: 500;
+    }
+
+    .login-prompt-btn {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border: none;
+        padding: $spacing-sm $spacing-lg;
+        border-radius: $border-radius-md;
+        font-size: $font-size-md;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
     }
 }
