@@ -663,6 +663,8 @@ export const LogBookProvider = ({ children }) => {
             setClickedItem,
             elements,
             setElements,
+            isBlogEditting,
+            setIsBlogEditting,
         ]
     );
 
