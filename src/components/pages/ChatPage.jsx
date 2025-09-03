@@ -8,22 +8,6 @@ import './ChatPage.scss';
 const ReactGridLayout = WidthProvider(RGL);
 
 const ChatPage = () => {
-    // 세션 ID 관련 유틸리티 함수들을 메모이제이션
-    const sessionUtils = useMemo(
-        () => ({
-            generateSessionId: () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            getOrCreateSessionId: () => {
-                let sessionId = sessionStorage.getItem('chatSessionId');
-                if (!sessionId) {
-                    sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                    sessionStorage.setItem('chatSessionId', sessionId);
-                }
-                return sessionId;
-            },
-        }),
-        []
-    );
-
     // LogBook Context 사용
     const {
         messages,
@@ -47,17 +31,14 @@ const ChatPage = () => {
     const { currentUser: authUser, isLogin } = useAuth();
 
     // 채팅 관련 상태들을 하나의 객체로 통합
-    const [chatState, setChatState] = useState(() => {
-        const sessionId = sessionUtils.getOrCreateSessionId();
-        return {
-            messageInput: '',
-            currentUser: {
-                id: `guest_${sessionId}`,
-                name: `게스트_${sessionId.slice(-4)}`,
-                sessionId: sessionId,
-            },
-        };
-    });
+    const [chatState, setChatState] = useState(() => ({
+        messageInput: '',
+        currentUser: {
+            id: null,
+            nickName: null,
+            sessionId: null,
+        },
+    }));
 
     // 닉네임 편집 관련 상태들을 하나의 객체로 통합
     const [nicknameState, setNicknameState] = useState({
@@ -68,34 +49,38 @@ const ChatPage = () => {
 
     // 사용자 정보 업데이트 로직을 메모이제이션
     const updateUserInfo = useCallback(() => {
-        const sessionId = sessionUtils.getOrCreateSessionId();
-        let userName, userId, userSessionId;
-
         if (isLogin && authUser) {
-            userName = authUser.nickName;
-            userId = authUser.id;
-            userSessionId = null;
+            // 로그인한 사용자만 정보 설정
+            const newUserData = {
+                id: authUser.id,
+                nickName: authUser.nickName,
+                sessionId: null,
+            };
+
+            setChatState((prev) => ({
+                ...prev,
+                currentUser: newUserData,
+            }));
+            setNicknameState((prev) => ({
+                ...prev,
+                tempValue: authUser.nickName,
+            }));
         } else {
-            userName = `게스트_${sessionId.slice(-4)}`;
-            userId = `guest_${sessionId}`;
-            userSessionId = sessionId;
+            // 비로그인 사용자는 빈 정보로 설정
+            setChatState((prev) => ({
+                ...prev,
+                currentUser: {
+                    id: null,
+                    nickName: null,
+                    sessionId: null,
+                },
+            }));
+            setNicknameState((prev) => ({
+                ...prev,
+                tempValue: '',
+            }));
         }
-
-        const newUserData = {
-            id: userId,
-            name: userName,
-            sessionId: userSessionId,
-        };
-
-        setChatState((prev) => ({
-            ...prev,
-            currentUser: newUserData,
-        }));
-        setNicknameState((prev) => ({
-            ...prev,
-            tempValue: userName,
-        }));
-    }, [isLogin, authUser, sessionUtils]);
+    }, [isLogin, authUser]);
 
     // 현재 사용자 정보 초기화
     useEffect(() => {
@@ -114,20 +99,24 @@ const ChatPage = () => {
 
     // 이전 채팅방 정보 저장
     const [prevChatRoom, setPrevChatRoom] = useState(null);
+    // 이전 사용자 ID 추적 (로그인 전 게스트 → 로그인 사용 전환 시 정리용)
+    const prevUserIdRef = useRef(null);
+
+    // 채팅방 유저 리스트 모달 상태
+    const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
 
     // 채팅방 관리를 위한 통합 useEffect
     useEffect(() => {
         const { currentUser: user } = chatState;
 
-        if (!currentChatRoom || !user.id) return;
+        // 로그인하지 않은 사용자는 채팅방 입장 차단
+        if (!isLogin || !currentChatRoom || !user.id) return;
 
         // 이전 채팅방 퇴장 처리
         const handlePreviousRoomLeave = async () => {
             if (prevChatRoom && currentChatRoom.name !== prevChatRoom.name) {
-                console.log(`이전 채팅방 ${prevChatRoom.name}에서 퇴장 처리 중...`);
                 try {
                     await leaveRoom(prevChatRoom.name, user.id);
-                    console.log(`이전 채팅방 ${prevChatRoom.name}에서 퇴장 완료`);
                 } catch (error) {
                     console.error('이전 채팅방 퇴장 오류:', error);
                 }
@@ -136,7 +125,7 @@ const ChatPage = () => {
 
         // 현재 채팅방 입장 처리
         const handleCurrentRoomJoin = () => {
-            joinRoom(currentChatRoom.name, user.id, user.name, user.sessionId);
+            joinRoom(currentChatRoom.name, user.id, user.nickName, user.sessionId);
             setupPresenceHeartbeat(currentChatRoom.name, user.id);
         };
 
@@ -155,7 +144,13 @@ const ChatPage = () => {
             visibilityChange: async () => {
                 const isVisible = document.visibilityState === 'visible';
                 try {
+                    // 탭이 숨겨지면 오프라인으로, 보이면 온라인으로 처리
                     await updateUserOnlineStatus(currentChatRoom.name, user.id, isVisible);
+
+                    // 탭이 다시 보일 때 heartbeat 재시작
+                    if (isVisible) {
+                        setupPresenceHeartbeat(currentChatRoom.name, user.id);
+                    }
                 } catch (error) {
                     console.error('온라인 상태 업데이트 오류:', error);
                 }
@@ -164,9 +159,20 @@ const ChatPage = () => {
 
         // 순차적으로 처리
         const initializeRoom = async () => {
+            // 사용자 ID가 변경되었다면 이전 사용자 presence 정리 (동일 채팅방 내 전환 케이스)
+            const prevUserId = prevUserIdRef.current;
+            if (prevUserId && prevUserId !== user.id) {
+                try {
+                    await leaveRoom(currentChatRoom.name, prevUserId);
+                } catch (error) {
+                    console.error('이전 사용자 presence 정리 오류:', error);
+                }
+            }
             await handlePreviousRoomLeave();
             handleCurrentRoomJoin();
             setPrevChatRoom(currentChatRoom);
+            // 현재 사용자 ID를 기록
+            prevUserIdRef.current = user.id;
         };
 
         initializeRoom();
@@ -187,13 +193,10 @@ const ChatPage = () => {
     }, [
         currentChatRoom?.name,
         chatState.currentUser.id,
-        chatState.currentUser.name,
+        chatState.currentUser.nickName,
         chatState.currentUser.sessionId,
         prevChatRoom?.name,
-        joinRoom,
-        leaveRoom,
-        setupPresenceHeartbeat,
-        updateUserOnlineStatus,
+        // 함수들은 useCallback으로 메모이제이션되어 있으므로 안전하게 제거 가능
     ]);
 
     // 메시지 영역 스크롤을 위한 ref
@@ -218,7 +221,7 @@ const ChatPage = () => {
             await sendMessage(
                 messageInput,
                 currentUser.id,
-                currentUser.name,
+                currentUser.nickName,
                 currentUser.sessionId
             );
 
@@ -275,7 +278,7 @@ const ChatPage = () => {
             startEdit: () => {
                 setNicknameState({
                     isEditing: true,
-                    tempValue: chatState.currentUser.name,
+                    tempValue: chatState.currentUser.nickName,
                     error: '',
                 });
             },
@@ -283,7 +286,7 @@ const ChatPage = () => {
             cancelEdit: () => {
                 setNicknameState({
                     isEditing: false,
-                    tempValue: chatState.currentUser.name,
+                    tempValue: chatState.currentUser.nickName,
                     error: '',
                 });
             },
@@ -296,7 +299,7 @@ const ChatPage = () => {
                 }
 
                 const newNickname = nicknameState.tempValue.trim();
-                if (newNickname === chatState.currentUser.name) {
+                if (newNickname === chatState.currentUser.nickName) {
                     setNicknameState((prev) => ({ ...prev, isEditing: false, error: '' }));
                     return;
                 }
@@ -305,7 +308,7 @@ const ChatPage = () => {
                 if (success) {
                     setChatState((prev) => ({
                         ...prev,
-                        currentUser: { ...prev.currentUser, name: newNickname },
+                        currentUser: { ...prev.currentUser, nickName: newNickname },
                     }));
                     setNicknameState({
                         isEditing: false,
@@ -336,6 +339,15 @@ const ChatPage = () => {
         [chatState.currentUser, nicknameState, updateUserNickname]
     );
 
+    // 채팅방 유저 리스트 모달 핸들러들
+    const usersModalHandlers = useMemo(
+        () => ({
+            open: () => setIsUsersModalOpen(true),
+            close: () => setIsUsersModalOpen(false),
+        }),
+        []
+    );
+
     return (
         <div id='ChatPage'>
             <div className='container'>
@@ -344,7 +356,11 @@ const ChatPage = () => {
                         <div className='chat-area-header'>
                             <div className='chat-area-header-title'>
                                 {currentChatRoom && (
-                                    <div className='current-chat-room'>
+                                    <div
+                                        className='current-chat-room clickable'
+                                        onClick={usersModalHandlers.open}
+                                        title='클릭하여 접속 중인 유저 목록 보기'
+                                    >
                                         <span className='room-indicator'>📍</span>
                                         <span className='room-name'>{currentChatRoom.name}</span>
                                         <span className='room-users'>
@@ -354,58 +370,59 @@ const ChatPage = () => {
                                 )}
                             </div>
                             <div className='chat-nick-name-section'>
-                                {nicknameState.isEditing ? (
-                                    <div className='nickname-edit-container'>
-                                        <div className='nickname-input-wrapper'>
-                                            <input
-                                                type='text'
-                                                value={nicknameState.tempValue}
-                                                onChange={nicknameHandlers.handleInputChange}
-                                                onKeyDown={nicknameHandlers.handleKeyPress}
-                                                placeholder='닉네임을 입력하세요'
-                                                className={`nickname-input ${
-                                                    nicknameState.error ? 'error' : ''
-                                                }`}
-                                                maxLength={20}
-                                                autoFocus
-                                            />
-                                            {nicknameState.error && (
-                                                <div className='nickname-error'>
-                                                    {nicknameState.error}
-                                                </div>
-                                            )}
+                                {isLogin &&
+                                    (nicknameState.isEditing ? (
+                                        <div className='nickname-edit-container'>
+                                            <div className='nickname-input-wrapper'>
+                                                <input
+                                                    type='text'
+                                                    value={nicknameState.tempValue}
+                                                    onChange={nicknameHandlers.handleInputChange}
+                                                    onKeyDown={nicknameHandlers.handleKeyPress}
+                                                    placeholder='닉네임을 입력하세요'
+                                                    className={`nickname-input ${
+                                                        nicknameState.error ? 'error' : ''
+                                                    }`}
+                                                    maxLength={20}
+                                                    autoFocus
+                                                />
+                                                {nicknameState.error && (
+                                                    <div className='nickname-error'>
+                                                        {nicknameState.error}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className='nickname-buttons'>
+                                                <button
+                                                    onClick={nicknameHandlers.save}
+                                                    className='save-btn'
+                                                >
+                                                    저장
+                                                </button>
+                                                <button
+                                                    onClick={nicknameHandlers.cancelEdit}
+                                                    className='cancel-btn'
+                                                >
+                                                    취소
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className='nickname-buttons'>
+                                    ) : (
+                                        <div className='nickname-display-container'>
+                                            <div className='current-nickname'>
+                                                <span className='nickname-label'>닉네임:</span>
+                                                <span className='nickname-value'>
+                                                    {chatState.currentUser.nickName}
+                                                </span>
+                                            </div>
                                             <button
-                                                onClick={nicknameHandlers.save}
-                                                className='save-btn'
+                                                onClick={nicknameHandlers.startEdit}
+                                                className='edit-btn'
                                             >
-                                                저장
-                                            </button>
-                                            <button
-                                                onClick={nicknameHandlers.cancelEdit}
-                                                className='cancel-btn'
-                                            >
-                                                취소
+                                                닉네임 수정
                                             </button>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className='nickname-display-container'>
-                                        <div className='current-nickname'>
-                                            <span className='nickname-label'>닉네임:</span>
-                                            <span className='nickname-value'>
-                                                {chatState.currentUser.name}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={nicknameHandlers.startEdit}
-                                            className='edit-btn'
-                                        >
-                                            닉네임 수정
-                                        </button>
-                                    </div>
-                                )}
+                                    ))}
                             </div>
                         </div>
                         <div className='chat-area-content'>
@@ -438,21 +455,38 @@ const ChatPage = () => {
                             />
                         </div>
                         <div className='chat-area-input'>
-                            <input
-                                type='text'
-                                placeholder='메시지를 입력하세요.'
-                                value={chatState.messageInput}
-                                onChange={(e) =>
-                                    setChatState((prev) => ({
-                                        ...prev,
-                                        messageInput: e.target.value,
-                                    }))
-                                }
-                                onKeyPress={handleKeyPress}
-                            />
-                            <button onClick={handleSendMessage} disabled={loading}>
-                                {loading ? '전송 중...' : '전송'}
-                            </button>
+                            {isLogin ? (
+                                <>
+                                    <input
+                                        type='text'
+                                        placeholder='메시지를 입력하세요.'
+                                        value={chatState.messageInput}
+                                        onChange={(e) =>
+                                            setChatState((prev) => ({
+                                                ...prev,
+                                                messageInput: e.target.value,
+                                            }))
+                                        }
+                                        onKeyPress={handleKeyPress}
+                                    />
+                                    <button onClick={handleSendMessage} disabled={loading}>
+                                        {loading ? '전송 중...' : '전송'}
+                                    </button>
+                                </>
+                            ) : (
+                                <div className='login-required-message'>
+                                    <span>💬 채팅을 이용하려면 로그인이 필요합니다</span>
+                                    <button
+                                        className='login-prompt-btn'
+                                        onClick={() => {
+                                            // 로그인 페이지로 이동하거나 로그인 모달 열기
+                                            window.location.href = '/'; // 또는 로그인 모달 열기 함수 호출
+                                        }}
+                                    >
+                                        로그인하기
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -465,6 +499,14 @@ const ChatPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* 채팅방 유저 리스트 모달 */}
+            <Chat.ChatRoomUsersModal
+                isOpen={isUsersModalOpen}
+                onClose={usersModalHandlers.close}
+                roomName={currentChatRoom?.name}
+                currentUser={chatState.currentUser}
+            />
         </div>
     );
 };

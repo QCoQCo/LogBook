@@ -184,7 +184,6 @@ export const LogBookProvider = ({ children }) => {
             try {
                 // 이전 채팅방에서 강제 퇴장 처리
                 if (currentChatRoom && currentUserId) {
-                    console.log(`이전 채팅방 ${currentChatRoom.name}에서 퇴장 처리 중...`);
                     await leaveChatRoom(currentChatRoom.name, currentUserId);
 
                     // 추가 보험: 모든 채팅방에서 해당 사용자 제거
@@ -206,8 +205,6 @@ export const LogBookProvider = ({ children }) => {
                 // 새 채팅방 설정
                 setCurrentChatRoom(chatRoom);
                 setMessages([]);
-
-                console.log(`새 채팅방 ${chatRoom.name}으로 변경 완료`);
             } catch (error) {
                 console.error('채팅방 변경 중 오류:', error);
                 // 오류가 있어도 채팅방 변경은 계속 진행
@@ -358,16 +355,23 @@ export const LogBookProvider = ({ children }) => {
         };
     }, [chatRoomsUnsubscribe]);
 
-    // 앱 시작 시 한 번만 정리 작업 실행 (주기적 실행 제거)
+    // 주기적 정리 작업 시스템
     useEffect(() => {
-        // 앱 시작 후 30초 후에 한 번만 정리
+        // 초기 정리 (앱 시작 후 30초 후)
         const initialCleanupTimeout = setTimeout(() => {
             cleanupExpiredPresence(10).catch(console.error);
             cleanupOfflinePresence(20).catch(console.error);
-        }, 30000); // 30초 후 실행
+        }, 30000);
+
+        // 주기적 정리 (5분마다)
+        const periodicCleanupInterval = setInterval(() => {
+            cleanupExpiredPresence(5).catch(console.error); // 5분 이상 비활성 유저 정리
+            cleanupOfflinePresence(10).catch(console.error); // 10분 이상 오프라인 유저 정리
+        }, 5 * 60 * 1000); // 5분 간격
 
         return () => {
             clearTimeout(initialCleanupTimeout);
+            clearInterval(periodicCleanupInterval);
         };
     }, []);
 
@@ -440,8 +444,8 @@ export const LogBookProvider = ({ children }) => {
 
             const newRoom = await createChatRoomService(roomData);
 
-            // 현재 목록에 새 채팅방 추가
-            setChatRoomList((prevRooms) => [...prevRooms, newRoom]);
+            // 실시간 구독으로 자동 업데이트되므로 수동 추가 제거
+            // setChatRoomList((prevRooms) => [...prevRooms, newRoom]);
 
             return newRoom;
         } catch (err) {
@@ -463,8 +467,8 @@ export const LogBookProvider = ({ children }) => {
 
                 await deleteChatRoomService(roomId);
 
-                // 현재 목록에서 채팅방 제거
-                setChatRoomList((prevRooms) => prevRooms.filter((room) => room.id !== roomId));
+                // 실시간 구독으로 자동 업데이트되므로 수동 제거 제거
+                // setChatRoomList((prevRooms) => prevRooms.filter((room) => room.id !== roomId));
 
                 // 삭제된 채팅방이 현재 선택된 채팅방인 경우 다른 채팅방으로 변경
                 if (currentChatRoom?.id === roomId) {
@@ -514,7 +518,7 @@ export const LogBookProvider = ({ children }) => {
         [presenceHeartbeat]
     );
 
-    // heartbeat 설정 (비활성화 - 실시간 상태 변경만 사용)
+    // heartbeat 설정 (주기적 생존 신호)
     const setupPresenceHeartbeat = useCallback(
         (roomName, userId) => {
             // 기존 heartbeat 정리
@@ -523,8 +527,16 @@ export const LogBookProvider = ({ children }) => {
                 setPresenceHeartbeat(null);
             }
 
-            // heartbeat는 더 이상 사용하지 않음 (실시간 상태 변경만 사용)
-            console.log(`채팅방 ${roomName}에서 heartbeat 없이 실시간 상태 관리 시작`);
+            // 30초마다 생존 신호 전송
+            const heartbeatInterval = setInterval(async () => {
+                try {
+                    await updateUserPresence(roomName, userId);
+                } catch (error) {
+                    console.error('Heartbeat 전송 오류:', error);
+                }
+            }, 30000); // 30초 간격
+
+            setPresenceHeartbeat(heartbeatInterval);
         },
         [presenceHeartbeat]
     );
@@ -561,56 +573,95 @@ export const LogBookProvider = ({ children }) => {
         return users.length;
     }, [currentChatRoom, roomUsers]);
 
-    const value = {
-        // 메시지 관련
-        messages,
-        loading,
-        error,
-        sendMessage,
-        deleteMessage,
-        clearError,
+    const value = useMemo(
+        () => ({
+            // 메시지 관련
+            messages,
+            loading,
+            error,
+            sendMessage,
+            deleteMessage,
+            clearError,
 
-        // 채팅방 관련
-        currentChatRoom,
-        chatRoomList,
-        switchChatRoom,
-        loadChatRoomList,
-        createChatRoom,
-        deleteChatRoom,
+            // 채팅방 관련
+            currentChatRoom,
+            chatRoomList,
+            switchChatRoom,
+            loadChatRoomList,
+            createChatRoom,
+            deleteChatRoom,
 
-        // 사용자 관련
-        onlineUsers,
-        updateOnlineUsers,
-        updateUserNickname,
+            // 사용자 관련
+            onlineUsers,
+            updateOnlineUsers,
+            updateUserNickname,
 
-        // 사용자 데이터 관련
-        userData,
-        userDataLoading,
-        userDataLoaded,
-        loadUserData,
-        getUserProfilePhoto,
-        getUserInfo,
+            // 사용자 데이터 관련
+            userData,
+            userDataLoading,
+            userDataLoaded,
+            loadUserData,
+            getUserProfilePhoto,
+            getUserInfo,
 
-        // 실시간 접속 유저 관련
-        roomUsers,
-        joinRoom,
-        leaveRoom,
-        setupPresenceHeartbeat,
-        getCurrentRoomUserCount,
-        updateUserOnlineStatus,
+            // 실시간 접속 유저 관련
+            roomUsers,
+            joinRoom,
+            leaveRoom,
+            setupPresenceHeartbeat,
+            getCurrentRoomUserCount,
+            updateUserOnlineStatus,
 
-        // UI 상태
-        isChatPage,
-        setIsChatPage,
+            // UI 상태
+            isChatPage,
+            setIsChatPage,
 
-        // Blog 상태
-        draggingItem,
-        setDraggingItem,
-        clickedItem,
-        setClickedItem,
-        elements,
-        setElements,
-    };
+            // Blog 상태
+            draggingItem,
+            setDraggingItem,
+            clickedItem,
+            setClickedItem,
+            elements,
+            setElements,
+        }),
+        [
+            messages,
+            loading,
+            error,
+            sendMessage,
+            deleteMessage,
+            clearError,
+            currentChatRoom,
+            chatRoomList,
+            switchChatRoom,
+            loadChatRoomList,
+            createChatRoom,
+            deleteChatRoom,
+            onlineUsers,
+            updateOnlineUsers,
+            updateUserNickname,
+            userData,
+            userDataLoading,
+            userDataLoaded,
+            loadUserData,
+            getUserProfilePhoto,
+            getUserInfo,
+            roomUsers,
+            joinRoom,
+            leaveRoom,
+            setupPresenceHeartbeat,
+            getCurrentRoomUserCount,
+            updateUserOnlineStatus,
+            isChatPage,
+            setIsChatPage,
+            draggingItem,
+            setDraggingItem,
+            clickedItem,
+            setClickedItem,
+            elements,
+            setElements,
+        ]
+    );
 
     return <LogBookContext.Provider value={value}>{children}</LogBookContext.Provider>;
 };
