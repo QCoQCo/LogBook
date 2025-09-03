@@ -13,7 +13,7 @@ const MyPage = () => {
     const userId = searchParam.get('userId');
 
     // 현재 클릭한 element 정보를 전달받기 위한 context의 State
-    const { clickedItem } = useLogBook();
+    const { clickedItem, isBlogEditting, getUserInfo } = useLogBook();
     // Modal 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -36,7 +36,7 @@ const MyPage = () => {
                     <BlogElementModal item={clickedItem} releaseModal={releaseModal} />
                 </div>
             )}
-            <BlogFloatingUi />
+            {isBlogEditting && <BlogFloatingUi />}
         </div>
     );
 };

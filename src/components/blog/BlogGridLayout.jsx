@@ -7,7 +7,7 @@ import BlogLayoutItem from './BlogLayoutItem';
 const BlogGridLayout = ({ userId, enableModal }) => {
     const [layout, setLayout] = useState([]);
     const [newItemCounter, setNewItemCounter] = useState(0);
-    const { draggingItem, setElements } = useLogBook();
+    const { draggingItem, setElements, isBlogEditting } = useLogBook();
 
     useEffect(() => {
         getUserBlogData();
@@ -103,8 +103,9 @@ const BlogGridLayout = ({ userId, enableModal }) => {
                 rowHeight={80}
                 width={900}
                 onDrop={onDrop}
-                isDroppable={true}
-                isDraggable={true}
+                isDroppable={isBlogEditting}
+                isDraggable={isBlogEditting}
+                isResizable={isBlogEditting}
                 droppingItem={{
                     i: '__dropping-elem__',
                     w: draggingItem ? draggingItem.w : 1,
