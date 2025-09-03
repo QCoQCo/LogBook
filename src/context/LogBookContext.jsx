@@ -64,6 +64,7 @@ export const LogBookProvider = ({ children }) => {
     const [draggingItem, setDraggingItem] = useState(null);
     const [clickedItem, setClickedItem] = useState(null);
     const [elements, setElements] = useState([]);
+    const [isBlogEditting, setIsBlogEditting] = useState(false);
 
     // 실시간 접속 유저 관리
     const [roomUsers, setRoomUsers] = useState({});
@@ -623,6 +624,8 @@ export const LogBookProvider = ({ children }) => {
             setClickedItem,
             elements,
             setElements,
+            isBlogEditting,
+            setIsBlogEditting,
         }),
         [
             messages,
