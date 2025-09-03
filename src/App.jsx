@@ -84,7 +84,7 @@ function App() {
                                     />
                                 }
                             />
-                            <Route path='/myPage' element={<Pages.MyPage />} />
+                            <Route path='/blog' element={<Pages.Blog />} />
                             <Route path='/signUp' element={<Pages.SignUp />} />
                         </Route>
                     </Routes>

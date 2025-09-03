@@ -68,6 +68,7 @@
         }
 
         .modal-content {
+            position: relative;
             padding: 24px;
 
             .user-profile-section {
@@ -189,6 +190,17 @@
                         font-size: 15px;
                         font-weight: 500;
                     }
+                }
+            }
+
+            .blog-link-area {
+                position: absolute;
+                top: 30px;
+                right: 30px;
+
+                img {
+                    width: 30px;
+                    height: 30px;
                 }
             }
         }

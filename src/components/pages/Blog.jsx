@@ -1,13 +1,13 @@
-// MyPage.jsx
+// Blog.jsx
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useLogBook } from '../../context/LogBookContext';
 import { BlogFloatingUi, BlogGridLayout, BlogUserInfo } from '../blog';
 import BlogElementModal from '../blog/BlogElementModal';
 
-import './MyPage.scss';
+import './Blog.scss';
 
-const MyPage = () => {
+const Blog = () => {
     // 블로그 페이지의 userId 파라미터
     const [searchParam] = useSearchParams();
     const userId = searchParam.get('userId');
@@ -26,8 +26,8 @@ const MyPage = () => {
     };
 
     return (
-        <div id='MyPage'>
-            <div className='mypage-wrapper'>
+        <div id='Blog'>
+            <div className='blog-wrapper'>
                 <BlogUserInfo userId={userId} />
                 <BlogGridLayout userId={userId} enableModal={enableModal} />
             </div>
@@ -41,4 +41,4 @@ const MyPage = () => {
     );
 };
 
-export default MyPage;
+export default Blog;

@@ -266,7 +266,12 @@ const Header = () => {
                                             </li>
                                         )}
                                         <li role='menuitem'>
-                                            <Link to={`/myPage?userId=${currentUserInfo.userId}`}>
+                                            <Link
+                                                to={`/blog?userId=${currentUserInfo.userId}`}
+                                                onClick={() => {
+                                                    showMenu(false);
+                                                }}
+                                            >
                                                 내 블로그
                                             </Link>
                                         </li>

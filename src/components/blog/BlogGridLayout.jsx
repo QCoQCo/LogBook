@@ -5,9 +5,8 @@ import { useLogBook } from '../../context/LogBookContext';
 import BlogLayoutItem from './BlogLayoutItem';
 
 const BlogGridLayout = ({ userId, enableModal }) => {
-    const [layout, setLayout] = useState([]);
     const [newItemCounter, setNewItemCounter] = useState(0);
-    const { draggingItem, setElements, isBlogEditting } = useLogBook();
+    const { layout, setLayout, draggingItem, setElements, isBlogEditting } = useLogBook();
 
     useEffect(() => {
         getUserBlogData();
@@ -16,15 +15,22 @@ const BlogGridLayout = ({ userId, enableModal }) => {
     const getUserBlogData = async () => {
         try {
             const response = await axios.get('/data/blogData.json');
+            const blogData = response.data.blogData;
 
-            if (response.data.blogData) {
-                const blogData = response.data.blogData;
+            if (blogData.find((data) => data.userId === userId) !== undefined) {
                 const layoutByUserId = blogData.find((data) => data.userId === userId).layout;
                 const elementByUserId = blogData.find((data) => data.userId === userId).elements;
+                const numbersFromLayoutId = layoutByUserId.map((item) =>
+                    parseInt(item.i.split('-')[1])
+                );
 
                 setLayout([...layoutByUserId]);
                 setElements([...elementByUserId]);
-                setNewItemCounter(layoutByUserId.length);
+                setNewItemCounter(Math.max(...numbersFromLayoutId) + 1);
+            } else {
+                setLayout([]);
+                setElements([]);
+                setNewItemCounter(0);
             }
         } catch (e) {
             console.error('블로그 데이터 로딩 실패: ', e);
@@ -73,6 +79,8 @@ const BlogGridLayout = ({ userId, enableModal }) => {
             finalLayout = [...layout, newItem];
         }
 
+        console.log(newItemCounter, '추가됨');
+
         setLayout(finalLayout);
         setElements((prev) => [...prev, { i: newId, content: null }]);
         setNewItemCounter((prevCounter) => prevCounter + 1);
@@ -106,6 +114,7 @@ const BlogGridLayout = ({ userId, enableModal }) => {
                 isDroppable={isBlogEditting}
                 isDraggable={isBlogEditting}
                 isResizable={isBlogEditting}
+                draggableHandle='.grid-item-text'
                 droppingItem={{
                     i: '__dropping-elem__',
                     w: draggingItem ? draggingItem.w : 1,
