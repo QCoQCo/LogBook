@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './UserInfoModal.scss';
 
 const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile = false }) => {
@@ -105,9 +106,17 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                                 </button>
                             </div>
                         )}
-                        {isOwnProfile && (
-                            <div className='own-profile-info'>
-                                <p className='info-text'>내 프로필 정보입니다.</p>
+                        {!isOwnProfile && (
+                            <div className='blog-link-area'>
+                                <Link
+                                    to={`/blog?userId=${userInfo.userId}`}
+                                    className='blog-link-btn'
+                                >
+                                    <img
+                                        src='/img/LogBook-Blog-Icon.png'
+                                        alt='프로필의 블로그 보러가기'
+                                    />
+                                </Link>
                             </div>
                         )}
                     </div>

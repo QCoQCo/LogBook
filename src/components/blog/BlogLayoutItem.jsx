@@ -63,18 +63,18 @@ const BlogLayoutItem = ({ item, handleClickDelete, enableModal }) => {
     const { isBlogEditting } = useLogBook();
 
     return (
-        <div
-            className={isBlogEditting ? `${item.i} is-editting` : `${item.i}`}
-            onClick={() => {
-                if (isBlogEditting) {
-                    setClickedItem(item);
-                    enableModal();
-                } else if (itemType === 'image') {
-                }
-            }}
-        >
+        <div className={isBlogEditting ? `${item.i} is-editting` : `${item.i}`}>
             <GridItemTop item={item} type={itemType} handleClickDelete={handleClickDelete} />
-            <div className={`grid-${itemType}-content`}>
+            <div
+                className={`grid-${itemType}-content`}
+                onClick={() => {
+                    if (isBlogEditting) {
+                        setClickedItem(item);
+                        enableModal();
+                    } else if (itemType === 'image') {
+                    }
+                }}
+            >
                 <GridContent type={itemType} content={itemContent} />
             </div>
         </div>

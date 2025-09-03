@@ -1,8 +1,8 @@
-#MyPage {
+#Blog {
     position: relative;
     padding: 60px 0px;
 
-    .mypage-wrapper {
+    .blog-wrapper {
         position: relative;
         display: flex;
         gap: 30px;
@@ -298,7 +298,19 @@
                         }
 
                         &.is-editting {
-                            cursor: grab;
+                            .grid-item-top {
+                                .grid-item-text {
+                                    cursor: grab;
+                                }
+                            }
+
+                            .grid-title-content,
+                            .grid-post-content,
+                            .grid-link-content,
+                            .grid-image-content,
+                            .grid-map-content {
+                                cursor: pointer;
+                            }
                         }
 
                         .grid-item-top {
@@ -309,13 +321,15 @@
                             padding: 2px 10px;
 
                             .grid-item-text {
-                                width: 25px;
-                                height: 25px;
+                                display: flex;
+                                align-items: center;
+                                flex: 1;
+                                height: 100%;
                                 padding: 4px;
 
                                 img {
-                                    width: 100%;
-                                    height: auto;
+                                    width: 17px;
+                                    height: 17px;
                                 }
                             }
 

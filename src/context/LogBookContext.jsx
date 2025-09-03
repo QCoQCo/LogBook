@@ -61,6 +61,7 @@ export const LogBookProvider = ({ children }) => {
     const [messagesUnsubscribe, setMessagesUnsubscribe] = useState(null);
 
     // Blog GridLayout 관련 상태
+    const [layout, setLayout] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
     const [clickedItem, setClickedItem] = useState(null);
     const [elements, setElements] = useState([]);
@@ -618,6 +619,8 @@ export const LogBookProvider = ({ children }) => {
             setIsChatPage,
 
             // Blog 상태
+            layout,
+            setLayout,
             draggingItem,
             setDraggingItem,
             clickedItem,
@@ -657,6 +660,8 @@ export const LogBookProvider = ({ children }) => {
             updateUserOnlineStatus,
             isChatPage,
             setIsChatPage,
+            layout,
+            setLayout,
             draggingItem,
             setDraggingItem,
             clickedItem,
