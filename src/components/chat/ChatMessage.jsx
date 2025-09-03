@@ -25,6 +25,13 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
         setSelectedUser(null);
     }, []);
 
+    // 음악 링크 클릭 핸들러
+    const handleMusicLinkClick = useCallback((link) => {
+        if (link) {
+            window.open(link, '_blank', 'noopener,noreferrer');
+        }
+    }, []);
+
     // 메시지 데이터를 메모이제이션하여 불필요한 재계산 방지
     const processedMessages = useMemo(() => {
         return messages.map((message) => {
@@ -33,10 +40,29 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
 
             const profilePhoto = !isOwnMessage ? getUserProfilePhoto(message.userId) : null;
 
+            // 음악 공유 메시지 파싱
+            let musicData = null;
+            let displayText = message.text;
+            let isMusicShare = false;
+
+            try {
+                const parsedMessage = JSON.parse(message.text);
+                if (parsedMessage.type === 'music_share' && parsedMessage.musicData) {
+                    isMusicShare = true;
+                    musicData = parsedMessage.musicData;
+                    displayText = parsedMessage.text;
+                }
+            } catch (error) {
+                // JSON 파싱 실패 시 일반 메시지로 처리
+            }
+
             return {
                 ...message,
                 isOwnMessage,
                 profilePhoto,
+                isMusicShare,
+                musicData,
+                displayText,
             };
         });
     }, [messages, currentUser.id, getUserProfilePhoto]);
@@ -86,7 +112,45 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
                                     </button>
                                 )}
                             </div>
-                            <div className='message-content'>{message.text}</div>
+                            <div className='message-content'>
+                                {message.isMusicShare ? (
+                                    <div className='music-share-message'>
+                                        <div className='music-share-text'>
+                                            {message.displayText}
+                                        </div>
+                                        <div
+                                            className='music-share-card'
+                                            onClick={() =>
+                                                handleMusicLinkClick(message.musicData.link)
+                                            }
+                                        >
+                                            <div className='music-thumbnail'>
+                                                <img
+                                                    src={message.musicData.thumbnail}
+                                                    alt={message.musicData.title}
+                                                    onError={(e) => {
+                                                        e.target.src = '/img/icon-image.png';
+                                                    }}
+                                                />
+                                                <div className='play-overlay'>
+                                                    <span className='play-icon'>▶️</span>
+                                                </div>
+                                            </div>
+                                            <div className='music-info'>
+                                                <div className='music-title'>
+                                                    {message.musicData.title}
+                                                </div>
+                                                <div className='music-playlist'>
+                                                    {message.musicData.playlistTitle}
+                                                </div>
+                                                <div className='click-hint'>클릭하여 재생하기</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    message.displayText
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}

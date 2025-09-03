@@ -1055,3 +1055,393 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
         }
     }
 }
+
+// ==========================================
+// USER PLAYLIST STYLES
+// ==========================================
+.user-playlist-comp {
+    background: linear-gradient(135deg, $secondary-bg, $tertiary-bg);
+    border: 1px solid $border-light;
+    border-radius: $border-radius-lg;
+    padding: $spacing-lg;
+    margin: $spacing-md 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    transition: $transition-fast;
+
+    &:hover {
+        border-color: $accent-color;
+        box-shadow: 0 12px 40px rgba(156, 195, 133, 0.15);
+        // transform: translateY(-2px);
+    }
+
+    // 로딩, 에러, 빈 상태 스타일
+    &.loading,
+    &.error,
+    &.empty {
+        text-align: center;
+        padding: $spacing-xl;
+
+        p {
+            color: $text-secondary;
+            font-size: $font-size-md;
+            margin: 0;
+        }
+
+        button {
+            margin-top: $spacing-md;
+            background: $accent-color;
+            color: $primary-bg;
+            border: none;
+            padding: $spacing-xs $spacing-md;
+            border-radius: $border-radius-md;
+            cursor: pointer;
+            font-weight: 600;
+            transition: $transition-fast;
+
+            &:hover {
+                background: $accent-hover;
+                transform: translateY(-1px);
+            }
+        }
+    }
+
+    .playlist-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: $spacing-lg;
+        padding-bottom: $spacing-md;
+        border-bottom: 1px solid $border-light;
+
+        h4 {
+            margin: 0;
+            font-size: $font-size-lg;
+            font-weight: 700;
+            color: $text-primary;
+            display: flex;
+            align-items: center;
+            gap: $spacing-xs;
+
+            background: linear-gradient(135deg, $accent-color, $accent-hover);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .current-song-info {
+            small {
+                color: $text-tertiary;
+                font-size: $font-size-xs;
+                font-style: italic;
+                background: $bg-light;
+                padding: 4px $spacing-xs;
+                border-radius: $border-radius-sm;
+            }
+        }
+    }
+
+    // 메인 스와이퍼 스타일
+    .user-playlist-swiper {
+        margin-bottom: $spacing-md;
+        border-radius: $border-radius-md;
+        overflow: hidden;
+
+        .swiper-slide {
+            display: flex;
+            justify-content: center;
+        }
+
+        .song-card {
+            background: linear-gradient(135deg, $tertiary-bg, rgba(255, 255, 255, 0.05));
+            border: 1px solid $border-light;
+            border-radius: $border-radius-md;
+            padding: $spacing-md;
+            transition: $transition-fast;
+            width: 100%;
+            max-width: 280px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+            &:hover {
+                // transform: translateY(-4px);
+                box-shadow: 0 12px 32px rgba(156, 195, 133, 0.2);
+                border-color: $accent-color;
+            }
+
+            .song-thumbnail {
+                position: relative;
+                width: 100%;
+                aspect-ratio: 16/9;
+                border-radius: $border-radius-sm;
+                overflow: hidden;
+                margin-bottom: $spacing-sm;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.5s ease;
+                }
+
+                &:hover img {
+                    transform: scale(1.05);
+                }
+
+                .song-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(45deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3));
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: $spacing-md;
+                    opacity: 0;
+                    transition: $transition-fast;
+
+                    button {
+                        background: rgba(255, 255, 255, 0.9);
+                        border: none;
+                        border-radius: 50%;
+                        width: 48px;
+                        height: 48px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: $transition-fast;
+                        font-size: 18px;
+                        backdrop-filter: blur(10px);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+                        &:hover {
+                            transform: scale(1.1);
+                            background: $accent-color;
+                            color: $primary-bg;
+                        }
+
+                        &.play-btn {
+                            &:hover {
+                                background: $primary-blue;
+                                color: white;
+                            }
+                        }
+
+                        &.external-btn {
+                            &:hover {
+                                background: $accent-color;
+                                color: $primary-bg;
+                            }
+                        }
+                    }
+                }
+
+                &:hover .song-overlay {
+                    opacity: 1;
+                }
+            }
+
+            .song-info {
+                text-align: center;
+
+                .song-title {
+                    margin: 0 0 $spacing-xs 0;
+                    font-size: $font-size-md;
+                    font-weight: 600;
+                    color: $text-primary;
+                    line-height: 1.3;
+                    min-height: 2.6em;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .playlist-name {
+                    margin: 0;
+                    font-size: $font-size-xs;
+                    color: $text-tertiary;
+                    font-weight: 500;
+                    background: $bg-light;
+                    padding: 4px $spacing-xs;
+                    border-radius: $border-radius-sm;
+                    display: inline-block;
+                }
+            }
+        }
+
+        // 스와이퍼 네비게이션 버튼 커스터마이징
+        .swiper-button-next,
+        .swiper-button-prev {
+            color: $accent-color;
+            background: rgba(0, 0, 0, 0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            transition: $transition-fast;
+
+            &:hover {
+                background: $accent-color;
+                color: $primary-bg;
+                transform: scale(1.1);
+            }
+
+            &::after {
+                font-size: 16px;
+                font-weight: bold;
+            }
+        }
+    }
+
+    // 썸네일 스와이퍼 스타일
+    .user-playlist-thumbs {
+        .swiper-slide {
+            opacity: 0.6;
+            transition: $transition-fast;
+            cursor: pointer;
+
+            &.swiper-slide-thumb-active {
+                opacity: 1;
+            }
+
+            &:hover {
+                opacity: 0.8;
+            }
+        }
+
+        .thumb-card {
+            border-radius: $border-radius-sm;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            border: 2px solid transparent;
+            transition: $transition-fast;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s ease;
+            }
+
+            &:hover {
+                border-color: $accent-color;
+                // transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(156, 195, 133, 0.3);
+
+                img {
+                    transform: scale(1.05);
+                }
+            }
+        }
+
+        .swiper-slide-thumb-active .thumb-card {
+            border-color: $accent-color;
+            box-shadow: 0 0 20px rgba(156, 195, 133, 0.4);
+        }
+    }
+}
+
+// ==========================================
+// MUSIC SHARE MESSAGE STYLES
+// ==========================================
+.music-share-message {
+    .music-share-text {
+        margin-bottom: $spacing-sm;
+        font-size: $font-size-sm;
+        color: $text-secondary;
+    }
+
+    .music-share-card {
+        display: flex;
+        align-items: center;
+        background: $tertiary-bg;
+        border: 1px solid $border-light;
+        border-radius: $border-radius-md;
+        padding: $spacing-sm;
+        margin-top: $spacing-xs;
+        cursor: pointer;
+        transition: $transition-fast;
+        max-width: 300px;
+
+        &:hover {
+            background: $bg-light;
+            border-color: $accent-color;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(156, 195, 133, 0.2);
+        }
+
+        .music-thumbnail {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: $border-radius-sm;
+            overflow: hidden;
+            flex-shrink: 0;
+            margin-right: $spacing-sm;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .play-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                transition: $transition-fast;
+
+                .play-icon {
+                    font-size: 20px;
+                    color: $text-primary;
+                }
+            }
+
+            &:hover .play-overlay {
+                opacity: 1;
+            }
+        }
+
+        .music-info {
+            flex: 1;
+            text-align: left;
+            min-width: 0;
+
+            .music-title {
+                font-size: $font-size-md;
+                font-weight: 600;
+                color: $text-primary;
+                margin-bottom: 4px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .music-playlist {
+                font-size: $font-size-xs;
+                color: $text-tertiary;
+                margin-bottom: 4px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .click-hint {
+                font-size: $font-size-xs;
+                color: $accent-color;
+                font-style: italic;
+            }
+        }
+    }
+}

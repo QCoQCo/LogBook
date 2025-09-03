@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
-import { useAuth } from '../../context/LogBookContext';
+import { useAuth, useLogBook } from '../../context/LogBookContext';
+import { sendMessageToRoom } from '../../utils/chatService';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -9,8 +10,9 @@ import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
-const UserPlayList = () => {
+const UserPlaylist = () => {
     const { currentUser, isLogin } = useAuth();
+    const { currentChatRoom } = useLogBook();
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
     const [playlistData, setPlaylistData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -79,6 +81,61 @@ const UserPlayList = () => {
     const handleOpenLink = useCallback((link) => {
         window.open(link, '_blank', 'noopener,noreferrer');
     }, []);
+
+    // 채팅방에 음악 공유
+    const handleShareToChat = useCallback(
+        async (song) => {
+            // 로그인 체크
+            if (!isLogin || !currentUser) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+
+            // 현재 채팅방 체크
+            if (!currentChatRoom) {
+                alert('채팅방에 먼저 입장해주세요.');
+                return;
+            }
+
+            // 확인 대화상자
+            const confirmed = window.confirm(
+                `"${song.title}"을(를) 현재 채팅방에 공유하시겠습니까?`
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                // 음악 공유 메시지 데이터 생성
+                const shareMessage = {
+                    type: 'music_share',
+                    text: `${currentUser.nickName}님이 ${song.title}을 공유했습니다.`,
+                    musicData: {
+                        title: song.title,
+                        thumbnail: song.thumbnail,
+                        link: song.link,
+                        playlistTitle: song.playlistTitle,
+                        contentId: song.contentId,
+                    },
+                };
+
+                // 메시지를 JSON 문자열로 변환하여 전송
+                await sendMessageToRoom(
+                    currentChatRoom.name,
+                    JSON.stringify(shareMessage),
+                    currentUser.id,
+                    currentUser.nickName
+                );
+
+                console.log('음악 공유 완료:', song.title);
+            } catch (error) {
+                console.error('음악 공유 오류:', error);
+                alert('음악 공유에 실패했습니다. 다시 시도해주세요.');
+            }
+        },
+        [isLogin, currentUser, currentChatRoom]
+    );
 
     if (loading) {
         return (
@@ -150,8 +207,8 @@ const UserPlayList = () => {
                                     </button>
                                     <button
                                         className='external-btn'
-                                        onClick={() => handleOpenLink(song.link)}
-                                        title='YouTube에서 보기'
+                                        onClick={() => handleShareToChat(song)}
+                                        title='채팅으로 보내기'
                                     >
                                         🔗
                                     </button>
@@ -201,4 +258,4 @@ const UserPlayList = () => {
     );
 };
 
-export default UserPlayList;
+export default UserPlaylist;
