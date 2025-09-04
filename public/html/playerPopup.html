@@ -1,221 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
     <head>
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>LogBook Player</title>
+        <link rel="icon" href="/img/icon-image.png" type="image/png" />
         <style>
-            html,
-            body {
-                height: 100%;
-                margin: 0;
-                background: #f6f8fb;
-                font-family: system-ui, Arial;
-                color: #222;
-            }
-            *,
-            *::before,
-            *::after {
-                box-sizing: border-box;
-            }
-            #wrap {
-                display: flex;
-                height: 100%;
-                overflow-x: hidden;
-            }
-            .left {
-                flex: 1;
-                padding: 20px;
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
-
-            .right {
-                width: 400px;
-                border-left: 1px solid #e6e9ee;
-                background: #fff;
-                padding: 12px 14px;
-                box-sizing: border-box;
-            }
-
+            html, body { height: 100%; margin: 0; background: #f6f8fb; font-family: system-ui, Arial; color: #222; }
+            *, *::before, *::after { box-sizing: border-box; }
+            #wrap { display: flex; height: 100%; overflow-x: hidden; margin: 0 auto; }
+            .left { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+            .right { width: 400px; border-left: 1px solid #e6e9ee; background: #fff; padding: 12px 14px; }
             @media (max-width: 1000px) {
-                .left {
-                    flex: 0 0 60%;
-                    padding: 20px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 16px;
-                }
-                .right {
-                    flex: 0 0 40%;
-                    border-left: 1px solid #e6e9ee;
-                    background: #fff;
-                    padding: 12px 14px;
-                    box-sizing: border-box;
-                }
+                .left { flex: 0 0 60%; }
+                .right { flex: 0 0 40%; }
             }
-
-            #player {
-                width: 100%;
-                aspect-ratio: 16/9;
-                background: #000;
-            }
-            #wrap {
-                margin: 0 auto;
-            }
-            .controlWrap {
-                display: flex;
-                gap: 16px;
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .progress {
-                width: 100%;
-                max-width: 640px;
-                height: 6px;
-                background: #e9eef7;
-                border-radius: 3px;
-                overflow: hidden;
-            }
-            .progress > i {
-                display: block;
-                height: 100%;
-                background: linear-gradient(90deg, #4aa3ff, #6dd3ff);
-                width: 0%;
-            }
-            .controls {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                max-width: 640px;
-                width: 100%;
-                justify-content: flex-start;
-            }
-            .ctrl-btn {
-                width: 36px;
-                height: 36px;
-                border-radius: 6px;
-                border: none;
-                background: #fff;
-                box-shadow: 0 2px 6px rgba(10, 20, 40, 0.06);
-                cursor: pointer;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .time {
-                font-size: 12px;
-                color: #556;
-            }
-            .playlist-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 8px;
-            }
-            .playlist-title {
-                font-weight: 700;
-            }
-            .plist {
-                overflow: auto;
-                max-height: calc(100% - 48px);
-                padding-right: 6px;
-            }
-            .p-item {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 8px;
-                border-bottom: 1px solid #f0f2f6;
-            }
-            .p-item .p-thumb {
-                width: 48px;
-                height: 48px;
-                border-radius: 6px;
-                overflow: hidden;
-                background: #f3f6fa;
-            }
-            .p-item .p-thumb img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-            .p-meta {
-                flex: 1;
-            }
-            .p-title {
-                font-size: 13px;
-                line-height: 1.2;
-                color: #1a1a1a;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .p-actions {
-                display: flex;
-                gap: 8px;
-                align-items: center;
-            }
-            .p-actions button {
-                border: none;
-                background: transparent;
-                cursor: pointer;
-                color: #5b6b80;
-            }
-            .p-actions button:hover {
-                color: #1e88e5;
-            }
-            .playlist-controls .clear-btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                padding: 6px 10px;
-                height: 36px;
-                border-radius: 8px;
-                background: transparent;
-                border: 1px solid #eee;
-                color: #b71c1c;
-                font-weight: 600;
-                font-size: 13px;
-                cursor: pointer;
-                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-                transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.12s,
-                    color 0.12s;
-            }
-            .playlist-controls .clear-btn:hover {
-                background: rgba(183, 28, 28, 0.06);
-                transform: translateY(-1px);
-            }
-            .playlist-controls .clear-btn:active {
-                transform: translateY(0);
-                box-shadow: none;
-            }
-            .playlist-controls .clear-btn:focus {
-                outline: 2px solid rgba(183, 28, 28, 0.12);
-                outline-offset: 2px;
-            }
-            .playlist-controls .clear-btn[disabled] {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-            .p-actions button svg {
-                transition: transform 0.12s, color 0.12s;
-            }
-            .p-item.active .p-title {
-                font-weight: 700;
-            }
-            .p-item.active .p-actions button {
-                color: #1e88e5;
-                font-weight: 700;
-            }
-            .p-item.active .p-actions button svg {
-                transform: scale(1.06);
-            }
+            #player { width: 100%; aspect-ratio: 16/9; background: #000; }
+            .controlWrap { display: flex; gap: 16px; flex-direction: column; width: 100%; }
+            .progress { width: 100%; max-width: 640px; height: 6px; background: #e9eef7; border-radius: 3px; overflow: hidden; }
+            .progress > i { display: block; height: 100%; background: linear-gradient(90deg, #4aa3ff, #6dd3ff); width: 0%; }
+            .controls { display: flex; align-items: center; gap: 12px; max-width: 640px; width: 100%; justify-content: flex-start; }
+            .ctrl-btn { width: 36px; height: 36px; border-radius: 6px; border: none; background: #fff; box-shadow: 0 2px 6px rgba(10,20,40,.06); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+            .time { font-size: 12px; color: #556; }
+            .playlist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+            .playlist-title { font-weight: 700; }
+            .plist { overflow: auto; max-height: calc(100% - 48px); padding-right: 6px; }
+            .p-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #f0f2f6; cursor: pointer; }
+            .p-item .p-thumb { width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #f3f6fa; }
+            .p-item .p-thumb img { width: 100%; height: 100%; object-fit: cover; }
+            .p-meta { flex: 1; }
+            .p-title { font-size: 13px; line-height: 1.2; color: #1a1a1a; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+            .p-actions { display: flex; gap: 8px; align-items: center; }
+            .p-actions button { border: none; background: transparent; cursor: pointer; color: #5b6b80; }
+            .p-actions button:hover { color: #1e88e5; }
+            .playlist-controls .clear-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 10px; height: 36px; border-radius: 8px; background: transparent; border: 1px solid #eee; color: #b71c1c; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.04); transition: background .12s ease, transform .08s ease, box-shadow .12s, color .12s; }
+            .playlist-controls .clear-btn:hover { background: rgba(183,28,28,.06); transform: translateY(-1px); }
+            .playlist-controls .clear-btn:active { transform: translateY(0); box-shadow: none; }
+            .playlist-controls .clear-btn[disabled] { opacity: .5; cursor: not-allowed; }
+            .p-actions button svg { transition: transform .12s, color .12s; }
+            .p-item.active .p-title { font-weight: 700; }
+            .p-item.active .p-actions button { color: #1e88e5; font-weight: 700; }
+            .p-item.active .p-actions button svg { transform: scale(1.06); }
         </style>
     </head>
     <body>
@@ -225,67 +50,27 @@
                 <div class="controlWrap">
                     <div class="progress" id="progress"><i id="progBar"></i></div>
                     <div class="controls">
-                        <button id="prev" class="ctrl-btn" title="이전">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                aria-hidden
-                            >
-                                <path
-                                    d="M19 20L9 12l10-8v16zM5 20V4"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
+                        <button id="prev" class="ctrl-btn" title="이전" aria-label="이전">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                                <path d="M6 6v12l8-6-8-6zM18 6v12h-2V6h2z"/>
                             </svg>
                         </button>
-                        <button id="play" class="ctrl-btn" title="재생">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                xmlns="http://www.w3.org/2000/svg"
-                                aria-hidden
-                            >
+                        <button id="play" class="ctrl-btn" title="재생" aria-label="재생">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                                 <path d="M8 5v14l11-7z" />
                             </svg>
                         </button>
-                        <button id="pause" class="ctrl-btn" title="일시정지">
-                            <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                aria-hidden
-                            >
-                                <path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor" />
+                        <button id="pause" class="ctrl-btn" title="일시정지" aria-label="일시정지" style="display:none">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                                <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
                             </svg>
                         </button>
-                        <button id="next" class="ctrl-btn" title="다음">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                aria-hidden
-                            >
-                                <path
-                                    d="M5 4v16l10-8L5 4zm14 0v16"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
+                        <button id="next" class="ctrl-btn" title="다음" aria-label="다음">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                                <path d="M6 6v12h2V6H6zm4 6l8 6V6l-8 6z"/>
                             </svg>
                         </button>
-                        <div style="flex: 1"></div>
+                        <div style="flex:1"></div>
                         <div class="time" id="time">0:00 / 0:00</div>
                     </div>
                 </div>
@@ -294,14 +79,7 @@
                 <div class="playlist-header">
                     <div class="playlist-title">재생 목록</div>
                     <div class="playlist-controls">
-                        <button
-                            id="clearAll"
-                            class="clear-btn"
-                            title="목록 전체 삭제"
-                            aria-label="목록 전체 삭제"
-                        >
-                            전체삭제
-                        </button>
+                        <button id="clearAll" class="clear-btn" title="목록 전체 삭제" aria-label="목록 전체 삭제">전체삭제</button>
                     </div>
                 </div>
                 <div class="plist" id="plist"></div>
@@ -309,497 +87,250 @@
         </div>
 
         <script>
-            var __injected = [];
-            var startIndex = 0;
-            var __clearOnClose = false;
-            var STORAGE_KEY = 'logbook_yt_playlist_v1';
-            var STORAGE_INDEX_KEY = 'logbook_yt_playlist_index_v1';
-            var playlist = [];
-            var player;
-            var _playerReady = false;
-            var _pendingPlay = null;
-            var _userInitiatedPlay = false;
+            // State
+            let __injected = [];
+            let startIndex = 0;
+            let __clearOnClose = false;
+            const STORAGE_KEY = 'logbook_yt_playlist_v1';
+            const STORAGE_INDEX_KEY = 'logbook_yt_playlist_index_v1';
+            let playlist = [];
+            let player = null;
+            let _playerReady = false;
+            let _pendingPlay = null;
+            let _userInitiatedPlay = false;
 
-            try {
-                console.log('[playerPopup] script loaded');
-            } catch (e) {}
+            console.log('[playerPopup] script loaded');
 
+            // Storage helpers
             function savePlaylist() {
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
-                } catch (e) {}
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist)); } catch {}
             }
             function saveIndex() {
-                try {
-                    localStorage.setItem(STORAGE_INDEX_KEY, String(currentIndex()));
-                } catch (e) {}
+                try { localStorage.setItem(STORAGE_INDEX_KEY, String(currentIndex())); } catch {}
             }
 
+            // Index helpers
+            function currentIndex() { return (window._curIndex = window._curIndex ?? startIndex); }
+            function setIndex(i) { window._curIndex = i; }
+
+            // Merge injected items + restore saved
             function mergeInjected() {
                 try {
-                    var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+                    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
                     if (Array.isArray(saved)) playlist = saved.slice();
-                    try {
-                        console.log(
-                            '[playerPopup] mergeInjected - saved playlist length:',
-                            playlist.length
-                        );
-                    } catch (e) {}
-                } catch (e) {
-                    playlist = [];
-                    try {
-                        console.error('[playerPopup] mergeInjected parse error', e);
-                    } catch (e) {}
-                }
-                (Array.isArray(__injected) ? __injected : []).forEach(function (it) {
-                    var exists = playlist.some(function (p) {
-                        return (
-                            (p.contentId && it.contentId && p.contentId === it.contentId) ||
-                            (p.videoId && it.videoId && p.videoId === it.videoId) ||
-                            (p.link && it.link && p.link === it.link)
-                        );
-                    });
+                    console.log('[playerPopup] mergeInjected - saved playlist length:', playlist.length);
+                } catch (e) { playlist = []; console.warn('[playerPopup] mergeInjected parse error', e); }
+                (Array.isArray(__injected) ? __injected : []).forEach((it) => {
+                    const exists = playlist.some((p) =>
+                        (p.contentId && it.contentId && p.contentId === it.contentId) ||
+                        (p.videoId && it.videoId && p.videoId === it.videoId) ||
+                        (p.link && it.link && p.link === it.link)
+                    );
                     if (!exists) playlist.push(it);
                 });
                 try {
-                    var savedIdx = parseInt(localStorage.getItem(STORAGE_INDEX_KEY), 10);
-                    if (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < playlist.length)
-                        startIndex = savedIdx;
-                } catch (e) {}
+                    const savedIdx = parseInt(localStorage.getItem(STORAGE_INDEX_KEY), 10);
+                    if (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < playlist.length) startIndex = savedIdx;
+                } catch {}
             }
 
-            function updatePlayControls() {
-                try {
-                    var playBtn = document.getElementById('play');
-                    var pauseBtn = document.getElementById('pause');
-                    if (!playBtn || !pauseBtn) return;
-                    if (!_playerReady || !player) {
-                        playBtn.style.display = 'inline-flex';
-                        pauseBtn.style.display = 'none';
-                        return;
-                    }
-                    var state = null;
-                    try {
-                        state = player.getPlayerState();
-                    } catch (e) {}
-                    if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
-                        playBtn.style.display = 'none';
-                        pauseBtn.style.display = 'inline-flex';
-                    } else {
-                        playBtn.style.display = 'inline-flex';
-                        pauseBtn.style.display = 'none';
-                    }
-                } catch (e) {}
-            }
-
-            function currentIndex() {
-                return (window._curIndex = window._curIndex || startIndex);
-            }
-            function setIndex(i) {
-                window._curIndex = i;
-            }
-
-            function playIndex(i, opts) {
-                opts = opts || {};
-                var userInitiated = !!opts.userInitiated;
-                setIndex(i);
-                var item = playlist[i];
-                if (!item) return;
-                if (item.videoId) {
-                    if (player && player.loadVideoById && _playerReady) {
-                        try {
-                            player.loadVideoById(item.videoId);
-                            if (userInitiated) player.playVideo();
-                        } catch (e) {}
-                    } else {
-                        if (userInitiated) {
-                            try {
-                                var container = document.getElementById('player');
-                                var iframe = document.createElement('iframe');
-                                iframe.width = '100%';
-                                iframe.height = '100%';
-                                iframe.setAttribute(
-                                    'allow',
-                                    'autoplay; encrypted-media; picture-in-picture'
-                                );
-                                iframe.setAttribute('allowfullscreen', '');
-                                iframe.src =
-                                    'https://www.youtube.com/embed/' +
-                                    item.videoId +
-                                    '?autoplay=1&enablejsapi=1&controls=0&rel=0&modestbranding=1';
-                                container.innerHTML = '';
-                                container.appendChild(iframe);
-                                _pendingPlay = i;
-                                _userInitiatedPlay = true;
-                                if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-                                    var tag = document.createElement('script');
-                                    tag.src = 'https://www.youtube.com/iframe_api';
-                                    document.head.appendChild(tag);
-                                }
-                            } catch (e) {}
-                        } else {
-                            _pendingPlay = i;
-                            if (userInitiated) _userInitiatedPlay = true;
-                        }
-                    }
-                } else if (item.link) {
-                    window.open(item.link, '_blank');
+            // UI builders
+            function buildList() {
+                const wrap = document.getElementById('plist');
+                if (!wrap) return;
+                wrap.innerHTML = '';
+                if (!playlist || !playlist.length) {
+                    wrap.innerHTML = '<div class="empty" style="padding:16px;color:#556">재생 목록이 비어 있습니다.</div>';
+                    console.log('[playerPopup] buildList - empty playlist');
+                    const clearBtn = document.getElementById('clearAll');
+                    if (clearBtn) clearBtn.disabled = true;
+                    return;
                 }
-                try {
-                    localStorage.setItem(STORAGE_INDEX_KEY, String(currentIndex()));
-                } catch (e) {}
+                const clearBtn = document.getElementById('clearAll');
+                if (clearBtn) clearBtn.disabled = false;
+                playlist.forEach((it, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'p-item';
+                    el.innerHTML =
+                        '<div class="p-thumb"><img alt="thumb" src="' + (it.thumbnail || '') + '"/></div>' +
+                        '<div class="p-meta"><div class="p-title">' + (it.title || '') + '</div></div>' +
+                        '<div class="p-actions">' +
+                            '<button class="act-play" title="재생" aria-label="재생">' +
+                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z"/></svg>' +
+                            '</button>' +
+                            '<button class="act-del" title="삭제" aria-label="삭제">' +
+                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                            '</button>' +
+                        '</div>';
+                    const playBtn = el.querySelector('.act-play');
+                    const delBtn = el.querySelector('.act-del');
+                    if (playBtn) playBtn.addEventListener('click', (e) => { e.stopPropagation(); playIndex(idx, { userInitiated: true }); });
+                    if (delBtn) delBtn.addEventListener('click', (e) => { e.stopPropagation(); removeIndex(idx); });
+                    el.addEventListener('click', () => playIndex(idx, { userInitiated: true }));
+                    wrap.appendChild(el);
+                });
+                savePlaylist();
                 updateNow();
-                try {
-                    if (window.opener) {
-                        window.opener.postMessage({ cmd: 'nowPlaying', index: i }, '*');
-                    }
-                } catch (e) {}
             }
 
             function updateNow() {
-                Array.from(document.querySelectorAll('.p-item')).forEach(function (el, i) {
+                Array.from(document.querySelectorAll('.p-item')).forEach((el, i) => {
                     el.classList.toggle('active', i === currentIndex());
                 });
+                updatePlayControls();
+            }
+
+            function updatePlayControls() {
+                const playBtn = document.getElementById('play');
+                const pauseBtn = document.getElementById('pause');
+                if (!playBtn || !pauseBtn) return;
+                if (!_playerReady || !player) { playBtn.style.display = 'inline-flex'; pauseBtn.style.display = 'none'; return; }
+                let state = null; try { state = player.getPlayerState(); } catch {}
+                if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
+                    playBtn.style.display = 'none'; pauseBtn.style.display = 'inline-flex';
+                } else { playBtn.style.display = 'inline-flex'; pauseBtn.style.display = 'none'; }
             }
 
             function removeIndex(i) {
                 if (!playlist[i]) return;
                 playlist.splice(i, 1);
-                var wrap = document.getElementById('plist');
-                wrap.innerHTML = '';
-                buildList();
-                savePlaylist();
                 if (currentIndex() >= playlist.length) setIndex(Math.max(0, playlist.length - 1));
-                saveIndex();
-                updateNow();
-            }
-            function playNext() {
-                if (!playlist.length) return;
-                var i = (currentIndex() + 1) % playlist.length;
-                playIndex(i);
-            }
-            function playPrev() {
-                if (!playlist.length) return;
-                var i = (currentIndex() - 1 + playlist.length) % playlist.length;
-                playIndex(i);
+                savePlaylist(); saveIndex(); buildList(); updateNow();
             }
 
-            function buildList() {
-                try {
-                    var wrap = document.getElementById('plist');
-                    if (!wrap) return;
-                    wrap.innerHTML = '';
-                    if (!playlist || !playlist.length) {
-                        wrap.innerHTML =
-                            '<div class="empty" style="padding:16px;color:#556">재생 목록이 비어 있습니다.</div>';
-                        try {
-                            console.log('[playerPopup] buildList - empty playlist');
-                        } catch (e) {}
-                        return;
+            function playNext() { if (!playlist.length) return; const i = (currentIndex() + 1) % playlist.length; playIndex(i, { userInitiated: true }); }
+            function playPrev() { if (!playlist.length) return; const i = (currentIndex() - 1 + playlist.length) % playlist.length; playIndex(i, { userInitiated: true }); }
+
+            // Playback
+            function playIndex(i, opts = {}) {
+                const userInitiated = !!opts.userInitiated;
+                const item = playlist[i];
+                if (!item) return;
+                setIndex(i);
+                console.log('[playerPopup] playIndex -> i:', i, 'videoId:', item.videoId, 'userInitiated:', userInitiated, 'playerReady:', _playerReady);
+                if (item.videoId) {
+                    if (player && typeof player.loadVideoById === 'function' && _playerReady) {
+                        try { player.loadVideoById(item.videoId); if (userInitiated) player.playVideo(); console.log('[playerPopup] playIndex using YT.Player.loadVideoById'); } catch {}
+                    } else {
+                        _pendingPlay = i; if (userInitiated) _userInitiatedPlay = true; console.log('[playerPopup] playIndex pending until player ready');
                     }
-
-                    playlist.forEach(function (it, idx) {
-                        var el = document.createElement('div');
-                        el.className = 'p-item';
-                        el.innerHTML =
-                            '<div class="p-thumb"><img src="' +
-                            (it.thumbnail || '') +
-                            '"/></div>' +
-                            '<div class="p-meta"><div class="p-title">' +
-                            (it.title || '') +
-                            '</div></div>' +
-                            '<div class="p-actions">' +
-                            '<button class="act-play" title="재생">' +
-                            '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden><path d="M8 5v14l11-7z"/></svg>' +
-                            '</button>' +
-                            '<button class="act-del" title="삭제">' +
-                            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-                            '</button>' +
-                            '</div>';
-                        (function (i) {
-                            var playBtn = el.querySelector('.act-play');
-                            var delBtn = el.querySelector('.act-del');
-                            if (playBtn)
-                                playBtn.addEventListener('click', function (e) {
-                                    e.stopPropagation();
-                                    playIndex(i, { userInitiated: true });
-                                });
-                            if (delBtn)
-                                delBtn.addEventListener('click', function (e) {
-                                    e.stopPropagation();
-                                    removeIndex(i);
-                                });
-                        })(idx);
-                        el.addEventListener('click', function (e) {
-                            playIndex(idx, { userInitiated: true });
-                        });
-                        wrap.appendChild(el);
-                    });
-                    savePlaylist();
-                } catch (err) {
-                    try {
-                        console.error('[playerPopup] buildList error', err);
-                    } catch (e) {}
+                } else if (item.link) {
+                    window.open(item.link, '_blank');
                 }
+                saveIndex(); updateNow();
             }
 
+            // Messaging
             function receiveMessage(ev) {
                 try {
-                    try {
-                        var safeData = null;
-                        try {
-                            safeData = JSON.stringify(ev && ev.data);
-                        } catch (e) {
-                            safeData = String(ev && ev.data);
-                        }
-                        console.log('[playerPopup] receiveMessage raw', {
-                            data: safeData,
-                            origin: ev && ev.origin,
-                            isOpener: ev && ev.source === window.opener,
-                        });
-                        try {
-                            console.log('[playerPopup] receiveMessage full object:', ev.data);
-                        } catch (e) {}
-                    } catch (e) {}
-                    var allowedOrigin = window.location && window.location.origin;
+                    const allowedOrigin = window.location && window.location.origin;
                     if (!ev || !ev.source) return;
                     if (window.opener && ev.source !== window.opener) return;
                     if (ev.origin && allowedOrigin && ev.origin !== allowedOrigin) return;
-                    var d = ev && ev.data;
-                    if (!d) {
-                        try {
-                            console.warn('[playerPopup] receiveMessage - no data, ignoring');
-                        } catch (e) {}
-                        return;
-                    }
+                    const d = ev && ev.data; if (!d) return;
                     if (d.cmd === 'init') {
-                        if (Array.isArray(d.items) && d.items.length) {
-                            __injected = d.items;
-                        }
+                        __injected = Array.isArray(d.items) ? d.items : [];
                         startIndex = Number(d.startIndex) || 0;
                         __clearOnClose = !!(d.opts && d.opts.clearOnClose);
-                        mergeInjected();
-                        // ensure UI and storage are updated immediately when init arrives
-                        try {
-                            buildList();
-                            savePlaylist();
-                            saveIndex();
-                        } catch (e) {}
-                        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-                            var tag = document.createElement('script');
-                            tag.src = 'https://www.youtube.com/iframe_api';
-                            document.head.appendChild(tag);
-                        } else {
-                            onYouTubeIframeAPIReady();
-                        }
-                        if (d.opts && d.opts.autoplay && playlist.length) {
-                            var idx = startIndex || playlist.length - 1;
-                            _pendingPlay = idx;
-                        }
-                        try {
-                            if (window.opener) {
-                                window.opener.postMessage(
-                                    { cmd: 'init_ack' },
-                                    window.location.origin || '*'
-                                );
-                            }
-                        } catch (e) {}
-                    }
-                    if (d.cmd === 'append' && Array.isArray(d.items)) {
-                        try {
-                            console.log('[playerPopup] append received, items:', d.items.length);
-                        } catch (e) {}
-                        var wrap = document.getElementById('plist');
-                        d.items.forEach(function (it) {
-                            var exists = playlist.some(function (p) {
-                                return (
-                                    (p.contentId && it.contentId && p.contentId === it.contentId) ||
-                                    (p.videoId && it.videoId && p.videoId === it.videoId) ||
-                                    (p.link && it.link && p.link === it.link)
-                                );
-                            });
-                            if (!exists) {
-                                playlist.push(it);
-                                var idx = playlist.length - 1;
-                                var el = document.createElement('div');
-                                el.className = 'p-item';
-                                el.innerHTML =
-                                    '<div class="p-thumb"><img src="' +
-                                    (it.thumbnail || '') +
-                                    '"/></div>' +
-                                    '<div class="p-meta"><div class="p-title">' +
-                                    (it.title || '') +
-                                    '</div></div>' +
-                                    '<div class="p-actions">' +
-                                    '<button class="act-play" title="재생">' +
-                                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden><path d="M8 5v14l11-7z"/></svg>' +
-                                    '</button>' +
-                                    '<button class="act-del" title="삭제">' +
-                                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-                                    '</button>' +
-                                    '</div>';
-                                (function (i) {
-                                    el.querySelector('.act-play').addEventListener(
-                                        'click',
-                                        function (e) {
-                                            e.stopPropagation();
-                                            playIndex(i, { userInitiated: true });
-                                        }
-                                    );
-                                    el.querySelector('.act-del').addEventListener(
-                                        'click',
-                                        function (e) {
-                                            e.stopPropagation();
-                                            removeIndex(i);
-                                        }
-                                    );
-                                })(idx);
-                                el.addEventListener('click', function (e) {
-                                    playIndex(idx, { userInitiated: true });
-                                });
-                                wrap.appendChild(el);
-                                try {
-                                    localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
-                                } catch (e) {}
-                            }
+                        mergeInjected(); buildList(); savePlaylist(); saveIndex();
+                        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') { const tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(tag); } else { onYouTubeIframeAPIReady(); }
+                        if (d.opts && d.opts.autoplay && playlist.length) _pendingPlay = startIndex || (playlist.length - 1);
+                        if (window.opener) window.opener.postMessage({ cmd: 'init_ack' }, allowedOrigin || '*');
+                    } else if (d.cmd === 'append' && Array.isArray(d.items)) {
+                        const before = playlist.length;
+                        d.items.forEach((it) => {
+                            const exists = playlist.some((p) =>
+                                (p.contentId && it.contentId && p.contentId === it.contentId) ||
+                                (p.videoId && it.videoId && p.videoId === it.videoId) ||
+                                (p.link && it.link && p.link === it.link)
+                            );
+                            if (!exists) playlist.push(it);
                         });
-                        updateNow();
+                        if (playlist.length !== before) { savePlaylist(); buildList(); }
+                    } else if (d.cmd === 'playIndex' && typeof d.index === 'number') {
+                        playIndex(d.index, { userInitiated: true });
+                    } else if (d.cmd === 'playLast') {
+                        const li = playlist.length - 1; if (li >= 0) playIndex(li, { userInitiated: true });
+                    } else if (d.cmd === 'request_init') {
+                        // ignored
                     }
-                    if (d.cmd === 'playIndex' && typeof d.index === 'number') {
-                        playIndex(d.index);
-                    }
-                    if (d.cmd === 'playLast') {
-                        var li = playlist.length - 1;
-                        if (li >= 0) playIndex(li);
-                    }
-                } catch (e) {}
+                } catch (e) { console.warn('[playerPopup] receiveMessage error', e); }
             }
             window.addEventListener('message', receiveMessage, false);
 
-            document.addEventListener('DOMContentLoaded', function () {
-                try {
-                    console.log('[playerPopup] DOMContentLoaded - restoring playlist');
-                    mergeInjected();
-                    buildList();
-                    if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-                        var tag_init = document.createElement('script');
-                        tag_init.src = 'https://www.youtube.com/iframe_api';
-                        document.head.appendChild(tag_init);
-                    } else {
-                        onYouTubeIframeAPIReady();
-                    }
-                } catch (e) {
-                    try {
-                        console.error('[playerPopup] DOMContentLoaded init error', e);
-                    } catch (e) {}
+            // Lifecycle
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('[playerPopup] DOMContentLoaded - restoring playlist');
+                mergeInjected(); buildList();
+                if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') { const tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(tag); } else { onYouTubeIframeAPIReady(); }
+                if ((!playlist || !playlist.length) && window.opener) {
+                    console.log('[playerPopup] requesting init from opener');
+                    try { window.opener.postMessage({ cmd: 'request_init' }, window.location.origin || '*'); } catch {}
                 }
-                try {
-                    if ((!playlist || !playlist.length) && window.opener) {
-                        try {
-                            console.log('[playerPopup] requesting init from opener');
-                            window.opener.postMessage(
-                                { cmd: 'request_init' },
-                                window.location.origin || '*'
-                            );
-                        } catch (e) {}
-                    }
-                } catch (e) {}
-                setTimeout(function () {
-                    try {
-                        console.log('[playerPopup] retry init after short delay');
-                        mergeInjected();
-                        buildList();
-                        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-                            var tag_retry = document.createElement('script');
-                            tag_retry.src = 'https://www.youtube.com/iframe_api';
-                            document.head.appendChild(tag_retry);
-                        } else {
-                            onYouTubeIframeAPIReady();
-                        }
-                    } catch (e) {
-                        try {
-                            console.error('[playerPopup] retry init error', e);
-                        } catch (e) {}
-                    }
-                }, 300);
             });
 
+            // YouTube IFrame API
             function onYouTubeIframeAPIReady() {
                 try {
-                    var v = playlist[startIndex] && playlist[startIndex].videoId;
+                    if (player) return; // singleton
+                    const v = (playlist[startIndex] && playlist[startIndex].videoId) || '';
                     player = new YT.Player('player', {
-                        height: '320',
-                        width: '320',
-                        videoId: v || '',
-                        playerVars: { rel: 0, modestbranding: 1, controls: 0 },
+                        height: '360', width: '640', videoId: v,
+                        playerVars: { rel: 0, modestbranding: 1, controls: 0, playsinline: 1 },
                         events: {
-                            onReady: function (e) {
+                            onReady: () => {
                                 _playerReady = true;
                                 updateNow();
-                                updatePlayControls();
                                 if (_pendingPlay !== null) {
-                                    try {
-                                        playIndex(_pendingPlay, {
-                                            userInitiated: !!_userInitiatedPlay,
-                                        });
-                                    } catch (e) {}
-                                    _pendingPlay = null;
-                                    _userInitiatedPlay = false;
+                                    const item = playlist[_pendingPlay];
+                                    if (item && item.videoId) {
+                                        try { player.loadVideoById(item.videoId); if (_userInitiatedPlay) player.playVideo(); } catch {}
+                                    }
+                                    _pendingPlay = null; _userInitiatedPlay = false;
                                 }
                             },
-                            onStateChange: function (e) {
+                            onStateChange: (e) => {
                                 if (e.data === YT.PlayerState.ENDED) playNext();
                                 updatePlayControls();
                             },
                         },
                     });
-                } catch (e) {}
+                } catch (e) { console.warn('[playerPopup] onYouTubeIframeAPIReady error', e); }
             }
+            window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
-            (function () {
-                document.getElementById('play').addEventListener('click', function () {
-                    playIndex(currentIndex(), { userInitiated: true });
-                    setTimeout(updatePlayControls, 120);
-                });
-
-                document.getElementById('pause').addEventListener('click', function () {
-                    if (player && _playerReady)
-                        try {
-                            player.pauseVideo();
-                        } catch (e) {}
-                    setTimeout(updatePlayControls, 120);
-                });
-
-                document.getElementById('next').addEventListener('click', playNext);
-                document.getElementById('prev').addEventListener('click', playPrev);
-
-                document.getElementById('clearAll').addEventListener('click', function () {
-                    playlist = [];
-                    document.getElementById('plist').innerHTML = '';
-                    savePlaylist();
-                    setIndex(0);
-                    saveIndex();
-                    updateNow();
-                });
-
-                setInterval(function () {
+            // Controls
+            (function attachControls(){
+                const playBtn = document.getElementById('play');
+                const pauseBtn = document.getElementById('pause');
+                const nextBtn = document.getElementById('next');
+                const prevBtn = document.getElementById('prev');
+                const clearBtn = document.getElementById('clearAll');
+                if (playBtn) playBtn.addEventListener('click', () => { playIndex(currentIndex(), { userInitiated: true }); setTimeout(updatePlayControls, 120); });
+                if (pauseBtn) pauseBtn.addEventListener('click', () => { if (player && _playerReady) try { player.pauseVideo(); } catch {} setTimeout(updatePlayControls, 120); });
+                if (nextBtn) nextBtn.addEventListener('click', () => playNext());
+                if (prevBtn) prevBtn.addEventListener('click', () => playPrev());
+                if (clearBtn) clearBtn.addEventListener('click', () => { playlist = []; document.getElementById('plist').innerHTML=''; savePlaylist(); setIndex(0); saveIndex(); updateNow(); });
+                setInterval(() => {
                     if (!_playerReady || !player) return;
                     try {
-                        var pos =
-                            player.getCurrentTime && player.getDuration
-                                ? (player.getCurrentTime() / Math.max(1, player.getDuration())) *
-                                  100
-                                : 0;
-                        document.getElementById('progBar').style.width = (pos || 0) + '%';
-                        var dur = player.getDuration ? Math.floor(player.getDuration()) : 0;
-                        var cur = player.getCurrentTime ? Math.floor(player.getCurrentTime()) : 0;
-                        function fmt(s) {
-                            return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
-                        }
-                        document.getElementById('time').textContent = fmt(cur) + ' / ' + fmt(dur);
-                    } catch (e) {}
+                        const dur = player.getDuration ? Math.max(0, Math.floor(player.getDuration())) : 0;
+                        const cur = player.getCurrentTime ? Math.max(0, Math.floor(player.getCurrentTime())) : 0;
+                        const pos = dur > 0 ? (cur / dur) * 100 : 0;
+                        const fmt = (s) => Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+                        const bar = document.getElementById('progBar'); if (bar) bar.style.width = (pos || 0) + '%';
+                        const time = document.getElementById('time'); if (time) time.textContent = fmt(cur) + ' / ' + fmt(dur);
+                    } catch {}
                 }, 800);
             })();
+
+            // Close notifications
+            if (window.opener) {
+                const notifyClose = () => { try { window.opener.postMessage({ cmd: '__popup_closed' }, window.location.origin || '*'); } catch {} };
+                window.addEventListener('beforeunload', notifyClose);
+                window.addEventListener('unload', notifyClose);
+                window.addEventListener('pagehide', notifyClose);
+            }
         </script>
     </body>
-</html>
+    </html>
