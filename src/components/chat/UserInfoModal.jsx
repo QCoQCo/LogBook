@@ -79,7 +79,12 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                                         e.target.src = '/img/userProfile-ex.png';
                                     }}
                                 />
-                                <Link to={`/blog?userId=${userInfo.userId}`}>
+                                <Link
+                                    to={`/blog?userId=${userInfo.userId}`}
+                                    onClick={() => {
+                                        onClose();
+                                    }}
+                                >
                                     <p>블로그 가기</p>
                                 </Link>
                             </div>

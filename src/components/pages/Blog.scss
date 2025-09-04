@@ -228,6 +228,7 @@
                     background-color: #e6ffff;
                     margin: 0 auto;
                     min-height: 550px;
+                    border-radius: 15px;
                     overflow: hidden;
 
                     .react-grid-item {
@@ -236,6 +237,7 @@
                         transition-property: left, top, width, height;
                         border-radius: 10px;
                         overflow: hidden;
+                        box-shadow: 5px 5px 6px rgba(0, 0, 0, 0.2);
 
                         a {
                             display: block;
