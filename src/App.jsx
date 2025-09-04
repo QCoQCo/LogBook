@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import * as Common from './components/common';
 import * as Pages from './components/pages';
-import { LogBookProvider, AuthProvider } from './context/LogBookContext';
+import { LogBookProvider, AuthProvider, YTPopupProvider } from './context/LogBookContext';
 
 import './App.css';
 
@@ -68,27 +68,29 @@ function App() {
     return (
         <AuthProvider>
             <LogBookProvider>
-                <BrowserRouter>
-                    <Routes>
-                        <Route path='/' element={<Layout />}>
-                            <Route index element={<Pages.HomePage />} />
-                            <Route path='/chat' element={<Pages.ChatPage />} />
-                            <Route
-                                path='/playlist/:playId'
-                                element={
-                                    <Pages.Playlist
-                                        playlist={playlist}
-                                        addSong={addSong}
-                                        updatePlaylistSongs={updatePlaylistSongs}
-                                        deletePlaylistSongs={deletePlaylistSongs}
-                                    />
-                                }
-                            />
-                            <Route path='/blog' element={<Pages.Blog />} />
-                            <Route path='/signUp' element={<Pages.SignUp />} />
-                        </Route>
-                    </Routes>
-                </BrowserRouter>
+                <YTPopupProvider>
+                    <BrowserRouter>
+                        <Routes>
+                            <Route path='/' element={<Layout />}>
+                                <Route index element={<Pages.HomePage />} />
+                                <Route path='/chat' element={<Pages.ChatPage />} />
+                                <Route
+                                    path='/playlist/:playId'
+                                    element={
+                                        <Pages.Playlist
+                                            playlist={playlist}
+                                            addSong={addSong}
+                                            updatePlaylistSongs={updatePlaylistSongs}
+                                            deletePlaylistSongs={deletePlaylistSongs}
+                                        />
+                                    }
+                                />
+                                <Route path='/blog' element={<Pages.Blog />} />
+                                <Route path='/signUp' element={<Pages.SignUp />} />
+                            </Route>
+                        </Routes>
+                    </BrowserRouter>
+                </YTPopupProvider>
             </LogBookProvider>
         </AuthProvider>
     );
