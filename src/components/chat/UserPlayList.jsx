@@ -10,7 +10,7 @@ import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
-const UserPlaylist = () => {
+const UserPlaylist = ({ openYTPopup, playTrackInPopup, currentTrack, isPopupOpen }) => {
     const { currentUser, isLogin } = useAuth();
     const { currentChatRoom } = useLogBook();
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
@@ -18,6 +18,7 @@ const UserPlaylist = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [currentSong, setCurrentSong] = useState(null);
+    const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
 
     // 플레이리스트 데이터 로드
     const loadPlaylistData = useCallback(async () => {
@@ -64,23 +65,69 @@ const UserPlaylist = () => {
         );
     }, [playlistData]);
 
+    // 선택된 플레이리스트의 노래들만 필터링
+    const filteredSongs = useMemo(() => {
+        if (!selectedPlaylistId) {
+            return allSongs;
+        }
+        return allSongs.filter((song) => song.playlistId === selectedPlaylistId);
+    }, [allSongs, selectedPlaylistId]);
+
+    // 플레이리스트 선택 핸들러
+    const handlePlaylistSelect = useCallback((playlistId) => {
+        setSelectedPlaylistId(playlistId);
+    }, []);
+
+    // 플레이리스트 재생 핸들러
+    const handlePlayPlaylist = useCallback(
+        (playlist) => {
+            const playlistSongs =
+                playlist.songs?.map((song) => ({
+                    ...song,
+                    playlistTitle: playlist.title,
+                    playlistId: playlist.playId,
+                    playlistDescription: playlist.description,
+                })) || [];
+
+            if (openYTPopup && playlistSongs.length > 0) {
+                openYTPopup(playlistSongs, 0, { clearOnClose: true });
+            }
+        },
+        [openYTPopup]
+    );
+
     // YouTube 링크에서 비디오 ID 추출
     const extractVideoId = useCallback((url) => {
         const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
         return match ? match[1] : null;
     }, []);
 
-    // 노래 선택 핸들러
-    const handleSongSelect = useCallback((song) => {
-        setCurrentSong(song);
-        // 여기에 실제 음악 재생 로직 추가 가능
-        console.log('선택된 노래:', song.title);
-    }, []);
+    // 노래 선택 핸들러 - playerPopup 사용
+    const handleSongSelect = useCallback(
+        (song) => {
+            setCurrentSong(song);
+            console.log('선택된 노래:', song.title);
+
+            // playerPopup으로 재생
+            if (openYTPopup && song.link) {
+                openYTPopup([song], 0, { clearOnClose: true });
+            }
+        },
+        [openYTPopup]
+    );
 
     // 외부 링크로 이동
     const handleOpenLink = useCallback((link) => {
         window.open(link, '_blank', 'noopener,noreferrer');
     }, []);
+
+    // 전체 플레이리스트 재생
+    const handlePlayAll = useCallback(() => {
+        const songsToPlay = selectedPlaylistId ? filteredSongs : allSongs;
+        if (openYTPopup && songsToPlay.length > 0) {
+            openYTPopup(songsToPlay, 0, { clearOnClose: true });
+        }
+    }, [openYTPopup, allSongs, filteredSongs, selectedPlaylistId]);
 
     // 채팅방에 음악 공유
     const handleShareToChat = useCallback(
@@ -169,24 +216,57 @@ const UserPlaylist = () => {
     return (
         <div className='user-playlist-comp'>
             <div className='playlist-header'>
-                <h4>🎵 플레이리스트</h4>
-                {currentSong && (
-                    <div className='current-song-info'>
-                        <small>재생 중: {currentSong.title}</small>
-                    </div>
-                )}
+                <div className='playlist-title-section'>
+                    <h4>🎵 플레이리스트</h4>
+                    <div className='playlist-title'></div>
+                    {filteredSongs.length > 0 && (
+                        <button className='play-all-btn' onClick={handlePlayAll} title='전체 재생'>
+                            <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
+                                <path d='M8 5v14l11-7z' />
+                            </svg>
+                            {selectedPlaylistId ? '선택된 플레이리스트 재생' : '전체 재생'}
+                        </button>
+                    )}
+                </div>
+                <div className='playlist-list-section'>
+                    {playlistData.length > 1 && (
+                        <div className='playlist-selector'>
+                            <div className='playlist-tabs'>
+                                <button
+                                    className={`playlist-tab ${
+                                        !selectedPlaylistId ? 'active' : ''
+                                    }`}
+                                    onClick={() => handlePlaylistSelect(null)}
+                                >
+                                    전체 ({allSongs.length})
+                                </button>
+                                {playlistData.map((playlist) => (
+                                    <button
+                                        key={playlist.playId}
+                                        className={`playlist-tab ${
+                                            selectedPlaylistId === playlist.playId ? 'active' : ''
+                                        }`}
+                                        onClick={() => handlePlaylistSelect(playlist.playId)}
+                                    >
+                                        {playlist.title} ({playlist.songs?.length || 0})
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* 메인 플레이리스트 스와이퍼 */}
             <Swiper
-                loop={allSongs.length > 1}
+                loop={filteredSongs.length > 1}
                 spaceBetween={10}
                 navigation={true}
                 thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
                 modules={[FreeMode, Navigation, Thumbs]}
                 className='user-playlist-swiper'
             >
-                {allSongs.map((song, index) => (
+                {filteredSongs.map((song, index) => (
                     <SwiperSlide key={`${song.contentId}-${index}`}>
                         <div className='song-card'>
                             <div className='song-thumbnail'>
@@ -228,7 +308,7 @@ const UserPlaylist = () => {
             </Swiper>
 
             {/* 썸네일 스와이퍼 */}
-            {allSongs.length > 1 && (
+            {filteredSongs.length > 1 && (
                 <Swiper
                     onSwiper={setThumbsSwiper}
                     loop={true}
@@ -239,7 +319,7 @@ const UserPlaylist = () => {
                     modules={[FreeMode, Navigation, Thumbs]}
                     className='user-playlist-thumbs'
                 >
-                    {allSongs.map((song, index) => (
+                    {filteredSongs.map((song, index) => (
                         <SwiperSlide key={`thumb-${song.contentId}-${index}`}>
                             <div className='thumb-card'>
                                 <img

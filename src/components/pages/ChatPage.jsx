@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import RGL, { WidthProvider } from 'react-grid-layout';
-import { useLogBook, useAuth } from '../../context/LogBookContext';
+import { useLogBook, useAuth, useYTPopup } from '../../context/LogBookContext';
 import * as Chat from '../chat';
 
 import './ChatPage.scss';
@@ -29,6 +29,9 @@ const ChatPage = () => {
 
     // Auth Context 사용
     const { currentUser: authUser, isLogin } = useAuth();
+
+    // YouTube Popup Context 사용
+    const { openYTPopup, playTrackInPopup, currentTrack, isPopupOpen } = useYTPopup();
 
     // 채팅 관련 상태들을 하나의 객체로 통합
     const [chatState, setChatState] = useState(() => ({
@@ -452,6 +455,10 @@ const ChatPage = () => {
                                 currentUser={chatState.currentUser}
                                 handleDeleteMessage={handleDeleteMessage}
                                 messagesEndRef={messagesEndRef}
+                                openYTPopup={openYTPopup}
+                                playTrackInPopup={playTrackInPopup}
+                                currentTrack={currentTrack}
+                                isPopupOpen={isPopupOpen}
                             />
                         </div>
                         <div className='chat-area-input'>
@@ -495,7 +502,12 @@ const ChatPage = () => {
                         <Chat.ChatRoomList />
                     </div>
                     <div className='user-playlist-area'>
-                        <Chat.UserPlaylist />
+                        <Chat.UserPlaylist
+                            openYTPopup={openYTPopup}
+                            playTrackInPopup={playTrackInPopup}
+                            currentTrack={currentTrack}
+                            isPopupOpen={isPopupOpen}
+                        />
                     </div>
                 </div>
             </div>

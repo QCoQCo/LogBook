@@ -56,7 +56,16 @@ const formatMessageTimestamp = (timestamp) => {
     }
 };
 
-const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRef }) => {
+const ChatMessage = ({
+    messages,
+    currentUser,
+    handleDeleteMessage,
+    messagesEndRef,
+    openYTPopup,
+    playTrackInPopup,
+    currentTrack,
+    isPopupOpen,
+}) => {
     const { getUserProfilePhoto, getUserInfo, userDataLoaded, userDataLoading } = useLogBook();
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -79,12 +88,25 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
         setSelectedUser(null);
     }, []);
 
-    // 음악 링크 클릭 핸들러
-    const handleMusicLinkClick = useCallback((link) => {
-        if (link) {
-            window.open(link, '_blank', 'noopener,noreferrer');
-        }
-    }, []);
+    // 음악 링크 클릭 핸들러 - playerPopup 사용
+    const handleMusicLinkClick = useCallback(
+        (musicData) => {
+            if (musicData && musicData.link && openYTPopup) {
+                // musicData를 playerPopup 형식으로 변환
+                const songData = {
+                    title: musicData.title,
+                    link: musicData.link,
+                    thumbnail: musicData.thumbnail,
+                    contentId: musicData.contentId,
+                };
+                openYTPopup([songData], 0, { clearOnClose: true });
+            } else if (musicData && musicData.link) {
+                // fallback: 새 탭에서 열기
+                window.open(musicData.link, '_blank', 'noopener,noreferrer');
+            }
+        },
+        [openYTPopup]
+    );
 
     // 메시지 데이터를 메모이제이션하여 불필요한 재계산 방지
     const processedMessages = useMemo(() => {
@@ -173,9 +195,7 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
                                         </div>
                                         <div
                                             className='music-share-card'
-                                            onClick={() =>
-                                                handleMusicLinkClick(message.musicData.link)
-                                            }
+                                            onClick={() => handleMusicLinkClick(message.musicData)}
                                         >
                                             <div className='music-thumbnail'>
                                                 <img
@@ -196,7 +216,9 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
                                                 <div className='music-playlist'>
                                                     {message.musicData.playlistTitle}
                                                 </div>
-                                                <div className='click-hint'>클릭하여 재생하기</div>
+                                                <div className='click-hint'>
+                                                    클릭하여 팝업 플레이어로 재생하기
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
