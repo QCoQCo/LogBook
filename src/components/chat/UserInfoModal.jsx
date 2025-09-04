@@ -79,6 +79,9 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                                         e.target.src = '/img/userProfile-ex.png';
                                     }}
                                 />
+                                <Link to={`/blog?userId=${userInfo.userId}`}>
+                                    <p>블로그 가기</p>
+                                </Link>
                             </div>
                             <div className='user-details'>
                                 <h4 className='user-nickname'>{userInfo.nickName}</h4>
@@ -116,6 +119,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                                         src='/img/LogBook-Blog-Icon.png'
                                         alt='프로필의 블로그 보러가기'
                                     />
+                                    <p className='tooltip'>블로그 가기</p>
                                 </Link>
                             </div>
                         )}

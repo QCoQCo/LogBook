@@ -72,6 +72,7 @@
             padding: 24px;
 
             .user-profile-section {
+                position: relative;
                 display: flex;
                 gap: 16px;
                 margin-bottom: 24px;
@@ -85,6 +86,27 @@
                         border-radius: 50%;
                         object-fit: cover;
                         border: 3px solid #e1e8ed;
+                    }
+
+                    p {
+                        display: none;
+                    }
+
+                    &:hover {
+                        p {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            display: flex;
+                            width: 80px;
+                            height: 80px;
+                            opacity: 0.6;
+                            border-radius: 50%;
+                            justify-content: center;
+                            background-color: #121212;
+                            color: #ffffff;
+                            align-items: center;
+                        }
                     }
                 }
 
@@ -195,12 +217,34 @@
 
             .blog-link-area {
                 position: absolute;
-                top: 30px;
-                right: 30px;
+                top: 25px;
+                right: 25px;
 
                 img {
-                    width: 30px;
-                    height: 30px;
+                    width: 40px;
+                    height: 40px;
+                }
+
+                p {
+                    display: none;
+                }
+
+                &:hover {
+                    p {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        display: flex;
+                        width: 40px;
+                        height: 40px;
+                        color: #ffffff;
+                        font-size: 11px;
+                        text-align: center;
+                        border-radius: 50%;
+                        align-items: center;
+                        background-color: #121212;
+                        opacity: 0.6;
+                    }
                 }
             }
         }
