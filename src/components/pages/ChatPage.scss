@@ -15,6 +15,7 @@ $text-primary: #fff;
 $text-secondary: #ccc;
 $text-tertiary: #aaa;
 $text-muted: #666;
+$text-dark: #121212;
 
 $border-light: rgba(255, 255, 255, 0.2);
 $border-medium: rgba(255, 255, 255, 0.3);
@@ -47,7 +48,7 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
 // ==========================================
 #ChatPage {
     color: $text-primary;
-    text-align: center;
+    // text-align: center;
     background-color: $primary-bg;
     // ==========================================
     // CONTAINER LAYOUT
@@ -423,7 +424,7 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                                 color: #000;
 
                                 .message-header {
-                                    text-align: left;
+                                    flex-direction: row;
                                 }
                             }
                         }
@@ -471,17 +472,32 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                             min-width: 0; // flexbox에서 텍스트 오버플로우 방지
 
                             .message-header {
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
                                 margin-bottom: 5px;
                                 font-size: $font-size-sm;
+                                gap: $spacing-xs;
 
                                 .user-name {
                                     font-weight: 600;
-                                    margin-right: $spacing-xs;
+                                    flex: 1;
                                 }
 
                                 .timestamp {
                                     opacity: 0.7;
                                     font-size: $font-size-xs;
+                                    white-space: nowrap;
+                                    color: var(--text-secondary);
+                                    font-weight: 400;
+
+                                    // 날짜가 긴 경우를 대비해 최소 폭 설정
+                                    min-width: fit-content;
+
+                                    // 반응형 처리
+                                    @media (max-width: 768px) {
+                                        font-size: 10px;
+                                    }
                                 }
 
                                 .delete-button {
@@ -490,10 +506,10 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                                     color: #ff4444;
                                     cursor: pointer;
                                     font-size: $font-size-xs;
-                                    margin-left: $spacing-xs;
                                     padding: 2px 6px;
                                     border-radius: 4px;
                                     transition: $transition-fast;
+                                    flex-shrink: 0;
 
                                     &:hover {
                                         background-color: rgba(255, 68, 68, 0.1);
@@ -1352,7 +1368,7 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
     .music-share-text {
         margin-bottom: $spacing-sm;
         font-size: $font-size-sm;
-        color: $text-secondary;
+        color: $text-dark;
     }
 
     .music-share-card {
