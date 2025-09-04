@@ -178,7 +178,7 @@ const Playlist = ({
     };
 
     return (
-        <div className='Playlist'>
+        <div id='Playlist'>
             <div className='playlist-title'>
                 {!isEditingTitle ? (
                     <div className='title-view'>

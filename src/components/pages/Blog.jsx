@@ -16,6 +16,7 @@ const Blog = () => {
     const { clickedItem, isBlogEditting, getUserInfo } = useLogBook();
     // Modal 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState(1);
 
     const releaseModal = () => {
         setIsModalOpen(false);
@@ -29,7 +30,56 @@ const Blog = () => {
         <div id='Blog'>
             <div className='blog-wrapper'>
                 <BlogUserInfo userId={userId} />
-                <BlogGridLayout userId={userId} enableModal={enableModal} />
+                <div className='blog-wrapper-aria'>
+                    <div className='blog-wrapper-tab'>
+                        <button
+                            type='button'
+                            className={activeTab === 1 ? 'home active' : 'home'}
+                            onClick={() => setActiveTab(1)}
+                            aria-label='home'
+                            title='home'
+                        >
+                            <img
+                                src='/img/icon-home.svg'
+                                alt='home'
+                                style={{ width: 30, height: 30, display: 'block', color: 'black' }}
+                            />
+                        </button>
+                        <button
+                            type='button'
+                            className={activeTab === 2 ? 'article active' : 'article'}
+                            onClick={() => setActiveTab(2)}
+                            aria-label='article'
+                            title='article'
+                        >
+                            <img
+                                src='/img/icon-edit.svg'
+                                alt='article'
+                                style={{ width: 30, height: 30, display: 'block' }}
+                            />
+                        </button>
+                        <button
+                            type='button'
+                            className={activeTab === 3 ? 'playlist active' : 'playlist'}
+                            onClick={() => setActiveTab(3)}
+                            aria-label='playlist'
+                            title='playlist'
+                        >
+                            <img
+                                src='/img/icon-playlist.svg'
+                                alt='playlist'
+                                style={{ width: 30, height: 30, display: 'block' }}
+                            />
+                        </button>
+                    </div>
+                    <div className='blog-wrapper-contents'>
+                        {activeTab === 1 && (
+                            <BlogGridLayout userId={userId} enableModal={enableModal} />
+                        )}
+                        {activeTab === 2 && <div>Article</div>}
+                        {activeTab === 3 && <div>Playlist</div>}
+                    </div>
+                </div>
             </div>
             {isModalOpen && (
                 <div className='modal-overlay' onClick={releaseModal}>

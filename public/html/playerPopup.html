@@ -6,41 +6,208 @@
         <title>LogBook Player</title>
         <link rel="icon" href="/img/icon-image.png" type="image/png" />
         <style>
-            html, body { height: 100%; margin: 0; background: #f6f8fb; font-family: system-ui, Arial; color: #222; }
-            *, *::before, *::after { box-sizing: border-box; }
-            #wrap { display: flex; height: 100%; overflow-x: hidden; margin: 0 auto; }
-            .left { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
-            .right { width: 400px; border-left: 1px solid #e6e9ee; background: #fff; padding: 12px 14px; }
-            @media (max-width: 1000px) {
-                .left { flex: 0 0 60%; }
-                .right { flex: 0 0 40%; }
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                background: #f6f8fb;
+                font-family: system-ui, Arial;
+                color: #222;
             }
-            #player { width: 100%; aspect-ratio: 16/9; background: #000; }
-            .controlWrap { display: flex; gap: 16px; flex-direction: column; width: 100%; }
-            .progress { width: 100%; max-width: 640px; height: 6px; background: #e9eef7; border-radius: 3px; overflow: hidden; }
-            .progress > i { display: block; height: 100%; background: linear-gradient(90deg, #4aa3ff, #6dd3ff); width: 0%; }
-            .controls { display: flex; align-items: center; gap: 12px; max-width: 640px; width: 100%; justify-content: flex-start; }
-            .ctrl-btn { width: 36px; height: 36px; border-radius: 6px; border: none; background: #fff; box-shadow: 0 2px 6px rgba(10,20,40,.06); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-            .time { font-size: 12px; color: #556; }
-            .playlist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-            .playlist-title { font-weight: 700; }
-            .plist { overflow: auto; max-height: calc(100% - 48px); padding-right: 6px; }
-            .p-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #f0f2f6; cursor: pointer; }
-            .p-item .p-thumb { width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #f3f6fa; }
-            .p-item .p-thumb img { width: 100%; height: 100%; object-fit: cover; }
-            .p-meta { flex: 1; }
-            .p-title { font-size: 13px; line-height: 1.2; color: #1a1a1a; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
-            .p-actions { display: flex; gap: 8px; align-items: center; }
-            .p-actions button { border: none; background: transparent; cursor: pointer; color: #5b6b80; }
-            .p-actions button:hover { color: #1e88e5; }
-            .playlist-controls .clear-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 10px; height: 36px; border-radius: 8px; background: transparent; border: 1px solid #eee; color: #b71c1c; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.04); transition: background .12s ease, transform .08s ease, box-shadow .12s, color .12s; }
-            .playlist-controls .clear-btn:hover { background: rgba(183,28,28,.06); transform: translateY(-1px); }
-            .playlist-controls .clear-btn:active { transform: translateY(0); box-shadow: none; }
-            .playlist-controls .clear-btn[disabled] { opacity: .5; cursor: not-allowed; }
-            .p-actions button svg { transition: transform .12s, color .12s; }
-            .p-item.active .p-title { font-weight: 700; }
-            .p-item.active .p-actions button { color: #1e88e5; font-weight: 700; }
-            .p-item.active .p-actions button svg { transform: scale(1.06); }
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+            #wrap {
+                display: flex;
+                height: 100%;
+                overflow-x: hidden;
+                margin: 0 auto;
+            }
+            .left {
+                flex: 1;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .right {
+                width: 400px;
+                border-left: 1px solid #e6e9ee;
+                background: #fff;
+                padding: 12px 14px;
+            }
+            @media (max-width: 1000px) {
+                .left {
+                    flex: 0 0 60%;
+                }
+                .right {
+                    flex: 0 0 40%;
+                }
+            }
+            #player {
+                width: 100%;
+                aspect-ratio: 16/9;
+                background: #000;
+            }
+            .controlWrap {
+                display: flex;
+                gap: 16px;
+                flex-direction: column;
+                width: 100%;
+            }
+            .progress {
+                width: 100%;
+                max-width: 640px;
+                height: 6px;
+                background: #e9eef7;
+                border-radius: 3px;
+                overflow: hidden;
+            }
+            .progress > i {
+                display: block;
+                height: 100%;
+                background: linear-gradient(90deg, #4aa3ff, #6dd3ff);
+                width: 0%;
+            }
+            .controls {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                max-width: 640px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .ctrl-btn {
+                width: 36px;
+                height: 36px;
+                border-radius: 6px;
+                border: none;
+                background: #fff;
+                box-shadow: 0 2px 6px rgba(10, 20, 40, 0.06);
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .time {
+                font-size: 12px;
+                color: #556;
+            }
+            .playlist-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 8px;
+            }
+            .playlist-title {
+                font-weight: 700;
+            }
+            .plist {
+                overflow: auto;
+                max-height: calc(100% - 48px);
+                padding-right: 6px;
+            }
+            .p-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px;
+                border-bottom: 1px solid #f0f2f6;
+                cursor: pointer;
+            }
+            .p-item .p-thumb {
+                width: 48px;
+                height: 48px;
+                border-radius: 6px;
+                overflow: hidden;
+                background: #f3f6fa;
+            }
+            .p-item .p-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .p-meta {
+                flex: 1;
+            }
+            .p-title {
+                font-size: 13px;
+                line-height: 1.2;
+                color: #1a1a1a;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .p-actions {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            .p-actions button {
+                border: none;
+                background: transparent;
+                cursor: pointer;
+                color: #5b6b80;
+            }
+            .p-actions button:hover {
+                color: #1e88e5;
+            }
+
+            .playlist-controls .ctrl-btn {
+                width: 32px;
+                height: 32px;
+                padding: 0;
+                font-size: 16px;
+            }
+
+            .playlist-controls .clear-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 6px 10px;
+                height: 36px;
+                border-radius: 8px;
+                background: transparent;
+                border: 1px solid #eee;
+                color: #b71c1c;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+                transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.12s,
+                    color 0.12s;
+            }
+            .playlist-controls .clear-btn:hover {
+                background: rgba(183, 28, 28, 0.06);
+                transform: translateY(-1px);
+            }
+            .playlist-controls .clear-btn:active {
+                transform: translateY(0);
+                box-shadow: none;
+            }
+            .playlist-controls .clear-btn[disabled] {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            .p-actions button svg {
+                transition: transform 0.12s, color 0.12s;
+            }
+            .p-item.active .p-title {
+                font-weight: 700;
+            }
+            .p-item.active .p-actions button {
+                color: #1e88e5;
+                font-weight: 700;
+            }
+            .p-item.active .p-actions button svg {
+                transform: scale(1.06);
+            }
         </style>
     </head>
     <body>
@@ -51,26 +218,56 @@
                     <div class="progress" id="progress"><i id="progBar"></i></div>
                     <div class="controls">
                         <button id="prev" class="ctrl-btn" title="이전" aria-label="이전">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                                <path d="M6 6v12l8-6-8-6zM18 6v12h-2V6h2z"/>
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden
+                            >
+                                <path d="M6 6v12h2V6H6zm4 6l8 6V6l-8 6z" />
                             </svg>
                         </button>
                         <button id="play" class="ctrl-btn" title="재생" aria-label="재생">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden
+                            >
                                 <path d="M8 5v14l11-7z" />
                             </svg>
                         </button>
-                        <button id="pause" class="ctrl-btn" title="일시정지" aria-label="일시정지" style="display:none">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                        <button
+                            id="pause"
+                            class="ctrl-btn"
+                            title="일시정지"
+                            aria-label="일시정지"
+                            style="display: none"
+                        >
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden
+                            >
                                 <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
                             </svg>
                         </button>
                         <button id="next" class="ctrl-btn" title="다음" aria-label="다음">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                                <path d="M6 6v12h2V6H6zm4 6l8 6V6l-8 6z"/>
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden
+                            >
+                                <path d="M6 6v12l8-6-8-6zM18 6v12h-2V6h2z" />
                             </svg>
                         </button>
-                        <div style="flex:1"></div>
+                        <div style="flex: 1"></div>
                         <div class="time" id="time">0:00 / 0:00</div>
                     </div>
                 </div>
@@ -78,8 +275,22 @@
             <div class="right">
                 <div class="playlist-header">
                     <div class="playlist-title">재생 목록</div>
+
                     <div class="playlist-controls">
-                        <button id="clearAll" class="clear-btn" title="목록 전체 삭제" aria-label="목록 전체 삭제">전체삭제</button>
+                        <button id="shuffle" class="ctrl-btn" title="셔플" aria-label="셔플">
+                            🔀
+                        </button>
+                        <button id="repeat" class="ctrl-btn" title="반복" aria-label="반복">
+                            🔁
+                        </button>
+                        <button
+                            id="clearAll"
+                            class="clear-btn"
+                            title="목록 전체 삭제"
+                            aria-label="목록 전체 삭제"
+                        >
+                            전체삭제
+                        </button>
                     </div>
                 </div>
                 <div class="plist" id="plist"></div>
@@ -93,44 +304,62 @@
             let __clearOnClose = false;
             const STORAGE_KEY = 'logbook_yt_playlist_v1';
             const STORAGE_INDEX_KEY = 'logbook_yt_playlist_index_v1';
+            const STORAGE_SHUFFLE_KEY = 'logbook_yt_playlist_shuffle_v1';
+            const STORAGE_REPEAT_KEY = 'logbook_yt_playlist_repeat_v1';
             let playlist = [];
             let player = null;
             let _playerReady = false;
             let _pendingPlay = null;
             let _userInitiatedPlay = false;
-
-            console.log('[playerPopup] script loaded');
+            let _shuffle = false;
+            let _repeat = 'off'; // 'off' | 'all' | 'one'
 
             // Storage helpers
             function savePlaylist() {
-                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist)); } catch {}
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
+                } catch {}
             }
             function saveIndex() {
-                try { localStorage.setItem(STORAGE_INDEX_KEY, String(currentIndex())); } catch {}
+                try {
+                    localStorage.setItem(STORAGE_INDEX_KEY, String(currentIndex()));
+                } catch {}
             }
 
             // Index helpers
-            function currentIndex() { return (window._curIndex = window._curIndex ?? startIndex); }
-            function setIndex(i) { window._curIndex = i; }
+            function currentIndex() {
+                return (window._curIndex = window._curIndex ?? startIndex);
+            }
+            function setIndex(i) {
+                window._curIndex = i;
+            }
 
             // Merge injected items + restore saved
             function mergeInjected() {
                 try {
                     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
                     if (Array.isArray(saved)) playlist = saved.slice();
-                    console.log('[playerPopup] mergeInjected - saved playlist length:', playlist.length);
-                } catch (e) { playlist = []; console.warn('[playerPopup] mergeInjected parse error', e); }
+                    console.log(
+                        '[playerPopup] mergeInjected - saved playlist length:',
+                        playlist.length
+                    );
+                } catch (e) {
+                    playlist = [];
+                    console.warn('[playerPopup] mergeInjected parse error', e);
+                }
                 (Array.isArray(__injected) ? __injected : []).forEach((it) => {
-                    const exists = playlist.some((p) =>
-                        (p.contentId && it.contentId && p.contentId === it.contentId) ||
-                        (p.videoId && it.videoId && p.videoId === it.videoId) ||
-                        (p.link && it.link && p.link === it.link)
+                    const exists = playlist.some(
+                        (p) =>
+                            (p.contentId && it.contentId && p.contentId === it.contentId) ||
+                            (p.videoId && it.videoId && p.videoId === it.videoId) ||
+                            (p.link && it.link && p.link === it.link)
                     );
                     if (!exists) playlist.push(it);
                 });
                 try {
                     const savedIdx = parseInt(localStorage.getItem(STORAGE_INDEX_KEY), 10);
-                    if (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < playlist.length) startIndex = savedIdx;
+                    if (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < playlist.length)
+                        startIndex = savedIdx;
                 } catch {}
             }
 
@@ -140,7 +369,8 @@
                 if (!wrap) return;
                 wrap.innerHTML = '';
                 if (!playlist || !playlist.length) {
-                    wrap.innerHTML = '<div class="empty" style="padding:16px;color:#556">재생 목록이 비어 있습니다.</div>';
+                    wrap.innerHTML =
+                        '<div class="empty" style="padding:16px;color:#556">재생 목록이 비어 있습니다.</div>';
                     console.log('[playerPopup] buildList - empty playlist');
                     const clearBtn = document.getElementById('clearAll');
                     if (clearBtn) clearBtn.disabled = true;
@@ -152,20 +382,32 @@
                     const el = document.createElement('div');
                     el.className = 'p-item';
                     el.innerHTML =
-                        '<div class="p-thumb"><img alt="thumb" src="' + (it.thumbnail || '') + '"/></div>' +
-                        '<div class="p-meta"><div class="p-title">' + (it.title || '') + '</div></div>' +
+                        '<div class="p-thumb"><img alt="thumb" src="' +
+                        (it.thumbnail || '') +
+                        '"/></div>' +
+                        '<div class="p-meta"><div class="p-title">' +
+                        (it.title || '') +
+                        '</div></div>' +
                         '<div class="p-actions">' +
-                            '<button class="act-play" title="재생" aria-label="재생">' +
-                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z"/></svg>' +
-                            '</button>' +
-                            '<button class="act-del" title="삭제" aria-label="삭제">' +
-                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-                            '</button>' +
+                        '<button class="act-play" title="재생" aria-label="재생">' +
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z"/></svg>' +
+                        '</button>' +
+                        '<button class="act-del" title="삭제" aria-label="삭제">' +
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                        '</button>' +
                         '</div>';
                     const playBtn = el.querySelector('.act-play');
                     const delBtn = el.querySelector('.act-del');
-                    if (playBtn) playBtn.addEventListener('click', (e) => { e.stopPropagation(); playIndex(idx, { userInitiated: true }); });
-                    if (delBtn) delBtn.addEventListener('click', (e) => { e.stopPropagation(); removeIndex(idx); });
+                    if (playBtn)
+                        playBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            playIndex(idx, { userInitiated: true });
+                        });
+                    if (delBtn)
+                        delBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            removeIndex(idx);
+                        });
                     el.addEventListener('click', () => playIndex(idx, { userInitiated: true }));
                     wrap.appendChild(el);
                 });
@@ -184,22 +426,71 @@
                 const playBtn = document.getElementById('play');
                 const pauseBtn = document.getElementById('pause');
                 if (!playBtn || !pauseBtn) return;
-                if (!_playerReady || !player) { playBtn.style.display = 'inline-flex'; pauseBtn.style.display = 'none'; return; }
-                let state = null; try { state = player.getPlayerState(); } catch {}
+                if (!_playerReady || !player) {
+                    playBtn.style.display = 'inline-flex';
+                    pauseBtn.style.display = 'none';
+                    return;
+                }
+                let state = null;
+                try {
+                    state = player.getPlayerState();
+                } catch {}
                 if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
-                    playBtn.style.display = 'none'; pauseBtn.style.display = 'inline-flex';
-                } else { playBtn.style.display = 'inline-flex'; pauseBtn.style.display = 'none'; }
+                    playBtn.style.display = 'none';
+                    pauseBtn.style.display = 'inline-flex';
+                } else {
+                    playBtn.style.display = 'inline-flex';
+                    pauseBtn.style.display = 'none';
+                }
             }
 
             function removeIndex(i) {
                 if (!playlist[i]) return;
                 playlist.splice(i, 1);
                 if (currentIndex() >= playlist.length) setIndex(Math.max(0, playlist.length - 1));
-                savePlaylist(); saveIndex(); buildList(); updateNow();
+                savePlaylist();
+                saveIndex();
+                buildList();
+                updateNow();
             }
 
-            function playNext() { if (!playlist.length) return; const i = (currentIndex() + 1) % playlist.length; playIndex(i, { userInitiated: true }); }
-            function playPrev() { if (!playlist.length) return; const i = (currentIndex() - 1 + playlist.length) % playlist.length; playIndex(i, { userInitiated: true }); }
+            function playNext() {
+                if (!playlist.length) return;
+                // 'one' 반복이면 같은 인덱스 재생
+                if (_repeat === 'one') {
+                    playIndex(currentIndex(), { userInitiated: true });
+                    return;
+                }
+                // 셔플 모드
+                if (_shuffle) {
+                    let next = Math.floor(Math.random() * playlist.length);
+                    if (playlist.length > 1) {
+                        let attempts = 0;
+                        while (next === currentIndex() && attempts++ < 8) {
+                            next = Math.floor(Math.random() * playlist.length);
+                        }
+                    }
+                    playIndex(next, { userInitiated: true });
+                    return;
+                }
+                // 기본 순차 재생
+                const nextIndex = currentIndex() + 1;
+                if (nextIndex >= playlist.length) {
+                    if (_repeat === 'all') {
+                        playIndex(0, { userInitiated: true });
+                    } else {
+                        // 끝에 도달하면 정지(혹은 원하면 플레이 상태 유지)
+                        updatePlayControls();
+                    }
+                    return;
+                }
+                playIndex(nextIndex, { userInitiated: true });
+            }
+            function playPrev() {
+                if (!playlist.length) return;
+                const i = (currentIndex() - 1 + playlist.length) % playlist.length;
+                playIndex(i, { userInitiated: true });
+            }
 
             // Playback
             function playIndex(i, opts = {}) {
@@ -207,17 +498,33 @@
                 const item = playlist[i];
                 if (!item) return;
                 setIndex(i);
-                console.log('[playerPopup] playIndex -> i:', i, 'videoId:', item.videoId, 'userInitiated:', userInitiated, 'playerReady:', _playerReady);
+                console.log(
+                    '[playerPopup] playIndex -> i:',
+                    i,
+                    'videoId:',
+                    item.videoId,
+                    'userInitiated:',
+                    userInitiated,
+                    'playerReady:',
+                    _playerReady
+                );
                 if (item.videoId) {
                     if (player && typeof player.loadVideoById === 'function' && _playerReady) {
-                        try { player.loadVideoById(item.videoId); if (userInitiated) player.playVideo(); console.log('[playerPopup] playIndex using YT.Player.loadVideoById'); } catch {}
+                        try {
+                            player.loadVideoById(item.videoId);
+                            if (userInitiated) player.playVideo();
+                            console.log('[playerPopup] playIndex using YT.Player.loadVideoById');
+                        } catch {}
                     } else {
-                        _pendingPlay = i; if (userInitiated) _userInitiatedPlay = true; console.log('[playerPopup] playIndex pending until player ready');
+                        _pendingPlay = i;
+                        if (userInitiated) _userInitiatedPlay = true;
+                        console.log('[playerPopup] playIndex pending until player ready');
                     }
                 } else if (item.link) {
                     window.open(item.link, '_blank');
                 }
-                saveIndex(); updateNow();
+                saveIndex();
+                updateNow();
             }
 
             // Messaging
@@ -227,45 +534,90 @@
                     if (!ev || !ev.source) return;
                     if (window.opener && ev.source !== window.opener) return;
                     if (ev.origin && allowedOrigin && ev.origin !== allowedOrigin) return;
-                    const d = ev && ev.data; if (!d) return;
+                    const d = ev && ev.data;
+                    if (!d) return;
                     if (d.cmd === 'init') {
                         __injected = Array.isArray(d.items) ? d.items : [];
                         startIndex = Number(d.startIndex) || 0;
                         __clearOnClose = !!(d.opts && d.opts.clearOnClose);
-                        mergeInjected(); buildList(); savePlaylist(); saveIndex();
-                        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') { const tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(tag); } else { onYouTubeIframeAPIReady(); }
-                        if (d.opts && d.opts.autoplay && playlist.length) _pendingPlay = startIndex || (playlist.length - 1);
-                        if (window.opener) window.opener.postMessage({ cmd: 'init_ack' }, allowedOrigin || '*');
+                        mergeInjected();
+                        buildList();
+                        savePlaylist();
+                        saveIndex();
+                        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+                            const tag = document.createElement('script');
+                            tag.src = 'https://www.youtube.com/iframe_api';
+                            document.head.appendChild(tag);
+                        } else {
+                            onYouTubeIframeAPIReady();
+                        }
+                        if (d.opts && d.opts.autoplay && playlist.length)
+                            _pendingPlay = startIndex || playlist.length - 1;
+                        if (window.opener)
+                            window.opener.postMessage({ cmd: 'init_ack' }, allowedOrigin || '*');
                     } else if (d.cmd === 'append' && Array.isArray(d.items)) {
                         const before = playlist.length;
                         d.items.forEach((it) => {
-                            const exists = playlist.some((p) =>
-                                (p.contentId && it.contentId && p.contentId === it.contentId) ||
-                                (p.videoId && it.videoId && p.videoId === it.videoId) ||
-                                (p.link && it.link && p.link === it.link)
+                            const exists = playlist.some(
+                                (p) =>
+                                    (p.contentId && it.contentId && p.contentId === it.contentId) ||
+                                    (p.videoId && it.videoId && p.videoId === it.videoId) ||
+                                    (p.link && it.link && p.link === it.link)
                             );
                             if (!exists) playlist.push(it);
                         });
-                        if (playlist.length !== before) { savePlaylist(); buildList(); }
+                        if (playlist.length !== before) {
+                            savePlaylist();
+                            buildList();
+                        }
                     } else if (d.cmd === 'playIndex' && typeof d.index === 'number') {
                         playIndex(d.index, { userInitiated: true });
                     } else if (d.cmd === 'playLast') {
-                        const li = playlist.length - 1; if (li >= 0) playIndex(li, { userInitiated: true });
+                        const li = playlist.length - 1;
+                        if (li >= 0) playIndex(li, { userInitiated: true });
                     } else if (d.cmd === 'request_init') {
                         // ignored
                     }
-                } catch (e) { console.warn('[playerPopup] receiveMessage error', e); }
+                } catch (e) {
+                    console.warn('[playerPopup] receiveMessage error', e);
+                }
             }
             window.addEventListener('message', receiveMessage, false);
 
             // Lifecycle
             document.addEventListener('DOMContentLoaded', () => {
                 console.log('[playerPopup] DOMContentLoaded - restoring playlist');
-                mergeInjected(); buildList();
-                if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') { const tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(tag); } else { onYouTubeIframeAPIReady(); }
+                mergeInjected();
+                buildList();
+                try {
+                    const s = localStorage.getItem(STORAGE_SHUFFLE_KEY);
+                    const r = localStorage.getItem(STORAGE_REPEAT_KEY);
+                    _shuffle = s === '1';
+                    _repeat = r === 'all' || r === 'one' ? r : 'off';
+                    const shuffleBtn = document.getElementById('shuffle');
+                    const repeatBtn = document.getElementById('repeat');
+                    if (shuffleBtn) shuffleBtn.style.opacity = _shuffle ? '1' : '.6';
+                    if (repeatBtn) {
+                        repeatBtn.textContent =
+                            _repeat === 'off' ? '🔁' : _repeat === 'all' ? '🔁' : '🔂';
+                        repeatBtn.style.opacity = _repeat === 'off' ? '.7' : '1';
+                    }
+                } catch {}
+                if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+                    const tag = document.createElement('script');
+                    tag.src = 'https://www.youtube.com/iframe_api';
+                    document.head.appendChild(tag);
+                } else {
+                    onYouTubeIframeAPIReady();
+                }
                 if ((!playlist || !playlist.length) && window.opener) {
                     console.log('[playerPopup] requesting init from opener');
-                    try { window.opener.postMessage({ cmd: 'request_init' }, window.location.origin || '*'); } catch {}
+                    try {
+                        window.opener.postMessage(
+                            { cmd: 'request_init' },
+                            window.location.origin || '*'
+                        );
+                    } catch {}
                 }
             });
 
@@ -275,7 +627,9 @@
                     if (player) return; // singleton
                     const v = (playlist[startIndex] && playlist[startIndex].videoId) || '';
                     player = new YT.Player('player', {
-                        height: '360', width: '640', videoId: v,
+                        height: '360',
+                        width: '640',
+                        videoId: v,
                         playerVars: { rel: 0, modestbranding: 1, controls: 0, playsinline: 1 },
                         events: {
                             onReady: () => {
@@ -284,9 +638,13 @@
                                 if (_pendingPlay !== null) {
                                     const item = playlist[_pendingPlay];
                                     if (item && item.videoId) {
-                                        try { player.loadVideoById(item.videoId); if (_userInitiatedPlay) player.playVideo(); } catch {}
+                                        try {
+                                            player.loadVideoById(item.videoId);
+                                            if (_userInitiatedPlay) player.playVideo();
+                                        } catch {}
                                     }
-                                    _pendingPlay = null; _userInitiatedPlay = false;
+                                    _pendingPlay = null;
+                                    _userInitiatedPlay = false;
                                 }
                             },
                             onStateChange: (e) => {
@@ -295,42 +653,101 @@
                             },
                         },
                     });
-                } catch (e) { console.warn('[playerPopup] onYouTubeIframeAPIReady error', e); }
+                } catch (e) {
+                    console.warn('[playerPopup] onYouTubeIframeAPIReady error', e);
+                }
             }
             window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
             // Controls
-            (function attachControls(){
+            (function attachControls() {
                 const playBtn = document.getElementById('play');
                 const pauseBtn = document.getElementById('pause');
                 const nextBtn = document.getElementById('next');
                 const prevBtn = document.getElementById('prev');
+                const shuffleBtn = document.getElementById('shuffle');
+                const repeatBtn = document.getElementById('repeat');
                 const clearBtn = document.getElementById('clearAll');
-                if (playBtn) playBtn.addEventListener('click', () => { playIndex(currentIndex(), { userInitiated: true }); setTimeout(updatePlayControls, 120); });
-                if (pauseBtn) pauseBtn.addEventListener('click', () => { if (player && _playerReady) try { player.pauseVideo(); } catch {} setTimeout(updatePlayControls, 120); });
+
+                if (playBtn)
+                    playBtn.addEventListener('click', () => {
+                        playIndex(currentIndex(), { userInitiated: true });
+                        setTimeout(updatePlayControls, 120);
+                    });
+                if (pauseBtn)
+                    pauseBtn.addEventListener('click', () => {
+                        if (player && _playerReady)
+                            try {
+                                player.pauseVideo();
+                            } catch {}
+                        setTimeout(updatePlayControls, 120);
+                    });
                 if (nextBtn) nextBtn.addEventListener('click', () => playNext());
                 if (prevBtn) prevBtn.addEventListener('click', () => playPrev());
-                if (clearBtn) clearBtn.addEventListener('click', () => { playlist = []; document.getElementById('plist').innerHTML=''; savePlaylist(); setIndex(0); saveIndex(); updateNow(); });
+                if (shuffleBtn)
+                    shuffleBtn.addEventListener('click', () => {
+                        _shuffle = !_shuffle;
+                        shuffleBtn.style.opacity = _shuffle ? '1' : '.6';
+                        try {
+                            localStorage.setItem(STORAGE_SHUFFLE_KEY, _shuffle ? '1' : '0');
+                        } catch {}
+                    });
+                if (repeatBtn)
+                    repeatBtn.addEventListener('click', () => {
+                        _repeat = _repeat === 'off' ? 'all' : _repeat === 'all' ? 'one' : 'off';
+                        repeatBtn.textContent =
+                            _repeat === 'off' ? '🔁' : _repeat === 'all' ? '🔁' : '🔂';
+                        repeatBtn.style.opacity = _repeat === 'off' ? '.7' : '1';
+                        try {
+                            localStorage.setItem(STORAGE_REPEAT_KEY, _repeat);
+                        } catch {}
+                    });
+                if (clearBtn)
+                    clearBtn.addEventListener('click', () => {
+                        playlist = [];
+                        document.getElementById('plist').innerHTML = '';
+                        savePlaylist();
+                        setIndex(0);
+                        saveIndex();
+                        updateNow();
+                    });
                 setInterval(() => {
                     if (!_playerReady || !player) return;
                     try {
-                        const dur = player.getDuration ? Math.max(0, Math.floor(player.getDuration())) : 0;
-                        const cur = player.getCurrentTime ? Math.max(0, Math.floor(player.getCurrentTime())) : 0;
+                        const dur = player.getDuration
+                            ? Math.max(0, Math.floor(player.getDuration()))
+                            : 0;
+                        const cur = player.getCurrentTime
+                            ? Math.max(0, Math.floor(player.getCurrentTime()))
+                            : 0;
                         const pos = dur > 0 ? (cur / dur) * 100 : 0;
                         const fmt = (s) => Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
-                        const bar = document.getElementById('progBar'); if (bar) bar.style.width = (pos || 0) + '%';
-                        const time = document.getElementById('time'); if (time) time.textContent = fmt(cur) + ' / ' + fmt(dur);
+                        const bar = document.getElementById('progBar');
+                        if (bar) bar.style.width = (pos || 0) + '%';
+                        const time = document.getElementById('time');
+                        if (time) time.textContent = fmt(cur) + ' / ' + fmt(dur);
                     } catch {}
                 }, 800);
             })();
 
             // Close notifications
             if (window.opener) {
-                const notifyClose = () => { try { window.opener.postMessage({ cmd: '__popup_closed' }, window.location.origin || '*'); } catch {} };
+                const notifyClose = () => {
+                    try {
+                        localStorage.removeItem(STORAGE_SHUFFLE_KEY);
+                        localStorage.removeItem(STORAGE_REPEAT_KEY);
+                    } catch {}
+                    try {
+                        window.opener.postMessage(
+                            { cmd: '__popup_closed' },
+                            window.location.origin || '*'
+                        );
+                    } catch {}
+                };
                 window.addEventListener('beforeunload', notifyClose);
                 window.addEventListener('unload', notifyClose);
                 window.addEventListener('pagehide', notifyClose);
             }
         </script>
     </body>
-    </html>
+</html>
