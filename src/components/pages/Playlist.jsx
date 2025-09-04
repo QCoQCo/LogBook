@@ -13,7 +13,7 @@ const Playlist = ({
     deletePlaylistSongs,
     updatePlaylistTitle,
 }) => {
-    const { openYTPopup, currentTrack } = useYTPopup();
+    const { openYTPopup, playTrackInPopup, currentTrack, isPopupOpen } = useYTPopup();
     const linkInputRef = useRef(null);
     const { playId } = useParams();
 
@@ -31,16 +31,29 @@ const Playlist = ({
         h: 1,
     }));
 
-    // minimal form state and handler (keeps existing layout/structure)
     const [link, setLink] = useState('');
     const [title, setTitle] = useState('');
     const [thumbnail, setThumbnail] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    // playlist title edit state
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editTitle, setEditTitle] = useState(pl.title || '');
     const [localTitle, setLocalTitle] = useState(pl.title || '');
+
+    const handlePlayAll = (startIndex = 0) => {
+        if (songs.length > 0) {
+            openYTPopup(songs, startIndex, { clearOnClose: true });
+        }
+    };
+
+    const handlePlayItem = (index) => {
+        const item = songs[index];
+        if (!item) return;
+        // Always open/append only the selected item.
+        // - If popup is closed: opens with just this item
+        // - If popup is open: appends the item and plays last (handled in openYTPopup)
+        openYTPopup([item], 0, { clearOnClose: true });
+    };
 
     const isYouTubeUrl = (value) => {
         try {
@@ -51,10 +64,8 @@ const Playlist = ({
         }
     };
 
-    // normalize urls for duplicate detection
     const normalizeLink = (u = '') => u.trim().replace(/\/?$/, '').toLowerCase();
 
-    // use YouTube oEmbed to get title and thumbnail (public, no API key)
     const fetchYouTubeMeta = async (videoUrl) => {
         try {
             setLoading(true);
@@ -110,7 +121,6 @@ const Playlist = ({
             createAt: new Date().toISOString(),
             thumbnail: thumbnail || '',
         };
-        // call provided addSong
         if (typeof addSong === 'function') {
             if (!pl.playId) return setError('Playlist not ready');
             addSong(pl.playId, newSong);
@@ -126,12 +136,10 @@ const Playlist = ({
         linkInputRef.current?.focus();
     };
 
-    // focus input on initial mount
     useEffect(() => {
         linkInputRef.current?.focus();
     }, []);
 
-    // keep local title in sync when playlist prop changes
     useEffect(() => {
         const t = pl.title || '';
         setLocalTitle(t);
@@ -153,11 +161,9 @@ const Playlist = ({
     const confirmEditTitle = async () => {
         const newT = (editTitle || '').trim();
         if (!newT) return setError('Title cannot be empty');
-        // call update callback if provided, otherwise just update locally
         if (typeof updatePlaylistTitle === 'function') {
             try {
                 const res = updatePlaylistTitle(pl.playId, newT);
-                // handle promise or sync return
                 if (res && typeof res.then === 'function') await res;
                 setLocalTitle(newT);
                 setIsEditingTitle(false);
@@ -177,36 +183,52 @@ const Playlist = ({
                 {!isEditingTitle ? (
                     <div className='title-view'>
                         <div className='title-text'>{localTitle}</div>
-                        <button
-                            type='button'
-                            className='title-edit-btn'
-                            aria-label='Edit playlist title'
-                            onClick={startEditTitle}
-                        >
-                            {/* pencil icon */}
-                            <svg
-                                width='16'
-                                height='16'
-                                viewBox='0 0 24 24'
-                                fill='none'
-                                xmlns='http://www.w3.org/2000/svg'
+                        <div className='title-actions'>
+                            <button
+                                type='button'
+                                className='title-edit-btn'
+                                aria-label='Edit playlist title'
+                                onClick={startEditTitle}
                             >
-                                <path
-                                    d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'
-                                    stroke='currentColor'
-                                    strokeWidth='1'
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                />
-                                <path
-                                    d='M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z'
-                                    stroke='currentColor'
-                                    strokeWidth='1'
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                />
-                            </svg>
-                        </button>
+                                <svg
+                                    width='16'
+                                    height='16'
+                                    viewBox='0 0 24 24'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                >
+                                    <path
+                                        d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'
+                                        stroke='currentColor'
+                                        strokeWidth='1.5'
+                                    />
+                                    <path
+                                        d='M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z'
+                                        stroke='currentColor'
+                                        strokeWidth='1.5'
+                                    />
+                                </svg>
+                            </button>
+                            {songs.length > 0 && (
+                                <button
+                                    type='button'
+                                    className='title-play-all-btn'
+                                    aria-label='Play all'
+                                    onClick={() => handlePlayAll(0)}
+                                >
+                                    <svg
+                                        width='16'
+                                        height='16'
+                                        viewBox='0 0 24 24'
+                                        fill='currentColor'
+                                        xmlns='http://www.w3.org/2000/svg'
+                                    >
+                                        <path d='M8 5v14l11-7z' />
+                                    </svg>
+                                    <span>Play All</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <div className='title-edit'>
@@ -224,7 +246,6 @@ const Playlist = ({
                                 aria-label='Confirm title'
                                 onClick={confirmEditTitle}
                             >
-                                {/* check icon */}
                                 <svg
                                     width='16'
                                     height='16'
@@ -247,7 +268,6 @@ const Playlist = ({
                                 aria-label='Cancel title edit'
                                 onClick={cancelEditTitle}
                             >
-                                {/* X icon */}
                                 <svg
                                     width='16'
                                     height='16'
@@ -282,7 +302,6 @@ const Playlist = ({
                         draggableHandle='.playlist-item-drag'
                         draggableAxis='y'
                         onLayoutChange={(newLayout) => {
-                            // newLayout is array with {i, y}; reorder songs by y
                             const ordered = newLayout
                                 .slice()
                                 .sort((a, b) => a.y - b.y)
@@ -304,7 +323,7 @@ const Playlist = ({
                                     deletePlaylistSongs={deletePlaylistSongs}
                                     playId={pl.playId}
                                     index={idx}
-                                    onPlay={() => openYTPopup([item], 0, { clearOnClose: true })}
+                                    onPlay={() => handlePlayItem(idx)}
                                     isActive={currentTrack === idx}
                                 />
                             </div>
