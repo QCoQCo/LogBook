@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PlaylistItem from './PlaylistItem';
+import { useYTPopup } from '../../context/LogBookContext';
 
 import ReactGridLayout from 'react-grid-layout';
 import './Playlist.scss';
@@ -12,6 +13,7 @@ const Playlist = ({
     deletePlaylistSongs,
     updatePlaylistTitle,
 }) => {
+    const { openYTPopup, currentTrack } = useYTPopup();
     const linkInputRef = useRef(null);
     const { playId } = useParams();
 
@@ -115,6 +117,8 @@ const Playlist = ({
         } else {
             console.warn('addSong not provided');
         }
+
+        openYTPopup([newSong], 0, { clearOnClose: true });
 
         setLink('');
         setTitle('');
@@ -273,6 +277,7 @@ const Playlist = ({
                         width={1150}
                         rowHeight={70}
                         margin={[0, 0]}
+                        isResizable={false}
                         isDraggable={true}
                         draggableHandle='.playlist-item-drag'
                         draggableAxis='y'
@@ -298,6 +303,9 @@ const Playlist = ({
                                     item={item}
                                     deletePlaylistSongs={deletePlaylistSongs}
                                     playId={pl.playId}
+                                    index={idx}
+                                    onPlay={() => openYTPopup([item], 0, { clearOnClose: true })}
+                                    isActive={currentTrack === idx}
                                 />
                             </div>
                         ))}
