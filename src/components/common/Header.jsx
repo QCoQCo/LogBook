@@ -266,13 +266,14 @@ const Header = () => {
                                             </li>
                                         )}
                                         <li role='menuitem'>
-                                            <a
-                                                href={`/myPage?userId=${currentUserInfo.userId}`}
-                                                target='_self'
-                                                rel='noopener noreferrer'
+                                            <Link
+                                                to={`/blog?userId=${currentUserInfo.userId}`}
+                                                onClick={() => {
+                                                    showMenu(false);
+                                                }}
                                             >
                                                 내 블로그
-                                            </a>
+                                            </Link>
                                         </li>
                                         <li role='menuitem'>
                                             <button type='button' onClick={handleLogout}>

@@ -237,10 +237,6 @@
                     "content": null
                 },
                 {
-                    "i": "title-0",
-                    "content": "김병학의 블로그입니다"
-                },
-                {
                     "i": "image-3",
                     "content": "https://poiemaweb.com/img/node-logo.png"
                 },
@@ -288,6 +284,69 @@
             "userId": "devbhkim0707",
             "createdAt": "2025/09/02",
             "updatedAt": "2025/09/02",
+            "deletedAt": null
+        },
+        {
+            "id": 2,
+            "layout": [
+                {
+                    "w": 5,
+                    "h": 1,
+                    "x": 0,
+                    "y": 0,
+                    "i": "title-0",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 2,
+                    "h": 4,
+                    "x": 0,
+                    "y": 1,
+                    "i": "image-1",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 1,
+                    "h": 2,
+                    "x": 2,
+                    "y": 1,
+                    "i": "image-2",
+                    "moved": false,
+                    "static": false
+                },
+                {
+                    "w": 2,
+                    "h": 3,
+                    "x": 3,
+                    "y": 1,
+                    "i": "image-3",
+                    "moved": false,
+                    "static": false
+                }
+            ],
+            "elements": [
+                {
+                    "i": "title-0",
+                    "content": "QCoCo의 블로그입니다."
+                },
+                {
+                    "i": "image-1",
+                    "content": "https://media1.tenor.com/m/eNKiJcLInPkAAAAd/memes.gif"
+                },
+                {
+                    "i": "image-2",
+                    "content": "https://media.tenor.com/dPrJ3dBh8OQAAAAi/man-face-roblox.gif"
+                },
+                {
+                    "i": "image-3",
+                    "content": "https://media1.tenor.com/m/tfBBasw0w2QAAAAC/ablysah-%D8%A7%D8%A8%D9%84%D9%8A%D8%B3%D9%87.gif"
+                }
+            ],
+            "userId": "susybaka",
+            "createdAt": "2025/09/03",
+            "updatedAt": "2025/09/03",
             "deletedAt": null
         }
     ]
