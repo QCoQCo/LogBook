@@ -2,6 +2,60 @@ import { useState, useMemo, useCallback } from 'react';
 import { useLogBook } from '../../context/LogBookContext';
 import UserInfoModal from './UserInfoModal';
 
+// 메시지 날짜/시간 포맷팅 유틸리티 함수
+const formatMessageTimestamp = (timestamp) => {
+    if (!timestamp?.toDate) {
+        return '방금 전';
+    }
+
+    const messageDate = timestamp.toDate();
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const messageDay = new Date(
+        messageDate.getFullYear(),
+        messageDate.getMonth(),
+        messageDate.getDate()
+    );
+
+    const timeDiff = today.getTime() - messageDay.getTime();
+    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+    if (daysDiff === 0) {
+        // 오늘 메시지는 시간만 표시
+        return messageDate.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+    } else if (daysDiff === 1) {
+        // 어제 메시지는 "어제" + 시간
+        return `어제 ${messageDate.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        })}`;
+    } else if (daysDiff < 7) {
+        // 일주일 이내는 요일 + 시간
+        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+        const weekday = weekdays[messageDate.getDay()];
+        return `${weekday}요일 ${messageDate.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        })}`;
+    } else {
+        // 일주일 이상 지난 메시지는 날짜 표시
+        return messageDate.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+    }
+};
+
 const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRef }) => {
     const { getUserProfilePhoto, getUserInfo, userDataLoaded, userDataLoading } = useLogBook();
     const [selectedUser, setSelectedUser] = useState(null);
@@ -99,8 +153,7 @@ const ChatMessage = ({ messages, currentUser, handleDeleteMessage, messagesEndRe
                             <div className='message-header'>
                                 <span className='user-name'>{message.userName}</span>
                                 <span className='timestamp'>
-                                    {message.timestamp?.toDate?.()?.toLocaleTimeString() ||
-                                        '방금 전'}
+                                    {formatMessageTimestamp(message.timestamp)}
                                 </span>
                                 {message.isOwnMessage && (
                                     <button
