@@ -802,9 +802,29 @@ let _lastInitPayload = null;
 let _initOrigin = null;
 
 function extractYouTubeID(url) {
-    if (!url) return null;
-    const m = url.match(/(?:v=|\/embed\/|youtu\.be\/|v\/)([A-Za-z0-9_-]{11})/);
-    return m ? m[1] : null;
+    if (!url || typeof url !== 'string') return null;
+    try {
+        // try URL API to get 'v' param first
+        const u = new URL(url, window.location.origin);
+        const v = u.searchParams.get('v');
+        if (v && v.length >= 10) return v.substr(0, 11);
+
+        // youtu.be short link
+        const byId = url.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+        if (byId && byId[1]) return byId[1];
+
+        // embed or /v/ style
+        const m = url.match(/(?:v=|\/embed\/|\/v\/|watch\?.*v=)([A-Za-z0-9_-]{11})/);
+        if (m && m[1]) return m[1];
+
+        // fallback: anything 11 chars in path/query
+        const any = url.match(/([A-Za-z0-9_-]{11})/);
+        return any ? any[1] : null;
+    } catch (e) {
+        // fallback to regex if URL constructor fails
+        const m = url.match(/(?:v=|\/embed\/|youtu\.be\/|\/v\/)([A-Za-z0-9_-]{11})/);
+        return m ? m[1] : null;
+    }
 }
 
 export const YTPopupProvider = ({ children }) => {
