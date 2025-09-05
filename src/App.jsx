@@ -87,6 +87,7 @@ function App() {
                                 />
                                 <Route path='/blog' element={<Pages.Blog />} />
                                 <Route path='/signUp' element={<Pages.SignUp />} />
+                                <Route path='/intro' element={<Pages.LogBookIntro />} />
                             </Route>
                         </Routes>
                     </BrowserRouter>
