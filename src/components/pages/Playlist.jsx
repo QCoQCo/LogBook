@@ -49,9 +49,6 @@ const Playlist = ({
     const handlePlayItem = (index) => {
         const item = songs[index];
         if (!item) return;
-        // Always open/append only the selected item.
-        // - If popup is closed: opens with just this item
-        // - If popup is open: appends the item and plays last (handled in openYTPopup)
         openYTPopup([item], 0, { clearOnClose: true });
     };
 

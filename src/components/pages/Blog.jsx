@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useLogBook } from '../../context/LogBookContext';
-import { BlogFloatingUi, BlogGridLayout, BlogUserInfo } from '../blog';
+import { BlogFloatingUi, BlogGridLayout, BlogUserInfo, BlogPlaylist } from '../blog';
 import BlogElementModal from '../blog/BlogElementModal';
 
 import './Blog.scss';
@@ -77,7 +77,7 @@ const Blog = () => {
                             <BlogGridLayout userId={userId} enableModal={enableModal} />
                         )}
                         {activeTab === 2 && <div>Article</div>}
-                        {activeTab === 3 && <div>Playlist</div>}
+                        {activeTab === 3 && <BlogPlaylist userId={userId} />}
                     </div>
                 </div>
             </div>
