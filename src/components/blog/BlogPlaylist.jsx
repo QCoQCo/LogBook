@@ -5,7 +5,7 @@ import { useYTPopup } from '../../context/LogBookContext';
 
 import './BlogPlaylist.scss';
 
-const BlogPlaylist = ({ userId }) => {
+const BlogPlaylist = ({ userId, isOwner }) => {
     const { openYTPopup } = useYTPopup();
     const [playlists, setPlaylists] = useState([]);
 
@@ -59,6 +59,7 @@ const BlogPlaylist = ({ userId }) => {
                         onDelete={() =>
                             handleDelete(playlist.playId || playlist.id || playlist.SEQ)
                         }
+                        isOwner={isOwner}
                     />
                 ))
             ) : (

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import './BlogPlaylistItem.scss';
 
-const BlogPlaylistItem = ({ playlist, onPlay, onDelete }) => {
+const BlogPlaylistItem = ({ playlist, onPlay, onDelete, isOwner }) => {
     const handlePlay = (e) => {
         onPlay(playlist.playId);
     };
@@ -70,17 +70,19 @@ const BlogPlaylistItem = ({ playlist, onPlay, onDelete }) => {
                     </svg>
                 </button>
 
-                <button
-                    type='button'
-                    className='btn delete'
-                    onClick={handleDelete}
-                    aria-label={`삭제 ${playlist.title}`}
-                    title='삭제'
-                >
-                    <svg viewBox='0 0 24 24' aria-hidden='true'>
-                        <path d='M6 7h12v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7zm3-4h6l1 1H8l1-1z' />
-                    </svg>
-                </button>
+                {isOwner && (
+                    <button
+                        type='button'
+                        className='btn delete'
+                        onClick={handleDelete}
+                        aria-label={`삭제 ${playlist.title}`}
+                        title='삭제'
+                    >
+                        <svg viewBox='0 0 24 24' aria-hidden='true'>
+                            <path d='M6 7h12v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7zm3-4h6l1 1H8l1-1z' />
+                        </svg>
+                    </button>
+                )}
             </div>
         </div>
     );

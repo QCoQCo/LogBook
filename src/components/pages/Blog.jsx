@@ -1,7 +1,7 @@
 // Blog.jsx
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useLogBook } from '../../context/LogBookContext';
+import { useLogBook, useAuth } from '../../context/LogBookContext';
 import { BlogFloatingUi, BlogGridLayout, BlogUserInfo, BlogPlaylist } from '../blog';
 import BlogElementModal from '../blog/BlogElementModal';
 
@@ -18,6 +18,8 @@ const Blog = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(1);
 
+    const { currentUser } = useAuth();
+
     const releaseModal = () => {
         setIsModalOpen(false);
     };
@@ -25,6 +27,8 @@ const Blog = () => {
     const enableModal = () => {
         setIsModalOpen(true);
     };
+
+    const isOwner = Boolean(currentUser && userId && String(currentUser?.id) === String(userId));
 
     return (
         <div id='Blog'>
@@ -77,7 +81,7 @@ const Blog = () => {
                             <BlogGridLayout userId={userId} enableModal={enableModal} />
                         )}
                         {activeTab === 2 && <div>Article</div>}
-                        {activeTab === 3 && <BlogPlaylist userId={userId} />}
+                        {activeTab === 3 && <BlogPlaylist userId={userId} isOwner={isOwner} />}
                     </div>
                 </div>
             </div>

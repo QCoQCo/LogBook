@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PlaylistItem from './PlaylistItem';
-import { useYTPopup } from '../../context/LogBookContext';
+import { useYTPopup, useAuth } from '../../context/LogBookContext';
 
 import ReactGridLayout from 'react-grid-layout';
 import './Playlist.scss';
@@ -14,6 +14,7 @@ const Playlist = ({
     updatePlaylistTitle,
 }) => {
     const { openYTPopup, playTrackInPopup, currentTrack, isPopupOpen } = useYTPopup();
+    const { currentUser } = useAuth();
     const linkInputRef = useRef(null);
     const { playId } = useParams();
 
@@ -30,6 +31,26 @@ const Playlist = ({
         w: 12,
         h: 1,
     }));
+
+    const ownerId = pl.userId || pl.ownerId || (pl.user && (pl.user.userId || pl.user.id));
+    const authId =
+        currentUser?.userId ||
+        currentUser?.id ||
+        (() => {
+            try {
+                const raw =
+                    sessionStorage.getItem('logbook_current_user') ||
+                    localStorage.getItem('logbook_current_user');
+                return raw ? JSON.parse(raw).userId || JSON.parse(raw).id : null;
+            } catch (e) {
+                return null;
+            }
+        })() ||
+        localStorage.getItem('userId') ||
+        null;
+
+    const isOwner = Boolean(ownerId && authId && String(ownerId) === String(authId));
+    console.log('isOwner', isOwner, ownerId, authId);
 
     const [link, setLink] = useState('');
     const [title, setTitle] = useState('');
@@ -181,31 +202,33 @@ const Playlist = ({
                     <div className='title-view'>
                         <div className='title-text'>{localTitle}</div>
                         <div className='title-actions'>
-                            <button
-                                type='button'
-                                className='title-edit-btn'
-                                aria-label='Edit playlist title'
-                                onClick={startEditTitle}
-                            >
-                                <svg
-                                    width='16'
-                                    height='16'
-                                    viewBox='0 0 24 24'
-                                    fill='none'
-                                    xmlns='http://www.w3.org/2000/svg'
+                            {isOwner && (
+                                <button
+                                    type='button'
+                                    className='title-edit-btn'
+                                    aria-label='Edit playlist title'
+                                    onClick={startEditTitle}
                                 >
-                                    <path
-                                        d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'
-                                        stroke='currentColor'
-                                        strokeWidth='1.5'
-                                    />
-                                    <path
-                                        d='M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z'
-                                        stroke='currentColor'
-                                        strokeWidth='1.5'
-                                    />
-                                </svg>
-                            </button>
+                                    <svg
+                                        width='16'
+                                        height='16'
+                                        viewBox='0 0 24 24'
+                                        fill='none'
+                                        xmlns='http://www.w3.org/2000/svg'
+                                    >
+                                        <path
+                                            d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'
+                                            stroke='currentColor'
+                                            strokeWidth='1.5'
+                                        />
+                                        <path
+                                            d='M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z'
+                                            stroke='currentColor'
+                                            strokeWidth='1.5'
+                                        />
+                                    </svg>
+                                </button>
+                            )}
                             {songs.length > 0 && (
                                 <button
                                     type='button'
@@ -295,8 +318,8 @@ const Playlist = ({
                         rowHeight={70}
                         margin={[0, 0]}
                         isResizable={false}
-                        isDraggable={true}
-                        draggableHandle='.playlist-item-drag'
+                        isDraggable={isOwner}
+                        draggableHandle={isOwner ? '.playlist-item-drag' : undefined}
                         draggableAxis='y'
                         onLayoutChange={(newLayout) => {
                             const ordered = newLayout
@@ -322,6 +345,7 @@ const Playlist = ({
                                     index={idx}
                                     onPlay={() => handlePlayItem(idx)}
                                     isActive={currentTrack === idx}
+                                    isOwner={isOwner}
                                 />
                             </div>
                         ))}
@@ -331,57 +355,59 @@ const Playlist = ({
                 )}
             </div>
 
-            <div className='playlist-input'>
-                <form onSubmit={handleSubmit} className='playlist-form'>
-                    <div className='input-pill'>
-                        {thumbnail ? (
-                            <img className='thumb-preview' src={thumbnail} alt='thumb' />
-                        ) : (
-                            <div className='thumb-placeholder' />
-                        )}
+            {isOwner && (
+                <div className='playlist-input'>
+                    <form onSubmit={handleSubmit} className='playlist-form'>
+                        <div className='input-pill'>
+                            {thumbnail ? (
+                                <img className='thumb-preview' src={thumbnail} alt='thumb' />
+                            ) : (
+                                <div className='thumb-placeholder' />
+                            )}
 
-                        <input
-                            className='link-input'
-                            type='text'
-                            placeholder='Paste YouTube link here (only YouTube)'
-                            value={link}
-                            onChange={handleLinkChange}
-                            ref={linkInputRef}
-                        />
+                            <input
+                                className='link-input'
+                                type='text'
+                                placeholder='Paste YouTube link here (only YouTube)'
+                                value={link}
+                                onChange={handleLinkChange}
+                                ref={linkInputRef}
+                            />
 
-                        <button className='add-btn' type='submit' aria-label='Add song'>
-                            <svg
-                                width='18'
-                                height='18'
-                                viewBox='0 0 24 24'
-                                fill='none'
-                                xmlns='http://www.w3.org/2000/svg'
-                            >
-                                <path
-                                    d='M5 12h14M13 5l7 7-7 7'
-                                    stroke='currentColor'
-                                    strokeWidth='2'
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                />
-                            </svg>
-                        </button>
-                    </div>
+                            <button className='add-btn' type='submit' aria-label='Add song'>
+                                <svg
+                                    width='18'
+                                    height='18'
+                                    viewBox='0 0 24 24'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                >
+                                    <path
+                                        d='M5 12h14M13 5l7 7-7 7'
+                                        stroke='currentColor'
+                                        strokeWidth='2'
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                    />
+                                </svg>
+                            </button>
+                        </div>
 
-                    <div className='meta-row'>
-                        {loading ? (
-                            <div className='loading'>Loading metadata...</div>
-                        ) : title ? (
-                            <div className='song-title'>{title}</div>
-                        ) : (
-                            <div className='hint'>
-                                Title will appear here after entering a YouTube link
-                            </div>
-                        )}
-                        {error && <div className='error'>{error}</div>}
-                    </div>
-                </form>
-            </div>
+                        <div className='meta-row'>
+                            {loading ? (
+                                <div className='loading'>Loading metadata...</div>
+                            ) : title ? (
+                                <div className='song-title'>{title}</div>
+                            ) : (
+                                <div className='hint'>
+                                    Title will appear here after entering a YouTube link
+                                </div>
+                            )}
+                            {error && <div className='error'>{error}</div>}
+                        </div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };
