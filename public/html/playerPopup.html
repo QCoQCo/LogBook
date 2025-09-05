@@ -6,6 +6,7 @@
         <title>LogBook Player</title>
         <link rel="icon" href="/img/icon-image.png" type="image/png" />
         <style>
+            /* 기본 레이아웃 */
             html,
             body {
                 height: 100%;
@@ -19,6 +20,7 @@
             *::after {
                 box-sizing: border-box;
             }
+
             #wrap {
                 display: flex;
                 height: 100%;
@@ -30,8 +32,8 @@
                 padding: 20px;
                 display: flex;
                 flex-direction: column;
-                align-items: flex-start;
                 gap: 16px;
+                align-items: flex-start;
             }
             .right {
                 width: 400px;
@@ -39,6 +41,7 @@
                 background: #fff;
                 padding: 12px 14px;
             }
+
             @media (max-width: 1000px) {
                 .left {
                     flex: 0 0 60%;
@@ -47,6 +50,8 @@
                     flex: 0 0 40%;
                 }
             }
+
+            /* 플레이어/컨트롤 기본 */
             #player {
                 width: 100%;
                 aspect-ratio: 16/9;
@@ -71,7 +76,9 @@
                 height: 100%;
                 background: linear-gradient(90deg, #4aa3ff, #6dd3ff);
                 width: 0%;
+                transition: width 0.2s linear;
             }
+
             .controls {
                 display: flex;
                 align-items: center;
@@ -80,6 +87,13 @@
                 width: 100%;
                 justify-content: flex-start;
             }
+            .time {
+                font-size: 12px;
+                color: #556;
+                margin-left: 8px;
+            }
+
+            /* 버튼 공통 */
             .ctrl-btn {
                 width: 48px;
                 height: 48px;
@@ -91,40 +105,46 @@
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-            }
-            .ctrl-btn.seek-btn {
-                width: 48px;
-                height: 48px;
-                border-radius: 10px;
                 padding: 0;
-                background: #ffffff;
             }
-            .ctrl-btn.seek-btn .seek-icon {
-                width: 40px;
-                height: 40px;
-                display: inline-block;
-                vertical-align: middle;
-                filter: none;
-                opacity: 1;
+            .playlist-controls .ctrl-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
             }
-            .ctrl-btn.seek-btn:hover {
-                background: #eef5ff;
-                border-color: rgba(11, 99, 255, 0.14);
-                transform: translateY(-1px);
-            }
-            .ctrl-btn.seek-btn:active {
-                transform: translateY(0);
-            }
-            /* 포커스 가시성 */
+
             .ctrl-btn:focus {
                 outline: 3px solid rgba(11, 99, 255, 0.12);
                 outline-offset: 2px;
             }
-
-            .time {
-                font-size: 12px;
-                color: #556;
+            .ctrl-btn:hover {
+                transform: translateY(-1px);
+                transition: transform 0.08s ease;
             }
+
+            /* seek 전용 (아이콘 포함) */
+            .ctrl-btn.seek-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 10px;
+                background: #fff;
+                padding: 0;
+            }
+            .ctrl-btn.seek-btn .seek-icon {
+                width: 20px;
+                height: 20px;
+                display: inline-block;
+                vertical-align: middle;
+            }
+            .seek-num {
+                font-size: 12px;
+                font-weight: 700;
+                margin-left: 6px;
+                color: #1e88e5;
+                vertical-align: middle;
+            }
+
+            /* 재생목록 스타일 */
             .playlist-header {
                 display: flex;
                 align-items: center;
@@ -147,14 +167,15 @@
                 border-bottom: 1px solid #f0f2f6;
                 cursor: pointer;
             }
-            .p-item .p-thumb {
+            .p-thumb {
                 width: 48px;
                 height: 48px;
                 border-radius: 6px;
                 overflow: hidden;
                 background: #f3f6fa;
+                flex: 0 0 48px;
             }
-            .p-item .p-thumb img {
+            .p-thumb img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
@@ -168,7 +189,6 @@
                 color: #1a1a1a;
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
-                line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -187,46 +207,6 @@
             .p-actions button:hover {
                 color: #1e88e5;
             }
-
-            .playlist-controls .ctrl-btn {
-                width: 32px;
-                height: 32px;
-                padding: 0;
-                font-size: 16px;
-            }
-
-            .playlist-controls .clear-btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                padding: 6px 10px;
-                height: 36px;
-                border-radius: 8px;
-                background: transparent;
-                border: 1px solid #eee;
-                color: #b71c1c;
-                font-weight: 600;
-                font-size: 13px;
-                cursor: pointer;
-                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-                transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.12s,
-                    color 0.12s;
-            }
-            .playlist-controls .clear-btn:hover {
-                background: rgba(183, 28, 28, 0.06);
-                transform: translateY(-1px);
-            }
-            .playlist-controls .clear-btn:active {
-                transform: translateY(0);
-                box-shadow: none;
-            }
-            .playlist-controls .clear-btn[disabled] {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-            .p-actions button svg {
-                transition: transform 0.12s, color 0.12s;
-            }
             .p-item.active .p-title {
                 font-weight: 700;
             }
@@ -234,10 +214,6 @@
                 color: #1e88e5;
                 font-weight: 700;
             }
-            .p-item.active .p-actions button svg {
-                transform: scale(1.06);
-            }
-
             .p-handle {
                 display: flex;
                 align-items: center;
@@ -253,18 +229,158 @@
                 opacity: 0.8;
             }
 
-            .ctrl-btn .seek-icon {
-                width: 18px;
-                height: 18px;
-                display: inline-block;
-                vertical-align: middle;
+            /* clear 버튼 스타일 */
+            .playlist-controls .clear-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 6px 10px;
+                height: 36px;
+                border-radius: 8px;
+                background: transparent;
+                border: 1px solid #eee;
+                color: #b71c1c;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
             }
-            .seek-num {
-                font-size: 12px;
-                font-weight: 700;
-                margin-left: 6px;
-                color: #1e88e5;
-                vertical-align: middle;
+            .playlist-controls .clear-btn:hover {
+                background: rgba(183, 28, 28, 0.06);
+                transform: translateY(-1px);
+            }
+            .playlist-controls .clear-btn[disabled] {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            /* Volume: 구조화된 스타일 (중복 제거) */
+            .volume-wrap {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                position: relative;
+            }
+            .mute-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 6px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                background: #fff;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(10, 20, 40, 0.06);
+            }
+
+            /* vol-pop: 토글로 열리는 팝업, 기본은 숨김 */
+            .vol-pop {
+                position: absolute;
+                top: -125px;
+                left: 4px;
+                transform-origin: bottom center;
+                border-radius: 8px;
+                padding: 0;
+                opacity: 0;
+                display: flex;
+                align-items: center;
+                transition: opacity 0.12s ease, transform 0.12s cubic-bezier(0.2, 0.9, 0.3, 1);
+                z-index: 60;
+                min-width: 40px;
+                /* background: linear-gradient(to top, transparent, rgb(224, 224, 224) 63%); */
+            }
+            .vol-pop.open {
+                pointer-events: auto;
+                opacity: 1;
+            }
+
+            /* vol-track / vol-fill: 렌더링은 vol-fill로만 처리 (input 배경 사용 안함) */
+            .vol-track {
+                position: relative;
+                width: 40px;
+                height: 120px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: none;
+                border-radius: 8px;
+                background: rgb(224, 224, 224);
+            }
+            .vol-fill {
+                position: absolute;
+                left: 50%;
+                bottom: 0;
+                width: 40px;
+                transform: translateX(-50%);
+                background: linear-gradient(180deg, #4aa3ff, #6dd3ff);
+                border-radius: 8px;
+                transition: height 0.08s ease;
+            }
+
+            /* range input: 트랙 숨기고 thumb만 보이게(포인터는 input이 담당) */
+            .volume-slider {
+                position: absolute;
+                background-color: #f0f0f0;
+                -webkit-appearance: none;
+                appearance: none;
+                background: transparent;
+                transform: rotate(-90deg);
+                transform-origin: 50% 50%;
+                z-index: 10;
+                cursor: pointer;
+                border: none;
+                padding: 0;
+                margin: 0;
+                left: -120%;
+                border-radius: 20px;
+            }
+            .volume-slider::-webkit-slider-runnable-track {
+                height: 6px;
+                background: transparent;
+                border-radius: 6px;
+            }
+            .volume-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 14px;
+                height: 14px;
+                background: #fff;
+                border: 2px solid #1e88e5;
+                border-radius: 50%;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+                margin-top: 0;
+            }
+            .volume-slider::-moz-range-track {
+                background: transparent;
+                height: 6px;
+                border-radius: 6px;
+            }
+            .volume-slider::-moz-range-thumb {
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                border: 2px solid #1e88e5;
+                background: #fff;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+            }
+
+            /* 브라우저 기본 트랙/프로그레스 표시 강제 제거 (rotate된 input에서 보이는 색상 제거) */
+            .volume-slider,
+            .volume-slider::-webkit-slider-runnable-track,
+            .volume-slider::-webkit-slider-thumb,
+            .volume-slider::-moz-range-track,
+            .volume-slider::-moz-range-progress,
+            .volume-slider::-moz-range-thumb {
+                background: transparent !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            /* 반응/접근성 보정 */
+            .vol-fill[aria-hidden='true'] {
+                pointer-events: none;
             }
         </style>
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -343,6 +459,33 @@
                                 <path d="M6 6v12l8-6-8-6zM18 6v12h-2V6h2z" />
                             </svg>
                         </button>
+                        <div class="volume-wrap" aria-hidden="false">
+                            <button
+                                id="muteBtn"
+                                class="mute-btn"
+                                title="음소거 전환"
+                                aria-label="Mute toggle"
+                            >
+                                🔊
+                            </button>
+                            <!-- vol-pop: 클릭 시 열리는 세로 슬라이더 컨테이너 -->
+                            <div id="volPop" class="vol-pop" aria-hidden="true">
+                                <div class="vol-track" id="volTrack" aria-hidden="false">
+                                    <div class="vol-fill" id="volFill" aria-hidden="true"></div>
+                                    <!-- 실제 range : horizontal로 만들고 rotate로 세로 표현 (pointer는 input에서 처리) -->
+                                    <input
+                                        id="volume"
+                                        class="volume-slider"
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        value="100"
+                                        aria-label="볼륨"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                         <div style="flex: 1"></div>
                         <div class="time" id="time">0:00 / 0:00</div>
                     </div>
@@ -382,6 +525,8 @@
             const STORAGE_INDEX_KEY = 'logbook_yt_playlist_index_v1';
             const STORAGE_SHUFFLE_KEY = 'logbook_yt_playlist_shuffle_v1';
             const STORAGE_REPEAT_KEY = 'logbook_yt_playlist_repeat_v1';
+            const STORAGE_VOLUME_KEY = 'logbook_yt_volume_v1';
+
             let playlist = [];
             let player = null;
             let _playerReady = false;
@@ -389,6 +534,8 @@
             let _userInitiatedPlay = false;
             let _shuffle = false;
             let _repeat = 'off'; // 'off' | 'all' | 'one'
+            let _volume = 100;
+            let _muted = false;
 
             // Storage helpers
             function savePlaylist() {
@@ -829,6 +976,10 @@
                 mergeInjected();
                 buildList();
                 try {
+                    const savedVol = parseInt(localStorage.getItem(STORAGE_VOLUME_KEY), 10);
+                    if (!isNaN(savedVol) && savedVol >= 0 && savedVol <= 100) _volume = savedVol;
+                } catch {}
+                try {
                     const s = localStorage.getItem(STORAGE_SHUFFLE_KEY);
                     const r = localStorage.getItem(STORAGE_REPEAT_KEY);
                     _shuffle = s === '1';
@@ -874,6 +1025,17 @@
                             onReady: () => {
                                 _playerReady = true;
                                 updateNow();
+                                try {
+                                    if (typeof player.setVolume === 'function')
+                                        player.setVolume(_volume);
+                                    if (_volume === 0 && typeof player.mute === 'function') {
+                                        player.mute();
+                                        _muted = true;
+                                    } else if (typeof player.unMute === 'function') {
+                                        player.unMute();
+                                        _muted = false;
+                                    }
+                                } catch (e) {}
                                 if (_pendingPlay !== null) {
                                     const item = playlist[_pendingPlay];
                                     if (item && item.videoId) {
@@ -909,6 +1071,11 @@
                 const clearBtn = document.getElementById('clearAll');
                 const shuffleBtn = document.getElementById('shuffle');
                 const repeatBtn = document.getElementById('repeat');
+                const volumeEl = document.getElementById('volume');
+                const muteBtn = document.getElementById('muteBtn');
+                const volPop = document.getElementById('volPop');
+                const volFill = document.getElementById('volFill');
+                const volTrack = document.getElementById('volTrack');
 
                 function _safeSeekBy(offsetSec) {
                     try {
@@ -995,6 +1162,115 @@
                         saveIndex();
                         updateNow();
                     });
+
+                if (shuffleBtn) {
+                    shuffleBtn.addEventListener('click', () => {
+                        _shuffle = !_shuffle;
+                        try {
+                            localStorage.setItem(STORAGE_SHUFFLE_KEY, _shuffle ? '1' : '0');
+                        } catch {}
+                        shuffleBtn.style.opacity = _shuffle ? '1' : '.6';
+                        console.log('[playerPopup] shuffle set ->', _shuffle);
+                    });
+                }
+                // repeat 순환: off -> all -> one -> off
+                if (repeatBtn) {
+                    repeatBtn.addEventListener('click', () => {
+                        _repeat = _repeat === 'off' ? 'all' : _repeat === 'all' ? 'one' : 'off';
+                        try {
+                            localStorage.setItem(STORAGE_REPEAT_KEY, _repeat);
+                        } catch {}
+                        repeatBtn.textContent =
+                            _repeat === 'off' ? '🔁' : _repeat === 'all' ? '🔁' : '🔂';
+                        repeatBtn.style.opacity = _repeat === 'off' ? '.7' : '1';
+                        console.log('[playerPopup] repeat set ->', _repeat);
+                    });
+                }
+                try {
+                    if (volumeEl) {
+                        volumeEl.value = String(_volume);
+                        volumeEl.addEventListener('input', (e) => {
+                            const v = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                            _volume = v;
+                            try {
+                                if (
+                                    player &&
+                                    _playerReady &&
+                                    typeof player.setVolume === 'function'
+                                )
+                                    player.setVolume(_volume);
+                                // if moved to 0, set muted flag
+                                _muted = _volume === 0;
+                                localStorage.setItem(STORAGE_VOLUME_KEY, String(_volume));
+                            } catch (err) {
+                                console.warn('[playerPopup] volume input error', err);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('[playerPopup] volume handlers init error', e);
+                }
+
+                // 토글 오픈/클로즈
+                if (muteBtn) {
+                    muteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (!volPop) return;
+                        const open = volPop.classList.toggle('open');
+                        volPop.setAttribute('aria-hidden', String(!open));
+                    });
+                }
+
+                function updateVolumeFill(el) {
+                    if (!el) return;
+                    const v = Number(el.value) || 0;
+                    const pct = Math.max(0, Math.min(100, Math.round((v / 100) * 100)));
+                    if (volFill) volFill.style.height = pct + '%';
+                    // input의 aria-valuenow 업데이트 (접근성)
+                    try {
+                        el.setAttribute('aria-valuenow', String(v));
+                    } catch {}
+
+                    // try {
+                    //     if (volTrack) {
+                    //         // vol-fill 색상은 변경하지 않음.
+                    //         // volTrack 배경은 "아래쪽 활성 구간은 투명"으로 두어 vol-fill 색상이 보이게 함.
+                    //         // 위쪽(비활성) 영역만 회색으로 표시.
+                    //         volTrack.style.background = `linear-gradient(to top, transparent ${pct}%, #e0e0e0 ${pct}%)`;
+                    //     }
+                    // } catch (e) {
+                    //     console.warn('[playerPopup] updateVolumeFill background error', e);
+                    // }
+                }
+
+                // 초기 배경 설정
+                if (volumeEl) {
+                    updateVolumeFill(volumeEl);
+                    volumeEl.addEventListener('input', (ev) => {
+                        updateVolumeFill(ev.target);
+                    });
+                }
+
+                // 클릭 외부 영역에서 팝업 닫기
+                document.addEventListener('click', (e) => {
+                    try {
+                        if (!volPop) return;
+                        if (!volPop.classList.contains('open')) return;
+                        // 만약 클릭이 volPop 또는 muteBtn 내부이면 무시
+                        if (volPop.contains(e.target) || (muteBtn && muteBtn.contains(e.target)))
+                            return;
+                        volPop.classList.remove('open');
+                        volPop.setAttribute('aria-hidden', 'true');
+                    } catch {}
+                });
+                // ESC로 닫기
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && volPop && volPop.classList.contains('open')) {
+                        volPop.classList.remove('open');
+                        volPop.setAttribute('aria-hidden', 'true');
+                    }
+                });
+
                 // progress bar 클릭/드래그로 탐색(seek) 처리
                 const progressEl = document.getElementById('progress');
                 let _isScrubbing = false;
