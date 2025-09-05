@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import './PlaylistItem.scss';
 
-const PlaylistItem = ({ item, deletePlaylistSongs, playId, onPlay, isActive }) => {
+const PlaylistItem = ({ item, deletePlaylistSongs, playId, onPlay, isActive, isOwner }) => {
     const dragHandleRef = useRef(null);
 
     const handlePlaylistItemDelete = () => {
@@ -18,24 +18,26 @@ const PlaylistItem = ({ item, deletePlaylistSongs, playId, onPlay, isActive }) =
 
     return (
         <div className={`playlistItem ${isActive ? 'playlist-item--active' : ''}`}>
-            <div className='playlist-item-drag' ref={dragHandleRef}>
-                <svg
-                    width='16'
-                    height='16'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                    aria-hidden
-                >
-                    <path
-                        d='M3 6h18M3 12h18M3 18h18'
-                        stroke='currentColor'
-                        strokeWidth='2'
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                    />
-                </svg>
-            </div>
+            {isOwner && (
+                <div className='playlist-item-drag' ref={dragHandleRef}>
+                    <svg
+                        width='16'
+                        height='16'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        xmlns='http://www.w3.org/2000/svg'
+                        aria-hidden
+                    >
+                        <path
+                            d='M3 6h18M3 12h18M3 18h18'
+                            stroke='currentColor'
+                            strokeWidth='2'
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                        />
+                    </svg>
+                </div>
+            )}
             <a href={item.link} target='_blank' rel='noopener noreferrer'>
                 <div className='playlist-item-profile'>
                     <img
@@ -46,7 +48,10 @@ const PlaylistItem = ({ item, deletePlaylistSongs, playId, onPlay, isActive }) =
                 </div>
                 <div className='playlist-item-title'>{item.title}</div>
             </a>
-            <div className='playlist-item-controls'>
+            <div
+                className='playlist-item-controls'
+                style={{ width: isOwner ? '48px' : '24px', gap: '5px' }}
+            >
                 <button
                     className='playlist-item-btn playlist-item-play-btn'
                     aria-label='재생'
@@ -64,29 +69,31 @@ const PlaylistItem = ({ item, deletePlaylistSongs, playId, onPlay, isActive }) =
                         <path d='M8 5v14l11-7z' />
                     </svg>
                 </button>
-                <button
-                    className='playlist-item-btn playlist-item-del-btn'
-                    aria-label='삭제'
-                    title='삭제'
-                    onClick={handlePlaylistItemDelete}
-                >
-                    <svg
-                        width='14'
-                        height='14'
-                        viewBox='0 0 24 24'
-                        fill='none'
-                        xmlns='http://www.w3.org/2000/svg'
-                        aria-hidden
+                {isOwner && (
+                    <button
+                        className='playlist-item-btn playlist-item-del-btn'
+                        aria-label='삭제'
+                        title='삭제'
+                        onClick={handlePlaylistItemDelete}
                     >
-                        <path
-                            d='M6 6l12 12M18 6L6 18'
-                            stroke='currentColor'
-                            strokeWidth='2'
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                        />
-                    </svg>
-                </button>
+                        <svg
+                            width='14'
+                            height='14'
+                            viewBox='0 0 24 24'
+                            fill='none'
+                            xmlns='http://www.w3.org/2000/svg'
+                            aria-hidden
+                        >
+                            <path
+                                d='M6 6l12 12M18 6L6 18'
+                                stroke='currentColor'
+                                strokeWidth='2'
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                            />
+                        </svg>
+                    </button>
+                )}
             </div>
         </div>
     );
