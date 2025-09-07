@@ -181,11 +181,11 @@ const LogBookIntro = () => {
                     <div className='floating-elements'>
                         <div className='element element-1'>📝</div>
                         <div className='element element-2'>💬</div>
-                        <div className='element element-3'>🎵</div>
-                        <div className='element element-4'>🎨</div>
+                        <div className='element element-3'>꩜</div>
+                        <div className='element element-4'>🏴‍☠️</div>
                         <div className='element element-5'>👥</div>
                         <div className='element element-6'>☠️</div>
-                        <div className='element element-7'>🔥</div>
+                        <div className='element element-7'>💀</div>
                     </div>
                 </div>
             </section>
@@ -318,10 +318,7 @@ const LogBookIntro = () => {
                         <p className={`cta-description ${isVisible.cta ? 'animate' : ''}`}>
                             LogBook과 함께 새로운 경험을 시작해보세요
                         </p>
-                        <Link
-                            to='/signUp'
-                            className={`btn btn-cta ${isVisible.cta ? 'animate' : ''}`}
-                        >
+                        <Link to='/' className={`btn btn-cta ${isVisible.cta ? 'animate' : ''}`}>
                             지금 시작하기
                         </Link>
                     </div>

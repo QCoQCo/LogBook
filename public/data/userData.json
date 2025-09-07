@@ -77,7 +77,7 @@
         "password": "1234",
         "nickName": "CO_s_MOS",
         "userEmail": "kumityou@example.com",
-        "profilePhoto": "/img/2p.jpg",
+        "profilePhoto": "/img/b2.png",
         "introduction": "$KULL조 조장",
         "createdAt": "2025/08/16",
         "updatedAt": "2025/09/02",
@@ -91,6 +91,18 @@
         "userEmail": "bhkim0707@example.com",
         "profilePhoto": "/img/bkp.jpeg",
         "introduction": "$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter",
+        "createdAt": "2025/08/16",
+        "updatedAt": "2025/09/02",
+        "deletedAt": null
+    },
+    {
+        "id": 8,
+        "userId": "ljh1234",
+        "password": "1234",
+        "nickName": "LeeJee",
+        "userEmail": "ljm@example.com",
+        "profilePhoto": "https://i.namu.wiki/i/pohKGRrehgQQCm6qyQ9L15C550ZKBOmbRN-G22U8Slur0JjcQhC1objrFxmTvGt-ziCwtzYFZpDgrYOM53i_aADpLJrEvyWUTmR4GB4E4vyGDLDc6eHEe13L0_mI7W72KSXY6xQkhKgZTD95kcsQiA.webp",
+        "introduction": "리눅스 마스터",
         "createdAt": "2025/08/16",
         "updatedAt": "2025/09/02",
         "deletedAt": null
