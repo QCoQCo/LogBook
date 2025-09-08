@@ -41,6 +41,35 @@ import {
 // LogBookContext 생성
 const LogBookContext = createContext();
 
+// 공통 유틸리티 함수들
+const isGuestUser = (userId) => {
+    return !userId || userId.startsWith('guest_');
+};
+
+const handleAsyncOperation = async (operation, setLoading, setError, errorMessage) => {
+    try {
+        setLoading(true);
+        setError(null);
+        return await operation();
+    } catch (error) {
+        setError(errorMessage);
+        console.error(errorMessage, error);
+        throw error;
+    } finally {
+        setLoading(false);
+    }
+};
+
+const safeUnsubscribe = (unsubscribe, errorMessage) => {
+    if (unsubscribe) {
+        try {
+            unsubscribe();
+        } catch (error) {
+            console.error(errorMessage, error);
+        }
+    }
+};
+
 // LogBookProvider 컴포넌트
 export const LogBookProvider = ({ children }) => {
     const [isChatPage, setIsChatPage] = useState(false); //채팅페이지에서는 다크모드적용
@@ -75,6 +104,17 @@ export const LogBookProvider = ({ children }) => {
 
     // 채팅방 목록 실시간 구독
     const [chatRoomsUnsubscribe, setChatRoomsUnsubscribe] = useState(null);
+
+    // 구독 해제 통합 함수
+    const cleanupSubscriptions = useCallback(() => {
+        safeUnsubscribe(messagesUnsubscribe, '메시지 구독 해제 오류:');
+        safeUnsubscribe(usersUnsubscribe, '유저 구독 해제 오류:');
+        safeUnsubscribe(chatRoomsUnsubscribe, '채팅방 목록 구독 해제 오류:');
+
+        setMessagesUnsubscribe(null);
+        setUsersUnsubscribe(null);
+        setChatRoomsUnsubscribe(null);
+    }, [messagesUnsubscribe, usersUnsubscribe, chatRoomsUnsubscribe]);
 
     // 사용자 데이터 로딩 함수
     const loadUserData = useCallback(async () => {
@@ -117,7 +157,7 @@ export const LogBookProvider = ({ children }) => {
     const getUserProfilePhoto = useCallback(
         (userId, userName) => {
             // 게스트 사용자인 경우 null 반환
-            if (!userId || userId.startsWith('guest_')) {
+            if (isGuestUser(userId)) {
                 return null;
             }
 
@@ -132,7 +172,7 @@ export const LogBookProvider = ({ children }) => {
     const getUserInfo = useCallback(
         (userId, userName) => {
             // 게스트 사용자인 경우 null 반환
-            if (!userId || userId.startsWith('guest_')) {
+            if (isGuestUser(userId)) {
                 return null;
             }
 
@@ -193,16 +233,7 @@ export const LogBookProvider = ({ children }) => {
                 }
 
                 // 이전 구독 해제
-                if (messagesUnsubscribe) {
-                    messagesUnsubscribe();
-                    setMessagesUnsubscribe(null);
-                }
-
-                // 이전 유저 구독 해제
-                if (usersUnsubscribe) {
-                    usersUnsubscribe();
-                    setUsersUnsubscribe(null);
-                }
+                cleanupSubscriptions();
 
                 // 새 채팅방 설정
                 setCurrentChatRoom(chatRoom);
@@ -225,26 +256,12 @@ export const LogBookProvider = ({ children }) => {
                 return;
             }
 
-            try {
-                setLoading(true);
-                setError(null);
-
-                // 채팅방별 메시지 전송
-                await sendMessageToRoom(currentChatRoom.name, messageText, userId, userName, port);
-            } catch (err) {
-                const errorMessage = `메시지 전송에 실패했습니다: ${err.message}`;
-                setError(errorMessage);
-                console.error('메시지 전송 오류:', err);
-                console.error('Firebase 설정:', {
-                    currentChatRoom,
-                    messageText,
-                    userId,
-                    userName,
-                    port,
-                });
-            } finally {
-                setLoading(false);
-            }
+            await handleAsyncOperation(
+                () => sendMessageToRoom(currentChatRoom.name, messageText, userId, userName, port),
+                setLoading,
+                setError,
+                '메시지 전송에 실패했습니다.'
+            );
         },
         [currentChatRoom]
     );
@@ -296,21 +313,7 @@ export const LogBookProvider = ({ children }) => {
 
         if (currentChatRoom) {
             // 이전 구독 해제
-            if (messagesUnsubscribe) {
-                try {
-                    messagesUnsubscribe();
-                } catch (error) {
-                    console.error('이전 메시지 구독 해제 오류:', error);
-                }
-            }
-
-            if (usersUnsubscribe) {
-                try {
-                    usersUnsubscribe();
-                } catch (error) {
-                    console.error('이전 유저 구독 해제 오류:', error);
-                }
-            }
+            cleanupSubscriptions();
 
             // 새 채팅방 메시지 구독
             messageUnsubscribe = subscribeToCurrentRoomMessages(currentChatRoom.name);
@@ -327,33 +330,15 @@ export const LogBookProvider = ({ children }) => {
 
         // 컴포넌트 언마운트 또는 채팅방 변경 시 구독 해제
         return () => {
-            if (messageUnsubscribe) {
-                try {
-                    messageUnsubscribe();
-                } catch (error) {
-                    console.error('메시지 구독 정리 오류:', error);
-                }
-            }
-            if (userUnsubscribe) {
-                try {
-                    userUnsubscribe();
-                } catch (error) {
-                    console.error('유저 구독 정리 오류:', error);
-                }
-            }
+            safeUnsubscribe(messageUnsubscribe, '메시지 구독 정리 오류:');
+            safeUnsubscribe(userUnsubscribe, '유저 구독 정리 오류:');
         };
     }, [currentChatRoom]); // subscribeToCurrentRoomMessages, subscribeToCurrentRoomUsers 의존성 제거
 
     // 컴포넌트 언마운트 시 채팅방 목록 구독 해제
     useEffect(() => {
         return () => {
-            if (chatRoomsUnsubscribe) {
-                try {
-                    chatRoomsUnsubscribe();
-                } catch (error) {
-                    console.error('채팅방 목록 구독 해제 오류:', error);
-                }
-            }
+            safeUnsubscribe(chatRoomsUnsubscribe, '채팅방 목록 구독 해제 오류:');
         };
     }, [chatRoomsUnsubscribe]);
 
@@ -400,17 +385,12 @@ export const LogBookProvider = ({ children }) => {
                 return;
             }
 
-            try {
-                setLoading(true);
-                setError(null);
-
-                await deleteMessageFromRoom(currentChatRoom.name, messageId);
-            } catch (err) {
-                setError('메시지 삭제에 실패했습니다.');
-                console.error('메시지 삭제 오류:', err);
-            } finally {
-                setLoading(false);
-            }
+            await handleAsyncOperation(
+                () => deleteMessageFromRoom(currentChatRoom.name, messageId),
+                setLoading,
+                setError,
+                '메시지 삭제에 실패했습니다.'
+            );
         },
         [currentChatRoom]
     );
@@ -441,22 +421,14 @@ export const LogBookProvider = ({ children }) => {
     // 채팅방 생성 함수
     const createChatRoom = useCallback(async (roomData) => {
         try {
-            setLoading(true);
-            setError(null);
-
-            const newRoom = await createChatRoomService(roomData);
-
-            // 실시간 구독으로 자동 업데이트되므로 수동 추가 제거
-            // setChatRoomList((prevRooms) => [...prevRooms, newRoom]);
-
-            return newRoom;
+            return await handleAsyncOperation(
+                () => createChatRoomService(roomData),
+                setLoading,
+                setError,
+                '채팅방 생성에 실패했습니다.'
+            );
         } catch (err) {
-            const errorMessage = '채팅방 생성에 실패했습니다.';
-            setError(errorMessage);
-            console.error('채팅방 생성 오류:', err);
-            throw new Error(errorMessage);
-        } finally {
-            setLoading(false);
+            throw new Error('채팅방 생성에 실패했습니다.');
         }
     }, []);
 
@@ -464,13 +436,12 @@ export const LogBookProvider = ({ children }) => {
     const deleteChatRoom = useCallback(
         async (roomId) => {
             try {
-                setLoading(true);
-                setError(null);
-
-                await deleteChatRoomService(roomId);
-
-                // 실시간 구독으로 자동 업데이트되므로 수동 제거 제거
-                // setChatRoomList((prevRooms) => prevRooms.filter((room) => room.id !== roomId));
+                await handleAsyncOperation(
+                    () => deleteChatRoomService(roomId),
+                    setLoading,
+                    setError,
+                    '채팅방 삭제에 실패했습니다.'
+                );
 
                 // 삭제된 채팅방이 현재 선택된 채팅방인 경우 다른 채팅방으로 변경
                 if (currentChatRoom?.id === roomId) {
@@ -482,12 +453,7 @@ export const LogBookProvider = ({ children }) => {
                     }
                 }
             } catch (err) {
-                const errorMessage = '채팅방 삭제에 실패했습니다.';
-                setError(errorMessage);
-                console.error('채팅방 삭제 오류:', err);
-                throw new Error(errorMessage);
-            } finally {
-                setLoading(false);
+                throw new Error('채팅방 삭제에 실패했습니다.');
             }
         },
         [currentChatRoom, chatRoomList]
@@ -551,10 +517,11 @@ export const LogBookProvider = ({ children }) => {
             const unsubscribe = subscribeToRoomUsers(
                 roomName,
                 (users) => {
-                    setRoomUsers((prev) => ({
-                        ...prev,
-                        [roomName]: users,
-                    }));
+                    setRoomUsers((prev) => {
+                        // 동일한 데이터인 경우 업데이트하지 않음
+                        if (prev[roomName] === users) return prev;
+                        return { ...prev, [roomName]: users };
+                    });
                 },
                 (error) => {
                     console.error('유저 구독 오류:', error);
@@ -575,50 +542,97 @@ export const LogBookProvider = ({ children }) => {
         return users.length;
     }, [currentChatRoom, roomUsers]);
 
-    const value = useMemo(
+    // 메시지 관련 값들
+    const messageValues = useMemo(
         () => ({
-            // 메시지 관련
             messages,
             loading,
             error,
             sendMessage,
             deleteMessage,
             clearError,
+        }),
+        [messages, loading, error, sendMessage, deleteMessage, clearError]
+    );
 
-            // 채팅방 관련
+    // 채팅방 관련 값들
+    const chatRoomValues = useMemo(
+        () => ({
             currentChatRoom,
             chatRoomList,
             switchChatRoom,
             loadChatRoomList,
             createChatRoom,
             deleteChatRoom,
+        }),
+        [
+            currentChatRoom,
+            chatRoomList,
+            switchChatRoom,
+            loadChatRoomList,
+            createChatRoom,
+            deleteChatRoom,
+        ]
+    );
 
-            // 사용자 관련
-            onlineUsers,
-            updateOnlineUsers,
-            updateUserNickname,
-
-            // 사용자 데이터 관련
+    // 사용자 데이터 관련 값들
+    const userDataValues = useMemo(
+        () => ({
             userData,
             userDataLoading,
             userDataLoaded,
             loadUserData,
             getUserProfilePhoto,
             getUserInfo,
+            onlineUsers,
+            updateOnlineUsers,
+            updateUserNickname,
+        }),
+        [
+            userData,
+            userDataLoading,
+            userDataLoaded,
+            loadUserData,
+            getUserProfilePhoto,
+            getUserInfo,
+            onlineUsers,
+            updateOnlineUsers,
+            updateUserNickname,
+        ]
+    );
 
-            // 실시간 접속 유저 관련
+    // 실시간 접속 유저 관련 값들
+    const presenceValues = useMemo(
+        () => ({
             roomUsers,
             joinRoom,
             leaveRoom,
             setupPresenceHeartbeat,
             getCurrentRoomUserCount,
             updateUserOnlineStatus,
+        }),
+        [
+            roomUsers,
+            joinRoom,
+            leaveRoom,
+            setupPresenceHeartbeat,
+            getCurrentRoomUserCount,
+            updateUserOnlineStatus,
+        ]
+    );
 
-            // UI 상태
+    // UI 상태 관련 값들
+    const uiValues = useMemo(
+        () => ({
             isChatPage,
             setIsChatPage,
+        }),
+        [isChatPage, setIsChatPage]
+    );
 
-            // Blog 상태
+    // Blog 상태 관련 값들
+    const blogValues = useMemo(
+        () => ({
             layout,
             setLayout,
             draggingItem,
@@ -631,35 +645,6 @@ export const LogBookProvider = ({ children }) => {
             setIsBlogEditting,
         }),
         [
-            messages,
-            loading,
-            error,
-            sendMessage,
-            deleteMessage,
-            clearError,
-            currentChatRoom,
-            chatRoomList,
-            switchChatRoom,
-            loadChatRoomList,
-            createChatRoom,
-            deleteChatRoom,
-            onlineUsers,
-            updateOnlineUsers,
-            updateUserNickname,
-            userData,
-            userDataLoading,
-            userDataLoaded,
-            loadUserData,
-            getUserProfilePhoto,
-            getUserInfo,
-            roomUsers,
-            joinRoom,
-            leaveRoom,
-            setupPresenceHeartbeat,
-            getCurrentRoomUserCount,
-            updateUserOnlineStatus,
-            isChatPage,
-            setIsChatPage,
             layout,
             setLayout,
             draggingItem,
@@ -671,6 +656,19 @@ export const LogBookProvider = ({ children }) => {
             isBlogEditting,
             setIsBlogEditting,
         ]
+    );
+
+    // 전체 값 통합
+    const value = useMemo(
+        () => ({
+            ...messageValues,
+            ...chatRoomValues,
+            ...userDataValues,
+            ...presenceValues,
+            ...uiValues,
+            ...blogValues,
+        }),
+        [messageValues, chatRoomValues, userDataValues, presenceValues, uiValues, blogValues]
     );
 
     return <LogBookContext.Provider value={value}>{children}</LogBookContext.Provider>;
@@ -763,37 +761,34 @@ export const AuthProvider = ({ children }) => {
         try {
             sessionStorage.setItem('logbook_current_user', JSON.stringify(payload));
             if (persist) localStorage.setItem('logbook_current_user', JSON.stringify(payload));
-        } catch (e) {}
-        setCurrentUser(payload);
-        try {
+            setCurrentUser(payload);
             sendAuthEvent('login', payload);
-        } catch (e) {}
+        } catch (e) {
+            // 로그인 실패 시에도 사용자 상태는 설정
+            setCurrentUser(payload);
+        }
     }, []);
 
     const logout = useCallback(async () => {
         try {
             // 현재 사용자가 채팅방에 접속 중인 경우 퇴장 처리
             if (currentUser?.id) {
-                try {
-                    // 모든 채팅방에서 해당 사용자 강제 제거
-                    await forceRemoveUserFromAllRooms(currentUser.id);
-                    console.log('로그아웃 시 모든 채팅방에서 퇴장 처리 완료');
-                } catch (error) {
-                    console.error('로그아웃 시 채팅방 퇴장 처리 오류:', error);
-                }
+                await forceRemoveUserFromAllRooms(currentUser.id);
+                console.log('로그아웃 시 모든 채팅방에서 퇴장 처리 완료');
             }
-        } catch (e) {
-            console.error('로그아웃 시 채팅방 퇴장 처리 중 오류:', e);
+        } catch (error) {
+            console.error('로그아웃 시 채팅방 퇴장 처리 오류:', error);
         }
 
         try {
             sessionStorage.removeItem('logbook_current_user');
             localStorage.removeItem('logbook_current_user');
-        } catch (e) {}
-        setCurrentUser(null);
-        try {
+            setCurrentUser(null);
             sendAuthEvent('logout');
-        } catch (e) {}
+        } catch (e) {
+            // 로그아웃 실패 시에도 사용자 상태는 초기화
+            setCurrentUser(null);
+        }
     }, [currentUser?.id]);
 
     return (
