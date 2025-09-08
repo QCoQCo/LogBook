@@ -10,6 +10,10 @@ const LogBookIntro = () => {
     const [isVisible, setIsVisible] = useState({});
     const sectionRefs = useRef({});
 
+    const scrollToTop = () => {
+        window.scrollTo(0, 0);
+    };
+
     // LogBookIntro 페이지 진입 시 다크모드 활성화
     useEffect(() => {
         setIsChatPage(true);
@@ -176,14 +180,16 @@ const LogBookIntro = () => {
                             onClick={() => {
                                 if (!isLogin) {
                                     if (confirm('로그인이 필요합니다. 로그인하시겠습니까?')) {
-                                        toggleLogin();
+                                        toggleLogin(); //모달
                                     }
+                                } else {
+                                    scrollToTop();
                                 }
                             }}
                         >
                             블로그 시작하기
                         </Link>
-                        <Link to='/chat' className='btn btn-secondary'>
+                        <Link to='/chat' onClick={scrollToTop} className='btn btn-secondary'>
                             채팅 참여하기
                         </Link>
                     </div>
@@ -305,6 +311,8 @@ const LogBookIntro = () => {
                                         if (confirm('로그인이 필요합니다. 로그인하시겠습니까?')) {
                                             toggleLogin();
                                         }
+                                    } else {
+                                        scrollToTop();
                                     }
                                 }}
                             >
@@ -313,19 +321,27 @@ const LogBookIntro = () => {
                                 <p>드래그 앤 드롭으로 나만의 블로그를 꾸며보세요</p>
                             </Link>
 
-                            <Link to='/chat' className='demo-card chat-demo'>
+                            <Link to='/chat' onClick={scrollToTop} className='demo-card chat-demo'>
                                 <div className='demo-icon'>💬</div>
                                 <h3>채팅 참여하기</h3>
                                 <p>실시간으로 다른 사용자들과 소통해보세요</p>
                             </Link>
                             {isLogin ? (
-                                <Link to='/post/write' className='demo-card signup-demo'>
+                                <Link
+                                    to='/post/write'
+                                    onClick={scrollToTop}
+                                    className='demo-card signup-demo'
+                                >
                                     <div className='demo-icon'>📝</div>
                                     <h3>개시글 작성하기</h3>
                                     <p>LogBook의 모든 기능을 이용해보세요</p>
                                 </Link>
                             ) : (
-                                <Link to='/signUp' className='demo-card signup-demo'>
+                                <Link
+                                    to='/signUp'
+                                    onClick={scrollToTop}
+                                    className='demo-card signup-demo'
+                                >
                                     <div className='demo-icon'>🚀</div>
                                     <h3>회원가입</h3>
                                     <p>LogBook의 모든 기능을 이용해보세요</p>
@@ -346,7 +362,11 @@ const LogBookIntro = () => {
                         <p className={`cta-description ${isVisible.cta ? 'animate' : ''}`}>
                             LogBook과 함께 새로운 경험을 시작해보세요
                         </p>
-                        <Link to='/' className={`btn btn-cta ${isVisible.cta ? 'animate' : ''}`}>
+                        <Link
+                            to='/'
+                            onClick={scrollToTop}
+                            className={`btn btn-cta ${isVisible.cta ? 'animate' : ''}`}
+                        >
                             지금 시작하기
                         </Link>
                     </div>

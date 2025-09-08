@@ -290,7 +290,7 @@ const Header = () => {
                                 )}
                             </div>
                         ) : (
-                            <div>
+                            <div className='login-btn-wrap'>
                                 <button onClick={toggleLogin}>로그인</button>
                                 {showLogin && <Login onClose={toggleLogin} />}
                             </div>
