@@ -14,27 +14,81 @@
             align-items: center;
             justify-content: start;
             padding: 10px;
-
-            a {
-                display: flex;
-                align-items: center;
-                justify-content: start;
-                gap: 10px;
-                .logo {
-                    width: 100px;
-                    height: 100px;
-                    background-image: url('/img/logBook_logo.png');
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
+            .logo-wrapper {
+                a {
+                    display: flex;
+                    align-items: center;
+                    justify-content: start;
+                    gap: 10px;
+                    .logo {
+                        width: 100px;
+                        height: 100px;
+                        background-image: url('/img/logBook_logo.png');
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                        background-position: center;
+                    }
+                    .title {
+                        width: 200px;
+                        height: 100px;
+                        background-image: url('/img/logBook_logo_text.png');
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                        background-position: center;
+                    }
                 }
-                .title {
-                    width: 200px;
-                    height: 100px;
-                    background-image: url('/img/logBook_logo_text.png');
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
+            }
+            .intro-wrapper {
+                width: 150px;
+                height: 50px;
+                border-radius: 50px;
+                border: 4px solid #a3a3a3;
+                overflow: hidden;
+                background-color: #121212;
+
+                a {
+                    position: relative;
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    line-height: 42px;
+                    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+                    background-size: 300% 300%;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    animation: gradientShift 3s ease-in-out infinite;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+
+                    &::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: -100%;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(
+                            90deg,
+                            transparent,
+                            rgba(255, 255, 255, 0.2),
+                            transparent
+                        );
+                        transition: left 0.5s;
+                    }
+
+                    &:hover::before {
+                        left: 100%;
+                    }
+
+                    p {
+                        font-size: 20px;
+                        font-weight: 600;
+                    }
+                }
+                &:hover {
+                    transform: translateY(-3px);
                 }
             }
         }
@@ -332,9 +386,15 @@
 
         .container {
             .left {
-                a {
-                    .title {
-                        filter: invert(1) brightness(2);
+                .logo-wrapper {
+                    a {
+                        .title {
+                            filter: invert(1) brightness(2);
+                        }
+                    }
+                }
+                .intro-wrapper {
+                    a {
                     }
                 }
             }
@@ -437,6 +497,15 @@
                     }
                 }
             }
+        }
+    }
+    @keyframes gradientShift {
+        0%,
+        100% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
         }
     }
 }
