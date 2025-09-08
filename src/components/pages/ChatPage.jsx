@@ -28,6 +28,7 @@ const ChatPage = () => {
         updateUserOnlineStatus,
         createChatRoom,
         switchChatRoom,
+        toggleLogin,
     } = useLogBook();
 
     // Auth Context 사용
@@ -613,8 +614,7 @@ const ChatPage = () => {
                                     <button
                                         className='login-prompt-btn'
                                         onClick={() => {
-                                            // 로그인 페이지로 이동하거나 로그인 모달 열기
-                                            window.location.href = '/'; // 또는 로그인 모달 열기 함수 호출
+                                            toggleLogin();
                                         }}
                                     >
                                         로그인하기

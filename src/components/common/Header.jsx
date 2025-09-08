@@ -13,8 +13,8 @@ import './Header.scss';
 
 const Header = () => {
     const navigate = useNavigate();
-    const { isChatPage, getUserInfo, getUserProfilePhoto, userDataLoaded } = useLogBook(); // 다크모드 상태 구독
-    const [showLogin, setShowLogin] = useState(false);
+    const { isChatPage, getUserInfo, getUserProfilePhoto, userDataLoaded, showLogin, toggleLogin } =
+        useLogBook(); // 다크모드 상태 구독
     const { currentUser, isLogin, logout } = useAuth();
     const [showMenu, setShowMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
@@ -31,7 +31,6 @@ const Header = () => {
     const currentUserProfilePhoto =
         isLogin && currentUser ? getUserProfilePhoto(currentUser.id, currentUser.nickName) : null;
 
-    const toggleLogin = () => setShowLogin((s) => !s);
     const toggleMenu = () => setShowMenu((s) => !s);
     const toggleSearch = () => {
         console.debug('[Header] toggleSearch, before:', showSearch);
