@@ -237,7 +237,7 @@
                 }
             }
             .login-btn {
-                .login-btn {
+                .login-btn-wrap {
                     button {
                         position: relative;
                         width: 100px;
@@ -415,10 +415,6 @@
                         .title {
                             filter: invert(1) brightness(2);
                         }
-                    }
-                }
-                .intro-wrapper {
-                    a {
                     }
                 }
             }
