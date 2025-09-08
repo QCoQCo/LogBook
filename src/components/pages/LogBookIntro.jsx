@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLogBook } from '../../context/LogBookContext';
+import { useLogBook, useAuth } from '../../context/LogBookContext';
 import './LogBookIntro.scss';
 
 const LogBookIntro = () => {
-    const { isChatPage, setIsChatPage } = useLogBook(); // 다크모드 상태 구독
+    const { isChatPage, setIsChatPage, toggleLogin } = useLogBook(); // 다크모드 상태 구독
+    const { currentUser, isLogin } = useAuth();
     const [scrollY, setScrollY] = useState(0);
     const [isVisible, setIsVisible] = useState({});
     const sectionRefs = useRef({});
@@ -169,7 +170,17 @@ const LogBookIntro = () => {
                         모든 것을 하나의 플랫폼에서 경험해보세요
                     </p>
                     <div className='hero-buttons'>
-                        <Link to='/blog' className='btn btn-primary'>
+                        <Link
+                            to={isLogin ? `/blog?userId=${currentUser?.id}` : ''}
+                            className='btn btn-primary'
+                            onClick={() => {
+                                if (!isLogin) {
+                                    if (confirm('로그인이 필요합니다. 로그인하시겠습니까?')) {
+                                        toggleLogin();
+                                    }
+                                }
+                            }}
+                        >
                             블로그 시작하기
                         </Link>
                         <Link to='/chat' className='btn btn-secondary'>
@@ -181,11 +192,11 @@ const LogBookIntro = () => {
                     <div className='floating-elements'>
                         <div className='element element-1'>📝</div>
                         <div className='element element-2'>💬</div>
-                        <div className='element element-3'>꩜</div>
+                        <div className='element element-3'>💀</div>
                         <div className='element element-4'>🏴‍☠️</div>
-                        <div className='element element-5'>👥</div>
+                        <div className='element element-5'>🃟</div>
                         <div className='element element-6'>☠️</div>
-                        <div className='element element-7'>💀</div>
+                        <div className='element element-7'>⚓️</div>
                     </div>
                 </div>
             </section>
@@ -286,8 +297,18 @@ const LogBookIntro = () => {
                         ref={(el) => (sectionRefs.current.demoContent = el)}
                     >
                         <div className={`demo-cards ${isVisible.demoContent ? 'animate' : ''}`}>
-                            <Link to='/blog' className='demo-card blog-demo'>
-                                <div className='demo-icon'>📝</div>
+                            <Link
+                                to={isLogin ? `/blog?userId=${currentUser?.id}` : ''}
+                                className='demo-card blog-demo'
+                                onClick={() => {
+                                    if (!isLogin) {
+                                        if (confirm('로그인이 필요합니다. 로그인하시겠습니까?')) {
+                                            toggleLogin();
+                                        }
+                                    }
+                                }}
+                            >
+                                <div className='demo-icon'>🏴‍☠️</div>
                                 <h3>블로그 만들기</h3>
                                 <p>드래그 앤 드롭으로 나만의 블로그를 꾸며보세요</p>
                             </Link>
@@ -297,12 +318,19 @@ const LogBookIntro = () => {
                                 <h3>채팅 참여하기</h3>
                                 <p>실시간으로 다른 사용자들과 소통해보세요</p>
                             </Link>
-
-                            <Link to='/signUp' className='demo-card signup-demo'>
-                                <div className='demo-icon'>🚀</div>
-                                <h3>회원가입</h3>
-                                <p>LogBook의 모든 기능을 이용해보세요</p>
-                            </Link>
+                            {isLogin ? (
+                                <Link to='/post/write' className='demo-card signup-demo'>
+                                    <div className='demo-icon'>📝</div>
+                                    <h3>개시글 작성하기</h3>
+                                    <p>LogBook의 모든 기능을 이용해보세요</p>
+                                </Link>
+                            ) : (
+                                <Link to='/signUp' className='demo-card signup-demo'>
+                                    <div className='demo-icon'>🚀</div>
+                                    <h3>회원가입</h3>
+                                    <p>LogBook의 모든 기능을 이용해보세요</p>
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>

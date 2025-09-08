@@ -63,13 +63,14 @@
         position: relative;
         padding: 2rem;
         text-align: center;
+        transition: all 0.2s ease;
 
         .hero-content {
             max-width: 800px;
             z-index: 2;
             position: sticky;
-            top: 50px;
-            transform: translateY(-90%);
+            top: 10vh;
+            transform: translateY(-55vh);
             width: 100%;
             transition: opacity 0.1s ease-out;
 
@@ -167,7 +168,7 @@
 
                     &.btn-primary {
                         background: linear-gradient(
-                            45deg,
+                            135deg,
                             #9a9a9a,
                             #6f6f6f,
                             #474747,
@@ -541,10 +542,13 @@
             .title-text {
                 font-size: 3rem;
                 font-weight: 700;
-                background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+                background: linear-gradient(135deg, #4ecdc4, #45b7d1, #667eea);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
+                background-size: 300% 300%;
+
+                animation: gradientShift 3s ease-in-out infinite;
                 opacity: 0;
                 transform: translateY(50px);
                 transition: all 0.8s ease;
@@ -717,10 +721,10 @@
     @keyframes gradientShift {
         0%,
         100% {
-            background-position: 0% 50%;
+            background-position: 1% 50%;
         }
         50% {
-            background-position: 100% 50%;
+            background-position: 99% 50%;
         }
     }
 

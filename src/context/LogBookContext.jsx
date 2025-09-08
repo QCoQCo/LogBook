@@ -74,6 +74,10 @@ const safeUnsubscribe = (unsubscribe, errorMessage) => {
 export const LogBookProvider = ({ children }) => {
     const [isChatPage, setIsChatPage] = useState(false); //채팅페이지에서는 다크모드적용
 
+    //헤더 로그인 모달
+    const [showLogin, setShowLogin] = useState(false);
+    const toggleLogin = () => setShowLogin((s) => !s);
+
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -626,8 +630,10 @@ export const LogBookProvider = ({ children }) => {
         () => ({
             isChatPage,
             setIsChatPage,
+            showLogin,
+            toggleLogin,
         }),
-        [isChatPage, setIsChatPage]
+        [isChatPage, setIsChatPage, showLogin, toggleLogin]
     );
 
     // Blog 상태 관련 값들

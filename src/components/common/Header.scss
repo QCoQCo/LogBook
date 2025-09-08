@@ -45,7 +45,7 @@
                 border: 4px solid #a3a3a3;
                 overflow: hidden;
                 background-color: #121212;
-
+                transition: all 0.3s ease;
                 a {
                     position: relative;
                     display: block;
@@ -238,6 +238,7 @@
             }
             .login-btn {
                 button {
+                    position: relative;
                     width: 100px;
                     height: 40px;
                     padding: 10px 20px;
@@ -246,11 +247,31 @@
                     color: #000;
                     font-size: 14px;
                     font-weight: 600;
+                    overflow: hidden;
                     cursor: pointer;
                     transition: all 0.3s ease;
                     &:hover {
                         background-color: #000;
                         color: #fff;
+                    }
+                    &::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: -100%;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(
+                            90deg,
+                            transparent,
+                            rgba(135, 135, 135, 0.6),
+                            transparent
+                        );
+                        transition: left 0.5s;
+                    }
+
+                    &:hover::before {
+                        left: 100%;
                     }
                 }
                 .user-area {
