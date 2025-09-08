@@ -12,7 +12,7 @@ const FloatingButton = () => {
 
     const goNewPost = () => {
         setOpen(false);
-        navigate('/write'); // adjust route to your writing page
+        navigate('/post/write'); // adjust route to your writing page
     };
 
     const goChat = () => {
