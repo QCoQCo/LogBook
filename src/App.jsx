@@ -88,6 +88,18 @@ function App() {
                                 <Route path='/blog' element={<Pages.Blog />} />
                                 <Route path='/signUp' element={<Pages.SignUp />} />
                                 <Route path='/intro' element={<Pages.LogBookIntro />} />
+                                <Route
+                                    path='/post/detail?postId=:postId'
+                                    element={<Pages.PostDetail />}
+                                />
+                                <Route
+                                    path='/post/write'
+                                    element={<Pages.PostEdit isEdit={false} />}
+                                />
+                                <Route
+                                    path='/post/edit'
+                                    element={<Pages.PostEdit isEdit={true} />}
+                                />
                             </Route>
                         </Routes>
                     </BrowserRouter>

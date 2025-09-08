@@ -1,0 +1,258 @@
+$primary-color: #0366d6;
+$text-color: #333;
+$background-color: #f8f9fa;
+$border-color: #e0e0e0;
+$blockquote-color: #6a737d;
+$blockquote-border-color: #dfe2e5;
+$code-bg-color: rgba(27, 31, 35, 0.05);
+$pre-bg-color: #f6f8fa;
+$btn-text-color: #299440;
+$btn-bg-color: #92f2a75d;
+
+.post-editor-container {
+    display: flex;
+    height: 100%;
+    font-family: 'Pretendard Variable', Pretendard, sans-serif;
+    font-size: 16px;
+    background-color: $background-color;
+    color: $text-color;
+    overflow: hidden;
+
+    // 왼쪽 편집기 영역
+    .post-editor {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        border-right: 1px solid $border-color;
+
+        .post-title-area {
+            width: 100%;
+            height: 82px;
+            padding: 16px 0px;
+            margin-bottom: 16px;
+
+            .post-title-input {
+                width: 100%;
+                height: 100%;
+                font-size: 40px;
+                font-weight: 700;
+                border: none;
+                background-color: $background-color;
+
+                &:focus {
+                    outline: none;
+                }
+            }
+
+            &::after {
+                content: '';
+                display: block;
+                width: 120px;
+                height: 6px;
+                margin-top: 14px;
+                background-color: $text-color;
+            }
+        }
+
+        .post-tags-area {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 16px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+
+            .tag-item {
+                display: inline-flex;
+
+                .tag-button {
+                    padding: 4px 10px;
+                    border-radius: 12px;
+                    font-weight: 700;
+                    color: $btn-text-color;
+                    background-color: $btn-bg-color;
+                    transition: 200ms;
+
+                    &:hover {
+                        color: #ffffff;
+                        background-color: $btn-text-color;
+                    }
+                }
+            }
+
+            .post-tag-input {
+                display: inline-flex;
+                height: 24px;
+                font-size: 16px;
+                border: none;
+                background-color: $background-color;
+
+                &:focus {
+                    outline: none;
+                }
+            }
+
+            i {
+                display: block;
+                position: absolute;
+                bottom: -60px;
+                padding: 10px 14px;
+                font-size: 12px;
+                border-radius: 8px;
+                color: #ffffff;
+                background-color: $text-color;
+                animation-name: slideDown;
+                animation-duration: 0.2s;
+                animation-timing-function: ease-out;
+                animation-fill-mode: forwards;
+
+                &.tooltip-hidden {
+                    animation-name: slideUp;
+                }
+            }
+        }
+
+        .markdown-textarea {
+            font-family: 'Pretendard Variable', Pretendard, sans-serif;
+            width: 100%;
+            height: 85%;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 10px;
+            background: transparent;
+            box-sizing: border-box;
+        }
+    }
+
+    // 오른쪽 미리보기 영역
+    .post-preview {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background-color: #ffffff;
+
+        .post-preview-title {
+            h1 {
+                font-size: 3em;
+                font-weight: 700;
+                margin-bottom: 32px;
+            }
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin-top: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        h1 {
+            font-size: 2.25em;
+        }
+
+        h2 {
+            font-size: 1.8em;
+        }
+
+        h3 {
+            font-size: 1.4em;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        a {
+            color: $primary-color;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 90%;
+            line-height: 1;
+            background-color: $code-bg-color;
+            border-radius: 3px;
+        }
+
+        pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1;
+            background-color: $pre-bg-color;
+            border-radius: 6px;
+            margin-bottom: 8px;
+
+            .code-block {
+                code {
+                    display: inline;
+                    padding: 0;
+                    margin: 0;
+                    overflow: visible;
+                    word-wrap: normal;
+                    background-color: transparent;
+                    border: 0;
+
+                    span {
+                        line-height: 1;
+                    }
+                }
+            }
+        }
+
+        ul,
+        ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        blockquote {
+            color: $blockquote-color;
+            padding: 0 1em;
+            margin-left: 0;
+            border-left: 0.25em solid $blockquote-border-color;
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(-30%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        0% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-20%);
+            opacity: 0;
+            display: none;
+        }
+    }
+}
