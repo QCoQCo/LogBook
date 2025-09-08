@@ -17,6 +17,7 @@ import {
     migrateLocalToSession,
     sendAuthEvent,
 } from '../utils/sessionSync';
+import { forceRemoveUserFromAllRooms } from '../utils/chatService';
 import {
     sendMessageToRoom,
     subscribeToRoomMessages,
@@ -30,7 +31,6 @@ import {
     updateUserPresence,
     updateUserOnlineStatus,
     subscribeToRoomUsers,
-    forceRemoveUserFromAllRooms,
     subscribeToChatRooms,
     initializeDefaultChatRooms,
     cleanupExpiredPresence,
@@ -770,7 +770,22 @@ export const AuthProvider = ({ children }) => {
         } catch (e) {}
     }, []);
 
-    const logout = useCallback(() => {
+    const logout = useCallback(async () => {
+        try {
+            // 현재 사용자가 채팅방에 접속 중인 경우 퇴장 처리
+            if (currentUser?.id) {
+                try {
+                    // 모든 채팅방에서 해당 사용자 강제 제거
+                    await forceRemoveUserFromAllRooms(currentUser.id);
+                    console.log('로그아웃 시 모든 채팅방에서 퇴장 처리 완료');
+                } catch (error) {
+                    console.error('로그아웃 시 채팅방 퇴장 처리 오류:', error);
+                }
+            }
+        } catch (e) {
+            console.error('로그아웃 시 채팅방 퇴장 처리 중 오류:', e);
+        }
+
         try {
             sessionStorage.removeItem('logbook_current_user');
             localStorage.removeItem('logbook_current_user');
@@ -779,7 +794,7 @@ export const AuthProvider = ({ children }) => {
         try {
             sendAuthEvent('logout');
         } catch (e) {}
-    }, []);
+    }, [currentUser?.id]);
 
     return (
         <AuthContext.Provider value={{ currentUser, isLogin: !!currentUser, login, logout }}>

@@ -121,10 +121,17 @@ const Header = () => {
         <header id='Header' className={isChatPage ? 'dark-mode' : ''}>
             <div className='container'>
                 <div className='left'>
-                    <Link to='/'>
-                        <div className='logo' />
-                        <div className='title' />
-                    </Link>
+                    <div className='logo-wrapper'>
+                        <Link to='/'>
+                            <div className='logo'></div>
+                            <div className='title'></div>
+                        </Link>
+                    </div>
+                    <div className='intro-wrapper'>
+                        <Link to='/intro'>
+                            <p>프로젝트 소개</p>
+                        </Link>
+                    </div>
                 </div>
 
                 <div className='right'>

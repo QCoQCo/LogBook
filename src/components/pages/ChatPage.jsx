@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import RGL, { WidthProvider } from 'react-grid-layout';
 import { useLogBook, useAuth, useYTPopup } from '../../context/LogBookContext';
+import { validateRoomPassword } from '../../utils/chatService';
 import * as Chat from '../chat';
 
 import './ChatPage.scss';
@@ -25,6 +26,8 @@ const ChatPage = () => {
         setupPresenceHeartbeat,
         getCurrentRoomUserCount,
         updateUserOnlineStatus,
+        createChatRoom,
+        switchChatRoom,
     } = useLogBook();
 
     // Auth Context 사용
@@ -90,6 +93,28 @@ const ChatPage = () => {
         updateUserInfo();
     }, [updateUserInfo]);
 
+    // 로그인 상태 변경 시 채팅방 퇴장 처리
+    useEffect(() => {
+        const { currentUser: user } = chatState;
+
+        // 로그아웃된 경우 (이전에 로그인되어 있었고 현재 로그아웃된 경우)
+        if (!isLogin && prevUserIdRef.current) {
+            const handleLogout = async () => {
+                try {
+                    // 이전 사용자 ID로 모든 채팅방에서 퇴장 처리
+                    await leaveRoom(currentChatRoom?.name, prevUserIdRef.current);
+                    console.log('로그아웃 감지: 채팅방에서 퇴장 처리 완료');
+                } catch (error) {
+                    console.error('로그아웃 시 채팅방 퇴장 처리 오류:', error);
+                }
+                // 이전 사용자 ID 초기화
+                prevUserIdRef.current = null;
+            };
+
+            handleLogout();
+        }
+    }, [isLogin, currentChatRoom?.name, leaveRoom]);
+
     // ChatPage 진입 시 다크모드 활성화
     useEffect(() => {
         setIsChatPage(true);
@@ -107,6 +132,28 @@ const ChatPage = () => {
 
     // 채팅방 유저 리스트 모달 상태
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
+
+    // 채팅방 생성 및 비밀번호 모달 상태
+    const [roomModals, setRoomModals] = useState({
+        showCreate: false,
+        showPassword: false,
+    });
+
+    // 새 채팅방 데이터 상태
+    const [newRoomData, setNewRoomData] = useState({
+        name: '',
+        description: '',
+        capacity: 50,
+        isPrivate: false,
+        password: '0000',
+    });
+
+    // 비밀번호 관련 상태
+    const [passwordState, setPasswordState] = useState({
+        selectedRoom: null,
+        input: '',
+        error: '',
+    });
 
     // 채팅방 관리를 위한 통합 useEffect
     useEffect(() => {
@@ -351,6 +398,86 @@ const ChatPage = () => {
         []
     );
 
+    // 채팅방 생성 모달 핸들러들
+    const createRoomHandlers = useMemo(
+        () => ({
+            open: () => setRoomModals((prev) => ({ ...prev, showCreate: true })),
+            close: () => {
+                setRoomModals((prev) => ({ ...prev, showCreate: false }));
+                setNewRoomData({
+                    name: '',
+                    description: '',
+                    capacity: 50,
+                    isPrivate: false,
+                    password: '0000',
+                });
+            },
+            create: async () => {
+                if (!newRoomData.name.trim()) {
+                    alert('채팅방 이름을 입력해주세요.');
+                    return;
+                }
+
+                try {
+                    await createChatRoom({
+                        ...newRoomData,
+                        admin: authUser.nickName,
+                        userId: authUser.id,
+                    });
+                    createRoomHandlers.close();
+                } catch (error) {
+                    alert('채팅방 생성에 실패했습니다.');
+                    console.error('채팅방 생성 오류:', error);
+                }
+            },
+        }),
+        [newRoomData, createChatRoom, authUser]
+    );
+
+    // 비밀번호 모달 핸들러들
+    const passwordModalHandlers = useMemo(
+        () => ({
+            open: (room) => {
+                setPasswordState({
+                    selectedRoom: room,
+                    input: '',
+                    error: '',
+                });
+                setRoomModals((prev) => ({ ...prev, showPassword: true }));
+            },
+            close: () => {
+                setRoomModals((prev) => ({ ...prev, showPassword: false }));
+                setPasswordState({
+                    selectedRoom: null,
+                    input: '',
+                    error: '',
+                });
+            },
+            submit: () => {
+                const { selectedRoom, input } = passwordState;
+                if (!selectedRoom) return;
+
+                if (validateRoomPassword(selectedRoom, input)) {
+                    switchChatRoom(selectedRoom);
+                    passwordModalHandlers.close();
+                } else {
+                    setPasswordState((prev) => ({
+                        ...prev,
+                        error: '비밀번호가 틀렸습니다.',
+                    }));
+                }
+            },
+            handleKeyPress: (e) => {
+                if (e.key === 'Enter') {
+                    passwordModalHandlers.submit();
+                } else if (e.key === 'Escape') {
+                    passwordModalHandlers.close();
+                }
+            },
+        }),
+        [passwordState, switchChatRoom]
+    );
+
     return (
         <div id='ChatPage'>
             <div className='container'>
@@ -499,7 +626,10 @@ const ChatPage = () => {
                 </div>
                 <div className='list-area'>
                     <div className='chat-list-area'>
-                        <Chat.ChatRoomList />
+                        <Chat.ChatRoomList
+                            onCreateRoom={createRoomHandlers.open}
+                            onPasswordModal={passwordModalHandlers.open}
+                        />
                     </div>
                     <div className='user-playlist-area'>
                         <Chat.UserPlaylist
@@ -518,6 +648,29 @@ const ChatPage = () => {
                 onClose={usersModalHandlers.close}
                 roomName={currentChatRoom?.name}
                 currentUser={chatState.currentUser}
+            />
+
+            {/* 채팅방 생성 모달 */}
+            <Chat.CreateChatRoomModal
+                isOpen={roomModals.showCreate}
+                onClose={createRoomHandlers.close}
+                newRoomData={newRoomData}
+                setNewRoomData={setNewRoomData}
+                onCreateRoom={createRoomHandlers.create}
+            />
+
+            {/* 비밀번호 입력 모달 */}
+            <Chat.PasswordModal
+                isOpen={roomModals.showPassword}
+                onClose={passwordModalHandlers.close}
+                selectedRoom={passwordState.selectedRoom}
+                passwordInput={passwordState.input}
+                setPasswordInput={(value) =>
+                    setPasswordState((prev) => ({ ...prev, input: value, error: '' }))
+                }
+                error={passwordState.error}
+                onSubmit={passwordModalHandlers.submit}
+                onKeyPress={passwordModalHandlers.handleKeyPress}
             />
         </div>
     );
