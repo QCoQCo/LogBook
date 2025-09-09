@@ -81,14 +81,6 @@ const LogBookIntro = () => {
             tech: ['YouTube API', 'Swiper', 'Popup Player'],
         },
         {
-            title: '사용자 인증 & 프로필',
-            description:
-                'Firebase Authentication을 통한 안전한 사용자 인증. 개성 있는 프로필 생성, 사용자 데이터 관리, 세션 동기화 등 완전한 사용자 시스템을 제공합니다.',
-            icon: '👤',
-            color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-            tech: ['Firebase Auth', 'User Management', 'Session Sync'],
-        },
-        {
             title: '반응형 UI/UX',
             description:
                 '모든 디바이스에서 완벽하게 작동하는 반응형 디자인. SCSS를 활용한 모던한 스타일링과 부드러운 애니메이션으로 최고의 사용자 경험을 제공합니다.',
@@ -241,6 +233,7 @@ const LogBookIntro = () => {
                             </div>
                         ))}
                     </div>
+                    <div className='vid-demo'></div>
                 </div>
             </section>
 

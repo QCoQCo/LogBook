@@ -1,12 +1,9 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import RGL, { WidthProvider } from 'react-grid-layout';
 import { useLogBook, useAuth, useYTPopup } from '../../context/LogBookContext';
 import { validateRoomPassword } from '../../utils/chatService';
 import * as Chat from '../chat';
 
 import './ChatPage.scss';
-
-const ReactGridLayout = WidthProvider(RGL);
 
 const ChatPage = () => {
     // LogBook Context 사용
@@ -252,6 +249,7 @@ const ChatPage = () => {
 
     // 메시지 영역 스크롤을 위한 ref
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
 
     // 레이아웃 변경 핸들러 (현재 사용되지 않음)
     // const onLayoutChange = (newLayout) => {
@@ -308,12 +306,18 @@ const ChatPage = () => {
 
     // 메시지 영역 자동 스크롤 - 메모이제이션
     const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: 'smooth',
+            });
+        }
     }, []);
 
     // 메시지 변경 시 자동 스크롤
     useEffect(() => {
         scrollToBottom();
+        // window.scrollTo(0, 0);
     }, [messages, scrollToBottom]);
 
     // 닉네임 관련 함수들을 메모이제이션
@@ -556,7 +560,7 @@ const ChatPage = () => {
                                     ))}
                             </div>
                         </div>
-                        <div className='chat-area-content'>
+                        <div className='chat-area-content' ref={messagesContainerRef}>
                             {/* Firebase 실시간 메시지 표시 */}
                             {loading && <div className='loading'>메시지 로딩 중...</div>}
                             {error && (
