@@ -100,6 +100,10 @@ export const LogBookProvider = ({ children }) => {
     const [elements, setElements] = useState([]);
     const [isBlogEditting, setIsBlogEditting] = useState(false);
 
+    // 게시글 작성 관련 상태
+    const [markdown, setMarkdown] = useState('');
+    const [postTitle, setPostTitle] = useState('');
+
     // 실시간 접속 유저 관리
     const [roomUsers, setRoomUsers] = useState({});
     const [usersUnsubscribe, setUsersUnsubscribe] = useState(null);
@@ -664,6 +668,16 @@ export const LogBookProvider = ({ children }) => {
         ]
     );
 
+    // 게시글 작성 관련 값들
+    const postEditorValues = useMemo(
+        () => ({
+            markdown,
+            setMarkdown,
+            postTitle,
+            setPostTitle,
+        }),
+        [markdown, setMarkdown, postTitle, setPostTitle]
+    );
     // 전체 값 통합
     const value = useMemo(
         () => ({
@@ -673,8 +687,17 @@ export const LogBookProvider = ({ children }) => {
             ...presenceValues,
             ...uiValues,
             ...blogValues,
+            ...postEditorValues,
         }),
-        [messageValues, chatRoomValues, userDataValues, presenceValues, uiValues, blogValues]
+        [
+            messageValues,
+            chatRoomValues,
+            userDataValues,
+            presenceValues,
+            uiValues,
+            blogValues,
+            postEditorValues,
+        ]
     );
 
     return <LogBookContext.Provider value={value}>{children}</LogBookContext.Provider>;

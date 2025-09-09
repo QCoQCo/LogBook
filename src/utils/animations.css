@@ -117,7 +117,7 @@
 @keyframes tooltip-slide-down {
     0% {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-30%);
     }
     100% {
         opacity: 1;
@@ -127,8 +127,32 @@
 
 @keyframes tooltip-slide-up {
     0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(-20%);
+        display: none;
+    }
+}
+
+@keyframes post-editor-slide-up {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20%);
+        display: none;
+    }
+}
+
+@keyframes post-editor-slide-down {
+    0% {
+        opacity: 0;
+        transform: translateY(-30%);
     }
     100% {
         opacity: 1;
