@@ -88,7 +88,7 @@ const PostEditor = ({}) => {
         let newCursorPosition;
         let newCursorEnd;
 
-        // Handle line-based markdown like H1
+        // Handle line-based markdown like H1, H2
         if (prefix.includes('#') || prefix.includes('-') || prefix.includes('>')) {
             const textBeforeCursor = currentContent.substring(0, start);
             const lastLineBreakIndex = textBeforeCursor.lastIndexOf('\n');
