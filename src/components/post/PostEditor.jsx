@@ -69,42 +69,83 @@ const PostEditor = ({}) => {
         navigate(-1);
     };
 
-    const handleClickH1Btn = () => {
+    const handleClickH1Btn = () => insertMarkdown('# ');
+    const handleClickH2Btn = () => insertMarkdown('## ');
+    const handleClickH3Btn = () => insertMarkdown('### ');
+    const handleClickBoldBtn = () => insertMarkdown('**', '**');
+    const handleClickItalicBtn = () => insertMarkdown('*', '*');
+    const handleClickLineBtn = () => insertMarkdown('~~', '~~');
+    const handleClickQuoteBtn = () => insertMarkdown('>');
+
+    const insertMarkdown = (prefix, suffix = '') => {
         const textarea = markdownRef.current;
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const currentContent = textarea.value;
+        const selectedText = currentContent.substring(start, end);
 
-        const textBeforeCursor = currentContent.substring(0, start);
-        const lastLineBreakIndex = textBeforeCursor.lastIndexOf('\n');
-        const lineStartIndex = lastLineBreakIndex === -1 ? 0 : lastLineBreakIndex + 1;
-        const lineContent = currentContent.substring(lineStartIndex, start);
+        let newContent;
+        let newCursorPosition;
+        let newCursorEnd;
 
-        console.log('지금 커서', start);
-        console.log('지금 커서 뒤', end);
+        // Handle line-based markdown like H1
+        if (prefix.includes('#') || prefix.includes('-') || prefix.includes('>')) {
+            const textBeforeCursor = currentContent.substring(0, start);
+            const lastLineBreakIndex = textBeforeCursor.lastIndexOf('\n');
+            const lineStartIndex = lastLineBreakIndex === -1 ? 0 : lastLineBreakIndex + 1;
+            const lineContent = currentContent.substring(lineStartIndex, start);
 
-        console.log('줄 맨 앞', lineStartIndex);
-        console.log('줄 바꿈 위치', lastLineBreakIndex);
+            if (lineContent.startsWith(prefix)) {
+                newContent =
+                    currentContent.substring(0, lineStartIndex) +
+                    currentContent.substring(lineStartIndex + prefix.length);
+                newCursorPosition = start - prefix.length;
+            } else {
+                newContent =
+                    currentContent.substring(0, lineStartIndex) +
+                    prefix +
+                    currentContent.substring(lineStartIndex);
+                newCursorPosition = start + prefix.length;
+            }
+        } else {
+            // Handle inline markdown like bold and italic
+            if (start !== end) {
+                // If text is selected, wrap it with prefix and suffix
+                newContent =
+                    currentContent.substring(0, start) +
+                    prefix +
+                    selectedText +
+                    suffix +
+                    currentContent.substring(end);
+                newCursorPosition = start + prefix.length + selectedText.length + suffix.length;
+            } else {
+                // If no text is selected, insert prefix and suffix and place cursor in the middle
+                newContent =
+                    currentContent.substring(0, start) +
+                    prefix +
+                    '텍스트' +
+                    suffix +
+                    currentContent.substring(end);
+                newCursorPosition = start + prefix.length;
+                newCursorEnd = start + prefix.length + 3;
+            }
+        }
 
-        console.log(lineContent);
+        setMarkdown(newContent);
 
-        // let newContent;
-        // let newCursorPosition;
-
-        // if (lineContent.startsWith(prefix)) {
-        //     // If prefix already exists, remove it
-        //     newContent =
-        //         currentContent.substring(0, lineStartIndex) +
-        //         currentContent.substring(lineStartIndex + prefix.length);
-        //     newCursorPosition = start - prefix.length;
-        // } else {
-        //     // Otherwise, add the prefix at the beginning of the line
-        //     newContent =
-        //         currentContent.substring(0, lineStartIndex) +
-        //         prefix +
-        //         currentContent.substring(lineStartIndex);
-        //     newCursorPosition = start + prefix.length;
-        // }
+        setTimeout(() => {
+            textarea.focus();
+            textarea.selectionStart = newCursorPosition;
+            if (prefix.includes('#') || prefix.includes('-') || prefix.includes('>')) {
+                textarea.selectionEnd = newCursorPosition;
+            } else {
+                if (start !== end) {
+                    textarea.selectionEnd = newCursorPosition;
+                } else {
+                    textarea.selectionEnd = newCursorEnd;
+                }
+            }
+        }, 200);
     };
 
     return (
@@ -142,14 +183,29 @@ const PostEditor = ({}) => {
                     onBlur={handleFocusBlurTagInput}
                     placeholder='태그를 입력해 주세요'
                 />
+                <i className={showToolTip ? '' : 'tooltip-hidden'}>
+                    <p>쉼표 혹은 엔터를 입력하여 태그를 등록 할 수 있습니다.</p>
+                    <p>등록된 태그를 클릭하면 삭제됩니다.</p>
+                </i>
             </div>
-            <i className={showToolTip ? '' : 'tooltip-hidden'}>
-                <p>쉼표 혹은 엔터를 입력하여 태그를 등록 할 수 있습니다.</p>
-                <p>등록된 태그를 클릭하면 삭제됩니다.</p>
-            </i>
-            <PostToolBar hideTitle={hideTitle} onClickFunctions={[handleClickH1Btn]} />
+            <PostToolBar
+                hideTitle={hideTitle}
+                onClickFunctions={[
+                    handleClickH1Btn,
+                    handleClickH2Btn,
+                    handleClickH3Btn,
+                    () => {},
+                    handleClickBoldBtn,
+                    handleClickItalicBtn,
+                    handleClickLineBtn,
+                    () => {},
+                    handleClickQuoteBtn,
+                ]}
+            />
             <textarea
-                className='markdown-textarea'
+                className={
+                    hideTitle ? 'markdown-textarea markdown-top-position' : 'markdown-textarea'
+                }
                 value={markdown}
                 ref={markdownRef}
                 onChange={handleChangeTextarea}

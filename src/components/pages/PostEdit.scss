@@ -35,7 +35,7 @@ $btn-bg-color: #92f2a75d;
             padding: 16px 20px;
             margin-bottom: 16px;
             animation-name: post-editor-slide-down;
-            animation-duration: 0.2s;
+            animation-duration: 0.3s;
             animation-timing-function: ease-out;
             animation-fill-mode: forwards;
 
@@ -78,7 +78,7 @@ $btn-bg-color: #92f2a75d;
             -ms-user-select: none;
             user-select: none;
             animation-name: post-editor-slide-down;
-            animation-duration: 0.2s;
+            animation-duration: 0.3s;
             animation-timing-function: ease-out;
             animation-fill-mode: forwards;
 
@@ -115,25 +115,25 @@ $btn-bg-color: #92f2a75d;
                     outline: none;
                 }
             }
-        }
 
-        i {
-            display: block;
-            position: absolute;
-            top: 130px;
-            left: 10px;
-            padding: 10px 14px;
-            font-size: 12px;
-            border-radius: 8px;
-            color: #ffffff;
-            background-color: $secondary-color;
-            animation-name: tooltip-slide-down;
-            animation-duration: 0.2s;
-            animation-timing-function: ease-out;
-            animation-fill-mode: forwards;
+            i {
+                display: block;
+                position: absolute;
+                bottom: -65px;
+                left: 10px;
+                padding: 10px 14px;
+                font-size: 12px;
+                border-radius: 8px;
+                color: #ffffff;
+                background-color: $secondary-color;
+                animation-name: tooltip-slide-down;
+                animation-duration: 0.3s;
+                animation-timing-function: ease-out;
+                animation-fill-mode: forwards;
 
-            &.tooltip-hidden {
-                animation-name: tooltip-slide-up;
+                &.tooltip-hidden {
+                    animation-name: tooltip-slide-up;
+                }
             }
         }
 
@@ -142,8 +142,13 @@ $btn-bg-color: #92f2a75d;
             justify-content: center;
             gap: 20px;
             padding: 10px 20px;
+            background-color: $background-color;
+            animation-name: post-editor-toolbar-slide-down;
+            animation-duration: 0.3s;
+            animation-timing-function: ease-out;
 
             &.toolbar-top-position {
+                animation-name: post-editor-toolbar-slide-up;
                 box-shadow: 0px 8px 6px -6px #d8d8d8;
             }
 
@@ -190,7 +195,13 @@ $btn-bg-color: #92f2a75d;
             padding: 10px 20px;
             background: transparent;
             box-sizing: border-box;
-            transition: all 0.2s ease;
+            animation-name: post-editor-toolbar-slide-down;
+            animation-duration: 0.3s;
+            animation-timing-function: ease-out;
+
+            &.markdown-top-position {
+                animation-name: post-editor-toolbar-slide-up;
+            }
         }
 
         .post-editor-btns {
