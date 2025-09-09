@@ -104,13 +104,13 @@ $btn-bg-color: #92f2a75d;
                 border-radius: 8px;
                 color: #ffffff;
                 background-color: $text-color;
-                animation-name: slideDown;
+                animation-name: toolTipSlideDown;
                 animation-duration: 0.2s;
                 animation-timing-function: ease-out;
                 animation-fill-mode: forwards;
 
                 &.tooltip-hidden {
-                    animation-name: slideUp;
+                    animation-name: ToolTipSlideUp;
                 }
             }
         }
@@ -233,26 +233,5 @@ $btn-bg-color: #92f2a75d;
         }
     }
 
-    @keyframes slideDown {
-        from {
-            transform: translateY(-30%);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideUp {
-        0% {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        100% {
-            transform: translateY(-20%);
-            opacity: 0;
-            display: none;
-        }
-    }
+    /* Tooltip animations moved to animations.css */
 }
