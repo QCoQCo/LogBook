@@ -7,7 +7,7 @@ const LogBookIntro = () => {
     const { isChatPage, setIsChatPage, toggleLogin } = useLogBook(); // 다크모드 상태 구독
     const { currentUser, isLogin } = useAuth();
     const [scrollY, setScrollY] = useState(0);
-    const [isFeatureVid, setIsFeatureVid] = useState(false);
+    const [isFeatureVid, setIsFeatureVid] = useState(null);
     const [isVisible, setIsVisible] = useState({});
     const sectionRefs = useRef({});
 
@@ -73,7 +73,7 @@ const LogBookIntro = () => {
             icon: '💬',
             color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
             tech: ['Firebase Firestore', 'Real-time Updates', 'User Presence'],
-            vid: '/video/blog.mov',
+            vid: '/video/chat.mov',
         },
         {
             title: 'YouTube 음악 플레이리스트',
@@ -82,7 +82,7 @@ const LogBookIntro = () => {
             icon: '🎵',
             color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
             tech: ['YouTube API', 'Swiper', 'Popup Player'],
-            vid: '/video/blog.mov',
+            vid: '/video/playlist.mov',
         },
         {
             title: '반응형 UI/UX',
@@ -91,6 +91,7 @@ const LogBookIntro = () => {
             icon: '📱',
             color: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
             tech: ['SCSS', 'Responsive Design', 'CSS Animations'],
+            vid: null,
         },
         {
             title: '실시간 데이터 동기화',
@@ -99,6 +100,7 @@ const LogBookIntro = () => {
             icon: '⚡',
             color: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
             tech: ['Firebase', 'Real-time Sync', 'Data Management'],
+            vid: null,
         },
     ];
 
@@ -132,18 +134,25 @@ const LogBookIntro = () => {
     ];
     //feature-card hover시 생겨난 feature-vid 는 마우스 이벤트 무시
     const handleFeatureCardHover = (index) => {
-        setIsFeatureVid(index);
-        const featureVid = document.querySelector('.feature-vid');
-        featureVid.style.opacity = 1;
-        featureVid.style.height = '100%';
-        featureVid.style.pointerEvents = 'none';
+        const videoPath = features[index].vid;
+        // console.log(`Index ${index}의 비디오 경로:`, videoPath);
+        setIsFeatureVid(videoPath);
+
+        if (videoPath) {
+            const featureVid = document.querySelector('.feature-vid');
+            if (featureVid) {
+                featureVid.style.opacity = 1;
+                featureVid.style.height = 'auto';
+                featureVid.style.pointerEvents = 'none';
+            }
+        }
     };
     const handleFeatureCardLeave = () => {
-        setIsFeatureVid(null);
         const featureVid = document.querySelector('.feature-vid');
-        featureVid.style.opacity = 0;
-        featureVid.style.height = '0';
-        featureVid.style.pointerEvents = 'auto';
+        if (featureVid) {
+            featureVid.style.opacity = 0;
+            featureVid.style.height = '0';
+        }
     };
 
     return (
@@ -255,12 +264,7 @@ const LogBookIntro = () => {
                         ))}
                     </div>
                     <div className='feature-vid'>
-                        <video
-                            autoPlay
-                            muted
-                            loop
-                            src={isFeatureVid ? features[isFeatureVid].vid : ''}
-                        />
+                        {isFeatureVid && <video autoPlay muted loop src={isFeatureVid} />}
                     </div>
                 </div>
             </section>
