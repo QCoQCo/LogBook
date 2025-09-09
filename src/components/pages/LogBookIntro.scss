@@ -395,8 +395,9 @@
         .feature-vid {
             position: absolute;
             top: 35%;
-            left: 0;
-            width: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
             height: 0;
             z-index: 1000;
             opacity: 0;
@@ -404,6 +405,8 @@
             border: 2px solid #ccc;
             border-radius: 20px;
             overflow: hidden;
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
         }
         video {
             width: 100%;
