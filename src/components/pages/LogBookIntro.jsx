@@ -141,17 +141,15 @@ const LogBookIntro = () => {
         if (videoPath) {
             const featureVid = document.querySelector('.feature-vid');
             if (featureVid) {
-                featureVid.style.opacity = 1;
-                featureVid.style.height = 'auto';
-                featureVid.style.pointerEvents = 'none';
+                featureVid.classList.add('active');
             }
         }
     };
     const handleFeatureCardLeave = () => {
+        // setIsFeatureVid(null);
         const featureVid = document.querySelector('.feature-vid');
         if (featureVid) {
-            featureVid.style.opacity = 0;
-            featureVid.style.height = '0';
+            featureVid.classList.remove('active');
         }
     };
 
