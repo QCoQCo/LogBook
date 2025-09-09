@@ -10,7 +10,7 @@
     justify-content: center;
     align-items: center;
     z-index: 999999;
-    animation: modalfadeIn 0.2s ease-out;
+    animation: modal-fade-in 0.2s ease-out;
 
     .user-info-modal {
         background: #fefefe;
@@ -20,7 +20,7 @@
         max-height: 90vh;
         overflow-y: auto;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: modalSlideUp 0.3s ease-out;
+        animation: modal-slide-up 0.3s ease-out;
 
         .modal-header {
             display: flex;
@@ -263,7 +263,7 @@
     justify-content: center;
     align-items: center;
     z-index: 10000;
-    animation: modalfadeIn 0.2s ease-out;
+    animation: modal-fade-in 0.2s ease-out;
 
     .report-modal {
         background: #fefefe;
@@ -273,7 +273,7 @@
         max-height: 90vh;
         overflow-y: auto;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        animation: modalSlideUp 0.3s ease-out;
+        animation: modal-slide-up 0.3s ease-out;
 
         .modal-header {
             display: flex;
@@ -420,27 +420,6 @@
                 }
             }
         }
-    }
-}
-
-// 애니메이션
-@keyframes modalfadeIn {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes modalSlideUp {
-    0% {
-        opacity: 0;
-        transform: translateY(50px) scale(0.95);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
     }
 }
 

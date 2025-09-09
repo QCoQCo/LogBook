@@ -6,6 +6,7 @@ import * as Pages from './components/pages';
 import { LogBookProvider, AuthProvider, YTPopupProvider } from './context/LogBookContext';
 
 import './App.css';
+import './utils/animations.css';
 
 const Layout = () => {
     return (

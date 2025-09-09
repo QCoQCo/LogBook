@@ -1,0 +1,186 @@
+/* ========================================
+   ANIMATION NAMESPACE SYSTEM
+   ======================================== */
+
+/* Modal Animations */
+@keyframes modal-fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes modal-slide-up {
+    0% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Background Animations */
+@keyframes gradient-shift {
+    0%,
+    100% {
+        background-position: 1% 50%;
+    }
+    50% {
+        background-position: 99% 50%;
+    }
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(5deg);
+    }
+}
+
+@keyframes move-twink-back {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: -10000px 5000px;
+    }
+}
+
+@keyframes move-clouds-back {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 10000px 0;
+    }
+}
+
+/* Loading Animations */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(0.9);
+    }
+}
+
+/* Tooltip Animations */
+@keyframes tooltip-slide-down {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes tooltip-slide-up {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade Animations */
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes slide-up {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   ANIMATION UTILITY CLASSES
+   ======================================== */
+
+/* Modal Animation Classes */
+.modal-fade-in {
+    animation: modal-fade-in 0.2s ease-out;
+}
+
+.modal-slide-up {
+    animation: modal-slide-up 0.3s ease-out;
+}
+
+/* Background Animation Classes */
+.gradient-shift {
+    animation: gradient-shift 3s ease-in-out infinite;
+}
+
+.float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.move-twink-back {
+    animation: move-twink-back 200s linear infinite;
+}
+
+.move-clouds-back {
+    animation: move-clouds-back 200s linear infinite;
+}
+
+/* Loading Animation Classes */
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Tooltip Animation Classes */
+.tooltip-slide-down {
+    animation: tooltip-slide-down 0.2s ease-out;
+}
+
+.tooltip-slide-up {
+    animation: tooltip-slide-up 0.2s ease-out;
+}
+
+/* Fade Animation Classes */
+.fade-in {
+    animation: fade-in 0.2s ease-out;
+}
+
+.slide-up {
+    animation: slide-up 0.3s ease-out;
+}
