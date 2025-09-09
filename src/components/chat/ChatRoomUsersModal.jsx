@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { subscribeToRoomUsers } from '../../utils/chatService';
+import { useLogBook } from '../../context/LogBookContext';
 import './ChatRoomUsersModal.scss';
 
 const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
+    const { getUserProfilePhoto } = useLogBook();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -47,6 +49,10 @@ const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
+    };
+
+    const UserProfilePhoto = (user) => {
+        return getUserProfilePhoto(user.id, user.name);
     };
 
     // ESC 키로 모달 닫기
@@ -139,7 +145,14 @@ const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
                                         >
                                             <div className='user-avatar'>
                                                 <div className='avatar-circle'>
-                                                    {user.name.charAt(0).toUpperCase()}
+                                                    {UserProfilePhoto(user) ? (
+                                                        <img
+                                                            src={UserProfilePhoto(user)}
+                                                            alt='user-avatar'
+                                                        />
+                                                    ) : (
+                                                        user.name.charAt(0).toUpperCase()
+                                                    )}
                                                 </div>
                                                 <div className='online-indicator'></div>
                                             </div>

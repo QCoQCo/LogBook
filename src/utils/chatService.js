@@ -325,6 +325,38 @@ export const validateRoomPassword = (room, inputPassword) => {
 };
 
 /**
+ * 특정 채팅방의 모든 메시지 삭제
+ * @param {string} roomName - 채팅방 이름
+ * @returns {Promise<void>}
+ */
+export const deleteAllMessagesFromRoom = async (roomName) => {
+    try {
+        const collectionName = getChatRoomCollectionName(roomName);
+
+        // 해당 채팅방의 모든 메시지 조회
+        const messagesQuery = query(collection(db, collectionName));
+        const snapshot = await getDocs(messagesQuery);
+
+        // 배치 삭제를 위한 배열
+        const batch = [];
+
+        // 모든 메시지를 배치에 추가
+        snapshot.forEach((doc) => {
+            batch.push(deleteDoc(doc.ref));
+        });
+
+        // 배치 삭제 실행
+        if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log(`채팅방 "${roomName}"의 ${batch.length}개 메시지가 삭제되었습니다.`);
+        }
+    } catch (error) {
+        console.error(`채팅방 "${roomName}" 메시지 삭제 오류:`, error);
+        throw error;
+    }
+};
+
+/**
  * 채팅방 삭제 (시스템 채팅방은 삭제 불가)
  * @param {string} roomId - 삭제할 채팅방 ID
  * @returns {Promise<void>}
@@ -346,8 +378,43 @@ export const deleteChatRoom = async (roomId) => {
             throw new Error('기본 채팅방은 삭제할 수 없습니다.');
         }
 
-        // 사용자 생성 채팅방만 삭제 가능
+        // 1. 먼저 해당 채팅방의 모든 메시지 삭제
+        try {
+            await deleteAllMessagesFromRoom(roomData.name);
+        } catch (messageError) {
+            console.warn('메시지 삭제 중 오류 발생, 채팅방 삭제는 계속 진행:', messageError);
+        }
+
+        // 2. 해당 채팅방의 presence 데이터 삭제 (접속 유저 정보)
+        try {
+            const presenceQuery = query(
+                collection(db, 'presence'),
+                where('roomName', '==', roomData.name)
+            );
+            const presenceSnapshot = await getDocs(presenceQuery);
+            const presenceBatch = [];
+
+            presenceSnapshot.forEach((doc) => {
+                presenceBatch.push(deleteDoc(doc.ref));
+            });
+
+            if (presenceBatch.length > 0) {
+                await Promise.all(presenceBatch);
+                console.log(
+                    `채팅방 "${roomData.name}"의 ${presenceBatch.length}개 presence 데이터가 삭제되었습니다.`
+                );
+            }
+        } catch (presenceError) {
+            console.warn(
+                'Presence 데이터 삭제 중 오류 발생, 채팅방 삭제는 계속 진행:',
+                presenceError
+            );
+        }
+
+        // 3. 마지막으로 채팅방 자체 삭제
         await deleteDoc(roomRef);
+
+        console.log(`채팅방 "${roomData.name}"이 성공적으로 삭제되었습니다.`);
     } catch (error) {
         console.error('채팅방 삭제 오류:', error);
         throw error;

@@ -9,7 +9,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999999;
+    z-index: 1000000;
     animation: modal-fade-in 0.2s ease-out;
 
     .user-info-modal {
@@ -262,7 +262,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: 1000000;
     animation: modal-fade-in 0.2s ease-out;
 
     .report-modal {

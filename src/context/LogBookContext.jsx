@@ -26,6 +26,7 @@ import {
     initializeChatRoom,
     createChatRoom as createChatRoomService,
     deleteChatRoom as deleteChatRoomService,
+    deleteAllMessagesFromRoom,
     joinChatRoom,
     leaveChatRoom,
     updateUserPresence,

@@ -51,7 +51,11 @@ const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
                 return;
             }
 
-            if (confirm(`"${room.name}" 채팅방을 삭제하시겠습니까?`)) {
+            if (
+                confirm(
+                    `"${room.name}" 채팅방을 삭제하시겠습니까?\n\n⚠️ 주의: 채팅방과 함께 모든 채팅 내역이 영구적으로 삭제됩니다.`
+                )
+            ) {
                 try {
                     await deleteChatRoom(room.id);
                 } catch (error) {

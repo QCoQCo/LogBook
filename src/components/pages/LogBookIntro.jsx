@@ -7,6 +7,7 @@ const LogBookIntro = () => {
     const { isChatPage, setIsChatPage, toggleLogin } = useLogBook(); // 다크모드 상태 구독
     const { currentUser, isLogin } = useAuth();
     const [scrollY, setScrollY] = useState(0);
+    const [isFeatureVid, setIsFeatureVid] = useState(false);
     const [isVisible, setIsVisible] = useState({});
     const sectionRefs = useRef({});
 
@@ -63,6 +64,7 @@ const LogBookIntro = () => {
             icon: '🎨',
             color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             tech: ['React Grid Layout', 'Drag & Drop', 'Custom Components'],
+            vid: '/video/blog.mov',
         },
         {
             title: '실시간 채팅 시스템',
@@ -71,6 +73,7 @@ const LogBookIntro = () => {
             icon: '💬',
             color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
             tech: ['Firebase Firestore', 'Real-time Updates', 'User Presence'],
+            vid: '/video/blog.mov',
         },
         {
             title: 'YouTube 음악 플레이리스트',
@@ -79,14 +82,7 @@ const LogBookIntro = () => {
             icon: '🎵',
             color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
             tech: ['YouTube API', 'Swiper', 'Popup Player'],
-        },
-        {
-            title: '사용자 인증 & 프로필',
-            description:
-                'Firebase Authentication을 통한 안전한 사용자 인증. 개성 있는 프로필 생성, 사용자 데이터 관리, 세션 동기화 등 완전한 사용자 시스템을 제공합니다.',
-            icon: '👤',
-            color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-            tech: ['Firebase Auth', 'User Management', 'Session Sync'],
+            vid: '/video/blog.mov',
         },
         {
             title: '반응형 UI/UX',
@@ -134,6 +130,21 @@ const LogBookIntro = () => {
             ],
         },
     ];
+    //feature-card hover시 생겨난 feature-vid 는 마우스 이벤트 무시
+    const handleFeatureCardHover = (index) => {
+        setIsFeatureVid(index);
+        const featureVid = document.querySelector('.feature-vid');
+        featureVid.style.opacity = 1;
+        featureVid.style.height = '100%';
+        featureVid.style.pointerEvents = 'none';
+    };
+    const handleFeatureCardLeave = () => {
+        setIsFeatureVid(null);
+        const featureVid = document.querySelector('.feature-vid');
+        featureVid.style.opacity = 0;
+        featureVid.style.height = '0';
+        featureVid.style.pointerEvents = 'auto';
+    };
 
     return (
         <div id='LogBookIntro'>
@@ -225,6 +236,8 @@ const LogBookIntro = () => {
                                 }`}
                                 ref={(el) => (sectionRefs.current[`feature-${index}`] = el)}
                                 style={{ '--delay': index * 0.2 }}
+                                onMouseEnter={() => handleFeatureCardHover(index)}
+                                onMouseLeave={handleFeatureCardLeave}
                             >
                                 <div className='feature-icon' style={{ background: feature.color }}>
                                     {feature.icon}
@@ -240,6 +253,14 @@ const LogBookIntro = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                    <div className='feature-vid'>
+                        <video
+                            autoPlay
+                            muted
+                            loop
+                            src={isFeatureVid ? features[isFeatureVid].vid : ''}
+                        />
                     </div>
                 </div>
             </section>
