@@ -77,7 +77,7 @@
             .hero-logo {
                 margin-bottom: 2rem;
                 text-align: center;
-
+                animation: spin2 2.5s ease-in-out infinite;
                 .logo-image {
                     max-width: 300px;
                     height: auto;
@@ -85,6 +85,7 @@
                     transform: translateY(30px);
                     transition: all 0.8s ease;
                     will-change: opacity, transform;
+                    animation: upAndDown 3s ease-in-out infinite;
 
                     &.animate {
                         opacity: 1;
@@ -95,7 +96,7 @@
 
             .hero-title {
                 margin-bottom: 2rem;
-
+                animation: upAndDown2 2.5s ease-in-out infinite;
                 .title-main {
                     display: block;
                     font-size: 4.5rem;
@@ -127,6 +128,7 @@
                 max-width: 600px;
                 margin-left: auto;
                 margin-right: auto;
+                animation: upAndDown2 2.3s ease-in-out infinite;
             }
 
             .hero-buttons {

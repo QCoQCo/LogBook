@@ -72,6 +72,35 @@
     }
 }
 
+@keyframes spin2 {
+    0%,
+    100% {
+        transform: rotate(-3deg);
+    }
+    50% {
+        transform: rotate(3deg);
+    }
+}
+
+@keyframes upAndDown {
+    0%,
+    100% {
+        transform: translateY(-5px);
+    }
+    50% {
+        transform: translateY(5px);
+    }
+}
+@keyframes upAndDown2 {
+    0%,
+    100% {
+        transform: translateY(-2px);
+    }
+    50% {
+        transform: translateY(2px);
+    }
+}
+
 @keyframes pulse {
     0%,
     100% {
