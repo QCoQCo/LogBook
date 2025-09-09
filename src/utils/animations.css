@@ -144,7 +144,7 @@
     }
     100% {
         opacity: 0;
-        transform: translateY(-20%);
+        transform: translateY(-138px);
         display: none;
     }
 }
@@ -152,10 +152,28 @@
 @keyframes post-editor-slide-down {
     0% {
         opacity: 0;
-        transform: translateY(-30%);
+        transform: translateY(-138px);
     }
     100% {
         opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes post-editor-toolbar-slide-up {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-138px);
+    }
+}
+
+@keyframes post-editor-toolbar-slide-down {
+    0% {
+        transform: translateY(-138px);
+    }
+    100% {
         transform: translateY(0);
     }
 }
