@@ -20,6 +20,7 @@
                     align-items: center;
                     justify-content: start;
                     gap: 10px;
+                    transition: all 0.3s ease-in-out;
                     .logo {
                         width: 100px;
                         height: 100px;
@@ -35,6 +36,13 @@
                         background-size: contain;
                         background-repeat: no-repeat;
                         background-position: center;
+                    }
+                    &:hover {
+                        animation: header-logo-animation 3s ease-in-out infinite;
+
+                        .logo {
+                            animation: header-logo-animation-2 3s ease-in-out infinite;
+                        }
                     }
                 }
             }
