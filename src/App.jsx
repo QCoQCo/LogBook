@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from './context/LogBookContext';
 import * as Common from './components/common';
 import * as Pages from './components/pages';
 import { LogBookProvider, AuthProvider, YTPopupProvider } from './context/LogBookContext';
@@ -9,6 +10,8 @@ import './App.css';
 import './utils/animations.css';
 
 const Layout = () => {
+    const { isLogin } = useAuth();
+
     return (
         // 체팅페이지 다크모드 판별
         <div id='Layout'>
@@ -16,6 +19,7 @@ const Layout = () => {
             <main>
                 <Outlet />
             </main>
+            {isLogin && <Common.FloatingButton />}
             <Common.Footer />
         </div>
     );

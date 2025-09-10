@@ -1,13 +1,10 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/LogBookContext';
-import * as Common from '../common';
 import RGL, { WidthProvider } from 'react-grid-layout';
 const ReactGridLayout = WidthProvider(RGL);
 import './HomePage.scss';
 
 const HomePage = () => {
-    const { isLogin } = useAuth();
     const [posts, setPosts] = useState([]);
     const skipRebuildRef = useRef(false);
     const PAGE_SIZE = 20;
@@ -658,8 +655,6 @@ const HomePage = () => {
                 </ReactGridLayout>
                 <div ref={loadMoreRef} style={{ height: 1 }} />
             </div>
-
-            {isLogin && <Common.FloatingButton />}
         </div>
     );
 };
