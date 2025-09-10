@@ -73,7 +73,7 @@ const LogBookIntro = () => {
             icon: '💬',
             color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
             tech: ['Firebase Firestore', 'Real-time Updates', 'User Presence'],
-            vid: '/video/chat.mov',
+            vid: '/video/chatsss.mov',
         },
         {
             title: 'YouTube 음악 플레이리스트',
@@ -82,24 +82,23 @@ const LogBookIntro = () => {
             icon: '🎵',
             color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
             tech: ['YouTube API', 'Swiper', 'Popup Player'],
-            vid: '/video/playlist.mov',
+            vid: '/video/plis.mov',
         },
         {
-            title: '반응형 UI/UX',
+            title: '다른 유저의 프로필을 방문해보세요',
             description:
-                '모든 디바이스에서 완벽하게 작동하는 반응형 디자인. SCSS를 활용한 모던한 스타일링과 부드러운 애니메이션으로 최고의 사용자 경험을 제공합니다.',
-            icon: '📱',
+                '다른 유저의 프로필을 방문해보세요. 프로필에서 블로그, 채팅, 개시글 등 다양한 정보를 확인할 수 있습니다.',
+            icon: '👤',
             color: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-            tech: ['SCSS', 'Responsive Design', 'CSS Animations'],
-            vid: null,
+            tech: ['User Profile', 'Blog', 'Chat'],
+            vid: '/video/profile.mov',
         },
         {
-            title: '실시간 데이터 동기화',
-            description:
-                'Firebase를 활용한 실시간 데이터 동기화. 채팅, 플레이리스트, 사용자 상태 등 모든 데이터가 실시간으로 업데이트되어 최신 상태를 유지합니다.',
-            icon: '⚡',
+            title: 'Velog 스타일의 Markdown 편집기',
+            description: '익숙한 Velog 스타일의 Markdown 편집기를 활용하여 개시글을 작성해보세요.',
+            icon: '⌨️',
             color: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-            tech: ['Firebase', 'Real-time Sync', 'Data Management'],
+            tech: ['Markdown', 'Editor', 'Velog'],
             vid: null,
         },
     ];
