@@ -163,6 +163,7 @@ $btn-bg-color: #92f2a75d;
 
                 img {
                     width: 80%;
+                    pointer-events: none;
                 }
             }
 
@@ -183,24 +184,59 @@ $btn-bg-color: #92f2a75d;
             }
         }
 
-        .markdown-textarea {
-            font-family: 'Pretendard Variable', Pretendard, sans-serif;
+        .textarea-wrapper {
+            position: relative;
             width: 100%;
             height: 100%;
-            border: none;
-            outline: none;
-            resize: none;
-            font-size: 16px;
-            line-height: 1.6;
-            padding: 10px 20px;
-            background: transparent;
-            box-sizing: border-box;
-            animation-name: post-editor-toolbar-slide-down;
-            animation-duration: 0.3s;
-            animation-timing-function: ease-out;
+            overflow: hidden;
 
-            &.markdown-top-position {
-                animation-name: post-editor-toolbar-slide-up;
+            .markdown-textarea {
+                font-family: 'Pretendard Variable', Pretendard, sans-serif;
+                width: 100%;
+                height: 100%;
+                border: none;
+                outline: none;
+                resize: none;
+                font-size: 16px;
+                line-height: 1.6;
+                padding: 10px 20px;
+                background: transparent;
+                box-sizing: border-box;
+                animation-name: post-editor-toolbar-slide-down;
+                animation-duration: 0.3s;
+                animation-timing-function: ease-out;
+
+                &.markdown-top-position {
+                    animation-name: post-editor-toolbar-slide-up;
+                }
+            }
+
+            .post-editor-modal {
+                position: absolute;
+                width: 200px;
+                height: 50px;
+                color: #ffffff;
+                background-color: #299440;
+                opacity: 0.5;
+                z-index: 1500;
+            }
+
+            // VERY IMPORTANT!! getting position of cursor for modal
+            .mirror-div {
+                visibility: hidden;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                font-size: 16px;
+                line-height: 1.6;
+                padding: 10px 20px;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                overflow: visible;
+                pointer-events: none;
+                box-sizing: border-box;
             }
         }
 

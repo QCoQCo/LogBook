@@ -1,21 +1,90 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLogBook } from '../../context/LogBookContext';
 import PostToolBar from './PostToolbar';
+import PostEditorModal from './PostEditorModal';
 
 const PostEditor = ({}) => {
+    // useContext
     const { markdown, setMarkdown, postTitle, setPostTitle } = useLogBook();
 
+    // useNavigate
     const navigate = useNavigate();
 
+    // states management
     const [showToolTip, setShowToolTip] = useState(false);
     const [hideTitle, setHideTitle] = useState(false);
     const [hideTags, setHideTags] = useState(false);
     const [tagInput, setTagInput] = useState('');
     const [postTags, setPostTags] = useState([]);
+    const [modalType, setModalType] = useState('link');
+    const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
 
+    // refs management
     const tagInputRef = useRef(null);
     const markdownRef = useRef(null);
+    const modalRef = useRef(null);
+    const mirrorRef = useRef(null);
+    const scrollTopRef = useRef(0);
+
+    // event handlers
+    const handleClickToolBar = (e) => {
+        switch (e.target.className) {
+            case 'h1-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('# ');
+                });
+                break;
+            case 'h2-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('## ');
+                });
+                break;
+            case 'h3-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('## ');
+                });
+                break;
+            case 'bold-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('**', '**');
+                });
+                break;
+            case 'italic-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('*', '*');
+                });
+                break;
+            case 'line-through-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('~~', '~~');
+                });
+                break;
+            case 'quote-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('> ');
+                });
+                break;
+            case 'link-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('');
+                });
+                break;
+            case 'image-btn':
+                toolBarFunction(() => {
+                    insertMarkdown('');
+                });
+                break;
+            case 'code-btn':
+                toolBarFunction(() => {
+                    getCursorPosition();
+                    insertMarkdown('```', '```', 'js');
+                });
+                break;
+            default:
+                return;
+        }
+    };
 
     const handleFocusBlurTagInput = () => {
         if (!hideTags) {
@@ -40,14 +109,16 @@ const PostEditor = ({}) => {
     };
 
     const handelScrollTextarea = () => {
-        if (markdownRef.current.scrollHeight > 600 && markdownRef.current.scrollTop > 0) {
-            setHideTitle(true);
-            setHideTags(true);
-            setShowToolTip(false);
-        } else {
-            setHideTitle(false);
-            setHideTags(false);
-        }
+        setTimeout(() => {
+            if (markdownRef.current.scrollHeight > 600 && markdownRef.current.scrollTop > 0) {
+                setHideTitle(true);
+                setHideTags(true);
+                setShowToolTip(false);
+            } else {
+                setHideTitle(false);
+                setHideTags(false);
+            }
+        }, 100);
     };
 
     const handleKeyDown = (e) => {
@@ -69,15 +140,8 @@ const PostEditor = ({}) => {
         navigate(-1);
     };
 
-    const handleClickH1Btn = () => insertMarkdown('# ');
-    const handleClickH2Btn = () => insertMarkdown('## ');
-    const handleClickH3Btn = () => insertMarkdown('### ');
-    const handleClickBoldBtn = () => insertMarkdown('**', '**');
-    const handleClickItalicBtn = () => insertMarkdown('*', '*');
-    const handleClickLineBtn = () => insertMarkdown('~~', '~~');
-    const handleClickQuoteBtn = () => insertMarkdown('>');
-
-    const insertMarkdown = (prefix, suffix = '') => {
+    // add prefix / suffix using markdown toolbar buttons
+    const insertMarkdown = (prefix, suffix = '', codeType = '') => {
         const textarea = markdownRef.current;
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
@@ -107,6 +171,33 @@ const PostEditor = ({}) => {
                     currentContent.substring(lineStartIndex);
                 newCursorPosition = start + prefix.length;
             }
+        } else if (prefix.includes('```')) {
+            // Handle multiple lines markdown for code block
+            const prefixWithCodeType = prefix + codeType + '\n';
+
+            if (start !== end) {
+                // If text is selected, wrap it with prefix and suffix
+                newContent =
+                    currentContent.substring(0, start) +
+                    prefixWithCodeType +
+                    selectedText +
+                    '\n' +
+                    suffix +
+                    currentContent.substring(end);
+                newCursorPosition =
+                    start + prefixWithCodeType.length + selectedText.length + suffix.length + 1;
+            } else {
+                // If no text is selected, insert prefix and suffix and place cursor in the middle
+                newContent =
+                    currentContent.substring(0, start) +
+                    prefixWithCodeType +
+                    '코드를 입력해 주세요' +
+                    '\n' +
+                    suffix +
+                    currentContent.substring(end);
+                newCursorPosition = start + prefixWithCodeType.length;
+                newCursorEnd = start + prefixWithCodeType.length + 11;
+            }
         } else {
             // Handle inline markdown like bold and italic
             if (start !== end) {
@@ -131,8 +222,11 @@ const PostEditor = ({}) => {
             }
         }
 
-        setMarkdown(newContent);
+        setTimeout(() => {
+            setMarkdown(newContent);
+        }, 100);
 
+        // timeout for setting cursor position after insertion
         setTimeout(() => {
             textarea.focus();
             textarea.selectionStart = newCursorPosition;
@@ -145,6 +239,56 @@ const PostEditor = ({}) => {
                     textarea.selectionEnd = newCursorEnd;
                 }
             }
+        }, 200);
+    };
+
+    // finding cursor position for modal
+    const getCursorPosition = () => {
+        const scrollOffset = scrollTopRef.current;
+        const textarea = markdownRef.current;
+        const mirror = mirrorRef.current;
+        const start = textarea.selectionStart;
+
+        // Get the text content before the cursor
+        const textBeforeCursor = textarea.value.substring(0, start);
+
+        // Update the mirror content to match the textarea's
+        mirror.textContent = textBeforeCursor;
+
+        // Create a temporary span to represent the cursor and measure its position
+        const cursorSpan = document.createElement('span');
+        cursorSpan.textContent = '|'; // A single character to measure position
+        mirror.appendChild(cursorSpan);
+
+        // Get the position of the cursor span relative to the viewport
+        const cursorRect = cursorSpan.getBoundingClientRect();
+        const textareaRect = textarea.getBoundingClientRect();
+
+        // Calculate final position relative to the textarea wrapper
+        const top = cursorRect.top - textareaRect.top + textarea.offsetTop - scrollOffset;
+        const left = cursorRect.left - textareaRect.left + textarea.offsetLeft;
+
+        // Clean up the mirror
+        setModalPosition({ top: top, left: left });
+
+        mirror.textContent = '';
+    };
+
+    const recoverScrollTop = () => {
+        if (markdownRef.current) {
+            markdownRef.current.scrollTop = scrollTopRef.current;
+        }
+    };
+
+    // tool bar function layout
+    const toolBarFunction = (markdownInsertion) => {
+        // get current scrollTop position
+        scrollTopRef.current = markdownRef.current.scrollTop;
+
+        markdownInsertion();
+
+        setTimeout(() => {
+            recoverScrollTop();
         }, 200);
     };
 
@@ -188,30 +332,21 @@ const PostEditor = ({}) => {
                     <p>등록된 태그를 클릭하면 삭제됩니다.</p>
                 </i>
             </div>
-            <PostToolBar
-                hideTitle={hideTitle}
-                onClickFunctions={[
-                    handleClickH1Btn,
-                    handleClickH2Btn,
-                    handleClickH3Btn,
-                    () => {},
-                    handleClickBoldBtn,
-                    handleClickItalicBtn,
-                    handleClickLineBtn,
-                    () => {},
-                    handleClickQuoteBtn,
-                ]}
-            />
-            <textarea
-                className={
-                    hideTitle ? 'markdown-textarea markdown-top-position' : 'markdown-textarea'
-                }
-                value={markdown}
-                ref={markdownRef}
-                onChange={handleChangeTextarea}
-                onScroll={handelScrollTextarea}
-                placeholder='여기에 게시글 내용을 작성해 주세요'
-            />
+            <PostToolBar hideTitle={hideTitle} handleOnClick={handleClickToolBar} />
+            <div className='textarea-wrapper'>
+                <textarea
+                    className={
+                        hideTitle ? 'markdown-textarea markdown-top-position' : 'markdown-textarea'
+                    }
+                    value={markdown}
+                    ref={markdownRef}
+                    onChange={handleChangeTextarea}
+                    onScroll={handelScrollTextarea}
+                    placeholder='여기에 게시글 내용을 작성해 주세요'
+                />
+                <PostEditorModal type={modalType} position={modalPosition} modalRef={modalRef} />
+                <div className='mirror-div' ref={mirrorRef}></div>
+            </div>
             <div className='post-editor-btns'>
                 <button className='post-save-btn'>저 장</button>
                 <button className='post-cancel-btn' onClick={handleClickCancelBtn}>

@@ -1,4 +1,4 @@
-const PostToolBar = ({ hideTitle, onClickFunctions }) => {
+const PostToolBar = ({ hideTitle, handleOnClick }) => {
     const toolbarItems = [
         {
             className: 'h1-btn',
@@ -69,7 +69,7 @@ const PostToolBar = ({ hideTitle, onClickFunctions }) => {
                     return <span className='toolbar-seperator' key={i}></span>;
                 } else {
                     return (
-                        <button className={item.className} onClick={onClickFunctions[i]} key={i}>
+                        <button className={item.className} onClick={handleOnClick} key={i}>
                             <img src={item.imgSrc} alt={item.altText} />
                         </button>
                     );
