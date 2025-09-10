@@ -24,7 +24,11 @@ const Footer = () => {
                             <p>
                                 <Link to=''>이용약관</Link>
                             </p>
-                            <p className='skull'>🔥☠️🔥</p>
+                            <div className='skull'>
+                                <p>🏴‍☠️</p>
+                                <p>☠️</p>
+                                <p>🔥</p>
+                            </div>
                         </div>
                     </div>
                 </div>
