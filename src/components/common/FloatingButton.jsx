@@ -10,19 +10,21 @@ const FloatingButton = () => {
 
     const toggle = () => setOpen((s) => !s);
 
+    const scrollTop = () => {
+        setOpen(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const goNewPost = () => {
         setOpen(false);
         navigate('/post/write'); // adjust route to your writing page
+        scrollTop();
     };
 
     const goChat = () => {
         setOpen(false);
         navigate('/chat'); // adjust route to your chat page
-    };
-
-    const scrollTop = () => {
-        setOpen(false);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollTop();
     };
 
     if (!isLogin) return null;
