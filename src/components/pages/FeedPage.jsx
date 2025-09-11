@@ -2,9 +2,9 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import RGL, { WidthProvider } from 'react-grid-layout';
 const ReactGridLayout = WidthProvider(RGL);
-import './HomePage.scss';
+import './FeedPage.scss';
 
-const HomePage = () => {
+const FeedPage = () => {
     const [posts, setPosts] = useState([]);
     const skipRebuildRef = useRef(false);
     const PAGE_SIZE = 20;
@@ -518,8 +518,8 @@ const HomePage = () => {
     };
 
     return (
-        <div id='HomePage'>
-            <div className='ColumnsWrapper'>
+        <div id='FeedPage'>
+            <div className='columns-wrapper'>
                 <div className='columns-controls'>
                     <button
                         type='button'
@@ -659,4 +659,4 @@ const HomePage = () => {
     );
 };
 
-export default HomePage;
+export default FeedPage;

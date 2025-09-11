@@ -1,5 +1,5 @@
 /* HomePage.scss */
-#HomePage {
+#FeedPage {
     padding: 48px 24px;
     position: relative;
 
@@ -10,7 +10,7 @@
     }
 
     /* Columns toggle UI (top-right) */
-    .ColumnsWrapper {
+    .columns-wrapper {
         position: absolute;
         top: 5px;
         right: 24px;
@@ -278,19 +278,19 @@
     }
 
     @media (max-width: 1100px) {
-        #HomePage .container {
+        #FeedPage .container {
             max-width: 960px;
         }
     }
 
     @media (max-width: 900px) {
-        #HomePage .container {
+        #FeedPage .container {
             max-width: 680px;
         }
     }
 
     @media (max-width: 560px) {
-        #HomePage .container {
+        #FeedPage .container {
             max-width: 360px;
         }
         .post-card .card-thumb {

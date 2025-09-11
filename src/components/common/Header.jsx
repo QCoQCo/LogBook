@@ -121,13 +121,13 @@ const Header = () => {
             <div className='container'>
                 <div className='left'>
                     <div className='logo-wrapper'>
-                        <Link to='/'>
+                        <Link to='/feed'>
                             <div className='logo'></div>
                             <div className='title'></div>
                         </Link>
                     </div>
                     <div className='intro-wrapper'>
-                        <Link to='/intro'>
+                        <Link to='/'>
                             <p>프로젝트 소개</p>
                         </Link>
                     </div>
