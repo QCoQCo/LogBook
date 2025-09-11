@@ -77,7 +77,7 @@ function App() {
                     <BrowserRouter>
                         <Routes>
                             <Route path='/' element={<Layout />}>
-                                <Route index element={<Pages.HomePage />} />
+                                <Route index element={<Pages.LogBookIntro />} />
                                 <Route path='/chat' element={<Pages.ChatPage />} />
                                 <Route
                                     path='/playlist/:playId'
@@ -92,7 +92,7 @@ function App() {
                                 />
                                 <Route path='/blog' element={<Pages.Blog />} />
                                 <Route path='/signUp' element={<Pages.SignUp />} />
-                                <Route path='/intro' element={<Pages.LogBookIntro />} />
+                                <Route path='/feed' element={<Pages.FeedPage />} />
                                 <Route
                                     path='/post/detail?postId=:postId'
                                     element={<Pages.PostDetail />}
