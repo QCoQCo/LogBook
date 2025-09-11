@@ -17,13 +17,14 @@ const PostEditor = ({}) => {
     const [hideTags, setHideTags] = useState(false);
     const [tagInput, setTagInput] = useState('');
     const [postTags, setPostTags] = useState([]);
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [modalIsOverflow, setModalIsOverflow] = useState('none');
     const [modalType, setModalType] = useState('link');
     const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
 
     // refs management
     const tagInputRef = useRef(null);
     const markdownRef = useRef(null);
-    const modalRef = useRef(null);
     const mirrorRef = useRef(null);
     const scrollTopRef = useRef(0);
 
@@ -67,18 +68,20 @@ const PostEditor = ({}) => {
                 break;
             case 'link-btn':
                 toolBarFunction(() => {
-                    insertMarkdown('');
+                    setModalType('link');
+                    getCursorPosition();
                 });
                 break;
             case 'image-btn':
                 toolBarFunction(() => {
-                    insertMarkdown('');
+                    setModalType('image');
+                    getCursorPosition();
                 });
                 break;
             case 'code-btn':
                 toolBarFunction(() => {
+                    setModalType('code');
                     getCursorPosition();
-                    insertMarkdown('```', '```', 'js');
                 });
                 break;
             default:
@@ -109,16 +112,18 @@ const PostEditor = ({}) => {
     };
 
     const handelScrollTextarea = () => {
-        setTimeout(() => {
-            if (markdownRef.current.scrollHeight > 600 && markdownRef.current.scrollTop > 0) {
-                setHideTitle(true);
-                setHideTags(true);
-                setShowToolTip(false);
-            } else {
-                setHideTitle(false);
-                setHideTags(false);
-            }
-        }, 100);
+        const scrollTop = markdownRef.current.scrollTop;
+        const scrollHeight = markdownRef.current.scrollHeight;
+
+        if (scrollHeight > 1200 && scrollTop > 0 && !hideTitle) {
+            setHideTitle(true);
+            setHideTags(true);
+            setShowToolTip(false);
+        } else if (scrollTop === 0 && hideTitle) {
+            setHideTitle(false);
+            setHideTags(false);
+        }
+        scrollTopRef.current = scrollTop;
     };
 
     const handleKeyDown = (e) => {
@@ -134,6 +139,27 @@ const PostEditor = ({}) => {
 
     const handleClickTagBtn = (tag) => {
         setPostTags((prev) => prev.filter((item) => item !== tag));
+    };
+
+    const handleClickConfirm = (value, type) => {
+        if (type === 'link') {
+            console.log(value);
+            toolBarFunction(() => {
+                insertMarkdown('[', `](${value})`);
+            });
+        } else if (type === 'image') {
+            console.log(value);
+            toolBarFunction(() => {
+                insertMarkdown('![', `](${value})`);
+            });
+        } else if (type === 'code') {
+            toolBarFunction(() => {
+                insertMarkdown('```', '```', value);
+            });
+        }
+
+        setModalIsOverflow('none');
+        releaseModal();
     };
 
     const handleClickCancelBtn = () => {
@@ -248,6 +274,7 @@ const PostEditor = ({}) => {
         const textarea = markdownRef.current;
         const mirror = mirrorRef.current;
         const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
 
         // Get the text content before the cursor
         const textBeforeCursor = textarea.value.substring(0, start);
@@ -270,6 +297,13 @@ const PostEditor = ({}) => {
 
         // Clean up the mirror
         setModalPosition({ top: top, left: left });
+        if (top >= textarea.clientHeight - 80) {
+            setModalIsOverflow('bottom');
+        } else if (top < 0) {
+            setModalIsOverflow('top');
+        }
+
+        showModal();
 
         mirror.textContent = '';
     };
@@ -290,6 +324,16 @@ const PostEditor = ({}) => {
         setTimeout(() => {
             recoverScrollTop();
         }, 200);
+    };
+
+    const showModal = () => {
+        console.log('열기');
+        setModalIsOpen(true);
+    };
+
+    const releaseModal = () => {
+        console.log('닫기');
+        setModalIsOpen(false);
     };
 
     return (
@@ -340,11 +384,21 @@ const PostEditor = ({}) => {
                     }
                     value={markdown}
                     ref={markdownRef}
+                    spellCheck='false'
                     onChange={handleChangeTextarea}
                     onScroll={handelScrollTextarea}
                     placeholder='여기에 게시글 내용을 작성해 주세요'
                 />
-                <PostEditorModal type={modalType} position={modalPosition} modalRef={modalRef} />
+                {modalIsOpen && (
+                    <PostEditorModal
+                        type={modalType}
+                        position={modalPosition}
+                        isOverflow={modalIsOverflow}
+                        isOpen={modalIsOpen}
+                        handleClickConfirm={handleClickConfirm}
+                        releaseModal={releaseModal}
+                    />
+                )}
                 <div className='mirror-div' ref={mirrorRef}></div>
             </div>
             <div className='post-editor-btns'>

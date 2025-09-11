@@ -66,8 +66,8 @@ const PostPreview = () => {
                                         height: 'auto',
                                         borderRadius: '5px',
                                     }}
-                                    src={props.src?.replace('../../../../public/', '/')}
-                                    alt='MarkdownRenderer__Image'
+                                    src={props.src?.replace('../../../public/', '/')}
+                                    alt={props.alt ? props.alt : 'React-Markdown-Image Alt'}
                                 />
                             );
                         },
