@@ -143,12 +143,12 @@ const PostEditor = ({}) => {
 
     const handleClickConfirm = (value, type) => {
         if (type === 'link') {
-            toolBarFunction(() => {
+            // console.logtion(() => {
                 insertMarkdown('[', `](${value})`);
             });
         } else if (type === 'image') {
             toolBarFunction(() => {
-                insertMarkdown('![', `](${value})`);
+            // console.logarkdown('![', `](${value})`);
             });
         } else if (type === 'code') {
             toolBarFunction(() => {
@@ -327,12 +327,12 @@ const PostEditor = ({}) => {
     const showModal = () => {
         setModalIsOpen(true);
     };
-
+// console.log
     const releaseModal = () => {
         setModalIsOpen(false);
     };
 
-    return (
+    retu// console.log
         <div className='post-editor'>
             <div className={hideTitle ? 'post-title-area hidden-title' : 'post-title-area'}>
                 <input

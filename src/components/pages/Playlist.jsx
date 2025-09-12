@@ -50,7 +50,7 @@ const Playlist = ({
         null;
 
     const isOwner = Boolean(ownerId && authId && String(ownerId) === String(authId));
-    console.log('isOwner', isOwner, ownerId, authId);
+    // console.log('isOwner', isOwner, ownerId, authId);
 
     const [link, setLink] = useState('');
     const [title, setTitle] = useState('');

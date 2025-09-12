@@ -101,7 +101,7 @@ const ChatPage = () => {
                 try {
                     // 이전 사용자 ID로 모든 채팅방에서 퇴장 처리
                     await leaveRoom(currentChatRoom?.name, prevUserIdRef.current);
-                    console.log('로그아웃 감지: 채팅방에서 퇴장 처리 완료');
+                    // console.log('로그아웃 감지: 채팅방에서 퇴장 처리 완료');
                 } catch (error) {
                     console.error('로그아웃 시 채팅방 퇴장 처리 오류:', error);
                 }

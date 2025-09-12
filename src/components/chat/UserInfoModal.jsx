@@ -14,7 +14,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
     const handleFollowToggle = () => {
         setIsFollowing(!isFollowing);
         // TODO: 실제 팔로우 API 호출
-        console.log(isFollowing ? '언팔로우' : '팔로우', userInfo.userId);
+        // console.log(isFollowing ? '언팔로우' : '팔로우', userInfo.userId);
     };
 
     // 신고 모달 열기
@@ -30,7 +30,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
         }
 
         // TODO: 실제 신고 API 호출
-        console.log('신고 제출:', {
+        // console.log('신고 제출:', {
             targetUserId: userInfo.userId,
             reason: reportReason,
             description: reportDescription,

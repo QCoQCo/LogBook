@@ -42,7 +42,7 @@ export function sendAuthEvent(type, payload = null) {
     try {
         if (bc) {
             bc.postMessage(msg);
-            console.debug('[sessionSync] sendAuthEvent via BC', msg);
+            // console.debug('[sessionSync] sendAuthEvent via BC', msg);
         }
         // always write to localStorage as well to guarantee storage events across tabs
         const key = 'logbook_auth_event';
@@ -50,7 +50,7 @@ export function sendAuthEvent(type, payload = null) {
             localStorage.setItem(key, JSON.stringify(msg));
             // remove immediately to avoid leaving data (this still triggers storage events)
             localStorage.removeItem(key);
-            console.debug('[sessionSync] sendAuthEvent via localStorage', msg);
+            // console.debug('[sessionSync] sendAuthEvent via localStorage', msg);
         } catch (e) {
             // ignore
         }
@@ -63,7 +63,7 @@ export function sendAuthEvent(type, payload = null) {
 export function addAuthListener(handler) {
     const wrapped = (data) => {
         try {
-            console.debug('[sessionSync] auth event received', data);
+            // console.debug('[sessionSync] auth event received', data);
             handler(data);
         } catch (e) {
             // ignore

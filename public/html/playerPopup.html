@@ -558,7 +558,7 @@
                 try {
                     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
                     if (Array.isArray(saved)) playlist = saved.slice();
-                    console.log(
+                    // console.log(
                         '[playerPopup] mergeInjected - saved playlist length:',
                         playlist.length
                     );
@@ -837,7 +837,7 @@
                 const item = playlist[i];
                 if (!item) return;
                 setIndex(i);
-                console.log(
+                // console.log(
                     '[playerPopup] playIndex -> i:',
                     i,
                     'videoId:',
@@ -874,9 +874,9 @@
                                 } catch (e) {
                                     console.warn('[playerPopup] playVideo error', e);
                                 }
-                                console.log('[playerPopup] resumed existing video');
+                                // console.log('[playerPopup] resumed existing video');
                             } else {
-                                console.log('[playerPopup] already playing');
+                                // console.log('[playerPopup] already playing');
                             }
                         } else if (
                             player &&
@@ -887,7 +887,7 @@
                             try {
                                 player.loadVideoById(item.videoId);
                                 if (userInitiated) player.playVideo();
-                                console.log(
+                                // console.log(
                                     '[playerPopup] playIndex using YT.Player.loadVideoById'
                                 );
                             } catch (e) {
@@ -897,7 +897,7 @@
                             // player 준비 전의 대기 처리
                             _pendingPlay = i;
                             if (userInitiated) _userInitiatedPlay = true;
-                            console.log('[playerPopup] playIndex pending until player ready');
+                            // console.log('[playerPopup] playIndex pending until player ready');
                         }
                     } catch (e) {
                         console.warn('[playerPopup] playIndex error', e);
@@ -968,7 +968,7 @@
 
             // Lifecycle
             document.addEventListener('DOMContentLoaded', () => {
-                console.log('[playerPopup] DOMContentLoaded - restoring playlist');
+                // console.log('[playerPopup] DOMContentLoaded - restoring playlist');
                 mergeInjected();
                 buildList();
                 try {
@@ -997,7 +997,7 @@
                     onYouTubeIframeAPIReady();
                 }
                 if ((!playlist || !playlist.length) && window.opener) {
-                    console.log('[playerPopup] requesting init from opener');
+                    // console.log('[playerPopup] requesting init from opener');
                     try {
                         window.opener.postMessage(
                             { cmd: 'request_init' },
@@ -1166,7 +1166,7 @@
                             localStorage.setItem(STORAGE_SHUFFLE_KEY, _shuffle ? '1' : '0');
                         } catch {}
                         shuffleBtn.style.opacity = _shuffle ? '1' : '.6';
-                        console.log('[playerPopup] shuffle set ->', _shuffle);
+                        // console.log('[playerPopup] shuffle set ->', _shuffle);
                     });
                 }
                 // repeat 순환: off -> all -> one -> off
@@ -1179,7 +1179,7 @@
                         repeatBtn.textContent =
                             _repeat === 'off' ? '🔁' : _repeat === 'all' ? '🔁' : '🔂';
                         repeatBtn.style.opacity = _repeat === 'off' ? '.7' : '1';
-                        console.log('[playerPopup] repeat set ->', _repeat);
+                        // console.log('[playerPopup] repeat set ->', _repeat);
                     });
                 }
                 try {

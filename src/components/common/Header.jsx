@@ -33,7 +33,7 @@ const Header = () => {
 
     const toggleMenu = () => setShowMenu((s) => !s);
     const toggleSearch = () => {
-        console.debug('[Header] toggleSearch, before:', showSearch);
+        // console.debug('[Header] toggleSearch, before:', showSearch);
         setShowSearch((s) => !s);
     };
 
@@ -62,7 +62,7 @@ const Header = () => {
     useEffect(() => {
         const el = searchAreaElRef.current;
         if (!showSearch || !el) return;
-        console.debug('[Header] waiting for transitionend to focus input');
+        // console.debug('[Header] waiting for transitionend to focus input');
         let didFocus = false;
         const onTransitionEnd = (e) => {
             if (e.target !== el) return;
@@ -109,7 +109,7 @@ const Header = () => {
                 navigate(`/search?q=${encodeURIComponent(q)}`);
             } catch (err) {
                 // ignore navigation errors
-                console.debug('[Header] search navigate failed', err);
+                // console.debug('[Header] search navigate failed', err);
             }
         }
         setShowSearch(false);
