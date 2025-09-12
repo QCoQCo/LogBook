@@ -348,7 +348,7 @@ export const deleteAllMessagesFromRoom = async (roomName) => {
         // 배치 삭제 실행
         if (batch.length > 0) {
             await Promise.all(batch);
-            console.log(`채팅방 "${roomName}"의 ${batch.length}개 메시지가 삭제되었습니다.`);
+            // console.log(`채팅방 "${roomName}"의 ${batch.length}개 메시지가 삭제되었습니다.`);
         }
     } catch (error) {
         console.error(`채팅방 "${roomName}" 메시지 삭제 오류:`, error);
@@ -400,7 +400,7 @@ export const deleteChatRoom = async (roomId) => {
 
             if (presenceBatch.length > 0) {
                 await Promise.all(presenceBatch);
-                console.log(
+                // console.log(
                     `채팅방 "${roomData.name}"의 ${presenceBatch.length}개 presence 데이터가 삭제되었습니다.`
                 );
             }
@@ -414,7 +414,7 @@ export const deleteChatRoom = async (roomId) => {
         // 3. 마지막으로 채팅방 자체 삭제
         await deleteDoc(roomRef);
 
-        console.log(`채팅방 "${roomData.name}"이 성공적으로 삭제되었습니다.`);
+        // console.log(`채팅방 "${roomData.name}"이 성공적으로 삭제되었습니다.`);
     } catch (error) {
         console.error('채팅방 삭제 오류:', error);
         throw error;

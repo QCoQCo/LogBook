@@ -79,7 +79,7 @@ const BlogGridLayout = ({ userId, enableModal }) => {
             finalLayout = [...layout, newItem];
         }
 
-        console.log(newItemCounter, '추가됨');
+        // console.log(newItemCounter, '추가됨');
 
         setLayout(finalLayout);
         setElements((prev) => [...prev, { i: newId, content: null }]);

@@ -804,7 +804,7 @@ export const AuthProvider = ({ children }) => {
             // 현재 사용자가 채팅방에 접속 중인 경우 퇴장 처리
             if (currentUser?.id) {
                 await forceRemoveUserFromAllRooms(currentUser.id);
-                console.log('로그아웃 시 모든 채팅방에서 퇴장 처리 완료');
+                // console.log('로그아웃 시 모든 채팅방에서 퇴장 처리 완료');
             }
         } catch (error) {
             console.error('로그아웃 시 채팅방 퇴장 처리 오류:', error);
