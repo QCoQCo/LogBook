@@ -93,10 +93,7 @@ function App() {
                                 <Route path='/blog' element={<Pages.Blog />} />
                                 <Route path='/signUp' element={<Pages.SignUp />} />
                                 <Route path='/feed' element={<Pages.FeedPage />} />
-                                <Route
-                                    path='/post/detail?postId=:postId'
-                                    element={<Pages.PostDetail />}
-                                />
+                                <Route path='/post/detail' element={<Pages.PostDetail />} />
                                 <Route
                                     path='/post/write'
                                     element={<Pages.PostEdit isEdit={false} />}

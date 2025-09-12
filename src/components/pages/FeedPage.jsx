@@ -574,7 +574,7 @@ const FeedPage = () => {
                     {visiblePosts.map((post) => (
                         <div key={String(post.postId)} className='post-card'>
                             <Link
-                                to={`/post/${post.postId}`}
+                                to={`/post/detail?postId=${post.postId}`}
                                 className='card-link'
                                 onClick={(e) => {
                                     if (

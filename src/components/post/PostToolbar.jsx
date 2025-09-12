@@ -16,7 +16,7 @@ const PostToolBar = ({ hideTitle, handleOnClick }) => {
             altText: 'h3 추가',
         },
         {
-            className: 'toolbar-seperator',
+            className: 'toolbar-separator',
         },
         {
             className: 'bold-btn',
@@ -34,7 +34,7 @@ const PostToolBar = ({ hideTitle, handleOnClick }) => {
             altText: '취소선 추가',
         },
         {
-            className: 'toolbar-seperator',
+            className: 'toolbar-separator',
         },
         {
             className: 'quote-btn',
@@ -65,8 +65,8 @@ const PostToolBar = ({ hideTitle, handleOnClick }) => {
             }
         >
             {toolbarItems.map((item, i) => {
-                if (item.className === 'toolbar-seperator') {
-                    return <span className='toolbar-seperator' key={i}></span>;
+                if (item.className === 'toolbar-separator') {
+                    return <span className='toolbar-separator' key={i}></span>;
                 } else {
                     return (
                         <button className={item.className} onClick={handleOnClick} key={i}>
