@@ -176,7 +176,7 @@ $btn-bg-color: #92f2a75d;
                 padding: 3px;
             }
 
-            .toolbar-seperator {
+            .toolbar-separator {
                 display: block;
                 width: 3px;
                 height: 20px;
@@ -403,6 +403,10 @@ $btn-bg-color: #92f2a75d;
             padding-left: 2em;
             margin-top: 0;
             margin-bottom: 16px;
+        }
+
+        li {
+            list-style: inside;
         }
 
         blockquote {

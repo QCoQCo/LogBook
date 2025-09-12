@@ -143,12 +143,10 @@ const PostEditor = ({}) => {
 
     const handleClickConfirm = (value, type) => {
         if (type === 'link') {
-            console.log(value);
             toolBarFunction(() => {
                 insertMarkdown('[', `](${value})`);
             });
         } else if (type === 'image') {
-            console.log(value);
             toolBarFunction(() => {
                 insertMarkdown('![', `](${value})`);
             });
@@ -327,12 +325,10 @@ const PostEditor = ({}) => {
     };
 
     const showModal = () => {
-        console.log('열기');
         setModalIsOpen(true);
     };
 
     const releaseModal = () => {
-        console.log('닫기');
         setModalIsOpen(false);
     };
 
