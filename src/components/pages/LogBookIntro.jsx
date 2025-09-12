@@ -99,7 +99,7 @@ const LogBookIntro = () => {
             icon: '⌨️',
             color: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
             tech: ['Markdown', 'Editor', 'Velog'],
-            vid: null,
+            vid: '/video/MDeditor.mov',
         },
     ];
 
