@@ -155,10 +155,14 @@ const ChatMessage = ({
                         }`}
                     >
                         {/* 상대방 메시지인 경우 프로필 사진 표시 */}
-                        {!message.isOwnMessage && message.profilePhoto && (
+                        {!message.isOwnMessage && (
                             <div className='profile-photo-container'>
                                 <img
-                                    src={message.profilePhoto}
+                                    src={
+                                        message.profilePhoto !== null
+                                            ? message.profilePhoto
+                                            : '/img/userProfile-ex.png'
+                                    }
                                     alt={`${message.userName}의 프로필`}
                                     className='profile-photo clickable'
                                     onClick={() =>

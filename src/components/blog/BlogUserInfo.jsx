@@ -56,7 +56,15 @@ const BlogUserInfo = ({ userId }) => {
             <div className='user-info-area'>
                 <div className='profile-photo-wrapper'>
                     <div className='profile-photo'>
-                        <img id='user-profile-photo' src={user.profilePhoto} alt='' />
+                        <img
+                            id='user-profile-photo'
+                            src={
+                                user.profilePhoto !== null
+                                    ? user.profilePhoto
+                                    : '/img/userProfile-ex.png'
+                            }
+                            alt=''
+                        />
                     </div>
                 </div>
                 {isBlogEditting && (

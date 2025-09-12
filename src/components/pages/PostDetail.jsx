@@ -1,11 +1,13 @@
 import axios from 'axios';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useLogBook } from '../../context/LogBookContext';
 import * as Post from '../post';
 import './PostDetail.scss';
 
 const PostDetail = () => {
+    const navigate = useNavigate();
+
     const { userData } = useLogBook();
 
     const [searchParam] = useSearchParams();
@@ -25,23 +27,33 @@ const PostDetail = () => {
 
     useEffect(() => {
         getPostData();
+    }, [postId, userData]);
 
-        timeoutRef.current = setTimeout(() => {
-            if (!currentPost) {
+    useEffect(() => {
+        if (!currentPost || !postOwner) {
+            timeoutRef.current = setTimeout(() => {
                 setLoadError(true);
-            }
-        }, 5000);
+            }, 5000);
+        } else {
+            clearTimeout(timeoutRef.current);
+        }
 
         return () => {
             clearTimeout(timeoutRef.current);
         };
-    }, [postId, userData]);
+    }, [currentPost, postOwner]);
 
     useEffect(() => {
         if (currentPost && postOwner) {
             setHeaderHeight(postHeaderRef.current.getBoundingClientRect().height);
         }
     }, [currentPost]);
+
+    useEffect(() => {
+        if (loadError) {
+            navigate('/error');
+        }
+    }, [loadError]);
 
     const getPostData = async () => {
         try {
@@ -87,87 +99,30 @@ const PostDetail = () => {
             {currentPost && postOwner ? (
                 <div className='post-wrapper'>
                     <div className='sticky-area'>
-                        <div className='sticky-utils' style={{ marginTop: `${headerHeight}px` }}>
-                            <div className='utils-like'>
-                                <button
-                                    className={isLiked ? 'like-btn liked' : 'like-btn'}
-                                    onClick={handleClickLike}
-                                >
-                                    <svg width='24' height='24' viewBox='0 0 24 24'>
-                                        <path
-                                            fill='currentColor'
-                                            d='M18 1l-6 4-6-4-6 5v7l12 10 12-10v-7z'
-                                        ></path>
-                                    </svg>
-                                </button>
-                                <p>{likes}</p>
-                            </div>
-                            <button className='share-btn' onClick={handleClickShare}>
-                                <svg width='24' height='24' viewBox='0 0 24 24' class='share'>
-                                    <path
-                                        fill='currentColor'
-                                        d='M5 7c2.761 0 5 2.239 5 5s-2.239 5-5 5-5-2.239-5-5 2.239-5 5-5zm11.122 12.065c-.073.301-.122.611-.122.935 0 2.209 1.791 4 4 4s4-1.791 4-4-1.791-4-4-4c-1.165 0-2.204.506-2.935 1.301l-5.488-2.927c-.23.636-.549 1.229-.943 1.764l5.488 2.927zm7.878-15.065c0-2.209-1.791-4-4-4s-4 1.791-4 4c0 .324.049.634.122.935l-5.488 2.927c.395.535.713 1.127.943 1.764l5.488-2.927c.731.795 1.77 1.301 2.935 1.301 2.209 0 4-1.791 4-4z'
-                                    ></path>
-                                </svg>
-                            </button>
-                        </div>
+                        <Post.PostStickyUtils
+                            headerHeight={headerHeight}
+                            isLiked={isLiked}
+                            likes={likes}
+                            handleClickLike={handleClickLike}
+                            handleClickShare={handleClickShare}
+                        />
                     </div>
                     <div className='post-area'>
-                        <div className='post-header' ref={postHeaderRef}>
-                            <div className='post-title'>{currentPost.title}</div>
-                            <div className='post-info-area'>
-                                <div className='post-info-top'>
-                                    <div className='post-info-left'>
-                                        <Link
-                                            to={`/blog?userId=${postOwner.userId}`}
-                                            className='post-owner'
-                                        >
-                                            {postOwner.nickName}
-                                        </Link>
-                                        <span>•</span>
-                                        <p className='post-created-at'>
-                                            {new Date(currentPost.createdAt).toLocaleDateString(
-                                                'ko-KR',
-                                                {
-                                                    year: 'numeric',
-                                                    month: '2-digit',
-                                                    day: '2-digit',
-                                                }
-                                            )}
-                                        </p>
-                                    </div>
-                                    <button
-                                        className={
-                                            isFollowing
-                                                ? 'follow-post-owner following'
-                                                : 'follow-post-owner'
-                                        }
-                                        onClick={handleClickFollowBtn}
-                                    >
-                                        {isFollowing ? '팔로우 중' : '팔로우'}
-                                    </button>
-                                </div>
-                                <div className='post-tags'>
-                                    {currentPost.tags.map((tag) => (
-                                        <button className='tag-button' onClick={() => {}} key={tag}>
-                                            {tag}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                        <Post.PostDetailHeader
+                            ref={postHeaderRef}
+                            currentPost={currentPost}
+                            postOwner={postOwner}
+                            isFollowing={isFollowing}
+                            handleClickFollowBtn={handleClickFollowBtn}
+                        />
                         <Post.PostViewer markdown={currentPost.content} />
-                        <div className='post-owner'></div>
+                        <Post.PostDetailProfile postOwner={postOwner} />
                         <div className='post-comments'></div>
                     </div>
                 </div>
-            ) : !loadError ? (
+            ) : (
                 <div className='post-loading'>
                     <p className='post-loading-animation'></p>
-                </div>
-            ) : (
-                <div className='post-load-error'>
-                    <img src='/img/logbook_error.png' alt='에러 이미지' />
                 </div>
             )}
         </div>
