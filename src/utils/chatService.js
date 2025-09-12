@@ -400,9 +400,6 @@ export const deleteChatRoom = async (roomId) => {
 
             if (presenceBatch.length > 0) {
                 await Promise.all(presenceBatch);
-                // console.log(
-                    `채팅방 "${roomData.name}"의 ${presenceBatch.length}개 presence 데이터가 삭제되었습니다.`
-                );
             }
         } catch (presenceError) {
             console.warn(
