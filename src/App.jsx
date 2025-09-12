@@ -102,6 +102,7 @@ function App() {
                                     path='/post/edit'
                                     element={<Pages.PostEdit isEdit={true} />}
                                 />
+                                <Route path='error' element={<Pages.ErrorPage />} />
                             </Route>
                         </Routes>
                     </BrowserRouter>
