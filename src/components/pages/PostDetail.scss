@@ -1,0 +1,185 @@
+$primary-color: #0366d6;
+$secondary-color: #414141;
+$text-color: #333;
+$background-color: #f8f9fa;
+$border-color: #e0e0e0;
+$blockquote-color: #6a737d;
+$blockquote-border-color: #dfe2e5;
+$code-bg-color: #1b1f230d;
+$pre-bg-color: #f6f8fa;
+$btn-text-color: #299440;
+$btn-bg-color: #92f2a75d;
+
+#PostDetail {
+    padding: 60px 200px;
+
+    .follow-post-owner {
+        width: 70px;
+        height: 30px;
+        font-weight: 600;
+        color: $btn-text-color;
+        background-color: $btn-bg-color;
+        border: 1px solid $btn-text-color;
+        border-radius: 15px;
+        transition: 0.2s;
+
+        &:hover {
+            background-color: #92f2a790;
+        }
+    }
+
+    .post-title {
+        font-size: 40px;
+        font-weight: 700;
+        margin-bottom: 24px;
+    }
+
+    .post-info-area {
+        .post-info-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+
+            .post-info-left {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                .post-owner {
+                    color: $secondary-color;
+                    font-size: 18px;
+                    font-weight: 700;
+                    text-decoration: underline;
+
+                    &:hover {
+                        color: $blockquote-color;
+                    }
+                }
+            }
+        }
+
+        .post-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+
+            .tag-button {
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-weight: 700;
+                color: $btn-text-color;
+                background-color: $btn-bg-color;
+                transition: 200ms;
+
+                &:hover {
+                    color: #ffffff;
+                    background-color: $btn-text-color;
+                }
+            }
+        }
+    }
+
+    .post-viewer {
+        padding: 20px;
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin-top: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        h1 {
+            font-size: 2.25em;
+        }
+
+        h2 {
+            font-size: 1.8em;
+        }
+
+        h3 {
+            font-size: 1.4em;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        a {
+            color: $primary-color;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 90%;
+            line-height: 1;
+            background-color: $code-bg-color;
+            border-radius: 3px;
+        }
+
+        pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1;
+            background-color: $pre-bg-color;
+            border-radius: 6px;
+            margin-bottom: 8px;
+
+            .code-block {
+                code {
+                    display: inline;
+                    padding: 0;
+                    margin: 0;
+                    overflow: visible;
+                    word-wrap: normal;
+                    background-color: transparent;
+                    border: 0;
+
+                    span {
+                        line-height: 1;
+                    }
+                }
+            }
+        }
+
+        img {
+            width: 100%;
+        }
+
+        ul,
+        ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        li {
+            list-style: inside;
+        }
+
+        blockquote {
+            color: $blockquote-color;
+            padding: 0 1em;
+            margin-left: 0;
+            border-left: 0.25em solid $blockquote-border-color;
+
+            p {
+                margin-bottom: 0;
+            }
+        }
+    }
+}

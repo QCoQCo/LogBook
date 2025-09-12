@@ -1,0 +1,346 @@
+// ==========================================
+// CHAT ROOM USERS MODAL STYLES
+// ==========================================
+
+// Variables (matching ChatPage.scss)
+$primary-bg: #121212;
+$secondary-bg: #1e1e1e;
+$tertiary-bg: #2a2a2a;
+$accent-color: #9cc385;
+$accent-hover: #c9fbad;
+$primary-blue: #4a90e2;
+$error-color: #e74c3c;
+
+$text-primary: #fff;
+$text-secondary: #ccc;
+$text-tertiary: #aaa;
+$text-muted: #666;
+
+$border-light: rgba(255, 255, 255, 0.2);
+$border-medium: rgba(255, 255, 255, 0.3);
+$bg-light: rgba(255, 255, 255, 0.1);
+$bg-medium: rgba(255, 255, 255, 0.15);
+
+$border-radius-sm: 8px;
+$border-radius-md: 10px;
+$border-radius-lg: 15px;
+$border-radius-xl: 20px;
+
+$spacing-xs: 8px;
+$spacing-sm: 10px;
+$spacing-md: 15px;
+$spacing-lg: 20px;
+$spacing-xl: 30px;
+
+$font-size-xs: 11px;
+$font-size-sm: 12px;
+$font-size-md: 14px;
+$font-size-lg: 16px;
+$font-size-xl: 24px;
+
+$transition-fast: all 0.3s ease;
+$box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
+
+.chat-room-users-modal {
+    .modal-content {
+        background: $secondary-bg;
+        border: 1px solid $border-medium;
+        border-radius: $border-radius-lg;
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        color: $text-primary;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: $spacing-lg $spacing-xl;
+            border-bottom: 1px solid $border-light;
+            background: $tertiary-bg;
+
+            h3 {
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: $spacing-sm;
+                font-size: $font-size-xl;
+                color: $text-primary;
+
+                .room-indicator {
+                    font-size: 1.2em;
+                }
+            }
+
+            .close-button {
+                background: transparent;
+                border: none;
+                color: $text-secondary;
+                font-size: 28px;
+                cursor: pointer;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                // align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: $transition-fast;
+
+                &:hover {
+                    background: $bg-light;
+                    color: $text-primary;
+                    transform: scale(1.1);
+                }
+            }
+        }
+
+        .modal-body {
+            flex: 1;
+            padding: $spacing-lg $spacing-xl;
+            overflow-y: auto;
+
+            // Loading state
+            .loading-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: $spacing-xl 0;
+
+                .loading-spinner {
+                    width: 40px;
+                    height: 40px;
+                    border: 3px solid $border-light;
+                    border-top: 3px solid $primary-blue;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin-bottom: $spacing-md;
+                }
+
+                p {
+                    color: $text-secondary;
+                    margin: 0;
+                    font-size: $font-size-md;
+                }
+            }
+
+            // Error state
+            .error-state {
+                text-align: center;
+                padding: $spacing-xl 0;
+
+                .error-message {
+                    color: $error-color;
+                    margin: 0 0 $spacing-lg 0;
+                    font-size: $font-size-md;
+                }
+
+                .retry-button {
+                    background: $accent-color;
+                    color: $primary-bg;
+                    border: none;
+                    padding: $spacing-sm $spacing-lg;
+                    border-radius: $border-radius-md;
+                    cursor: pointer;
+                    font-size: $font-size-md;
+                    transition: $transition-fast;
+
+                    &:hover {
+                        background: $accent-hover;
+                        transform: translateY(-1px);
+                    }
+                }
+            }
+
+            // Users count
+            .users-count {
+                text-align: center;
+                margin-bottom: $spacing-lg;
+                padding: $spacing-sm $spacing-md;
+                background: $bg-light;
+                border-radius: $border-radius-md;
+                font-size: $font-size-md;
+                color: $text-secondary;
+
+                .count-number {
+                    color: $accent-color;
+                    font-weight: 600;
+                    font-size: $font-size-lg;
+                }
+            }
+
+            // Users list
+            .users-list {
+                .no-users {
+                    text-align: center;
+                    color: $text-tertiary;
+                    font-style: italic;
+                    padding: $spacing-xl 0;
+                }
+
+                .user-item {
+                    display: flex;
+                    align-items: center;
+                    gap: $spacing-md;
+                    padding: $spacing-md;
+                    border-radius: $border-radius-md;
+                    margin-bottom: $spacing-sm;
+                    background: $bg-light;
+                    border: 1px solid transparent;
+                    transition: $transition-fast;
+
+                    &:hover {
+                        background: $bg-medium;
+                        border-color: $border-medium;
+                        transform: translateY(-1px);
+                    }
+
+                    &.current-user {
+                        background: rgba($accent-color, 0.1);
+                        border-color: rgba($accent-color, 0.3);
+
+                        &:hover {
+                            background: rgba($accent-color, 0.15);
+                        }
+                    }
+
+                    .user-avatar {
+                        position: relative;
+                        flex-shrink: 0;
+
+                        .avatar-circle {
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 50%;
+                            background: linear-gradient(135deg, $primary-blue, #667eea);
+                            color: white;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: 600;
+                            font-size: $font-size-lg;
+                            border: 2px solid $border-medium;
+
+                            img {
+                                width: 100%;
+                                height: 100%;
+                                border-radius: 50%;
+                            }
+                        }
+
+                        .online-indicator {
+                            position: absolute;
+                            bottom: 2px;
+                            right: 2px;
+                            width: 14px;
+                            height: 14px;
+                            background: #4caf50;
+                            border: 2px solid $secondary-bg;
+                            border-radius: 50%;
+                            animation: pulse 2s infinite;
+                        }
+                    }
+
+                    .user-info {
+                        flex: 1;
+                        min-width: 0;
+
+                        .user-name {
+                            display: flex;
+                            align-items: center;
+                            gap: $spacing-xs;
+                            font-size: $font-size-lg;
+                            font-weight: 600;
+                            color: $text-primary;
+                            margin-bottom: 4px;
+
+                            .current-user-badge {
+                                background: $accent-color;
+                                color: $primary-bg;
+                                font-size: $font-size-xs;
+                                padding: 2px 6px;
+                                border-radius: $border-radius-sm;
+                                font-weight: 500;
+                            }
+                        }
+
+                        .user-details {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 2px;
+
+                            .join-time,
+                            .last-seen {
+                                font-size: $font-size-xs;
+                                color: $text-tertiary;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Animations
+/* Animations moved to animations.css */
+
+// Responsive design
+@media (max-width: 768px) {
+    .chat-room-users-modal {
+        .modal-content {
+            width: 95%;
+            max-height: 90vh;
+
+            .modal-header {
+                padding: $spacing-md $spacing-lg;
+
+                h3 {
+                    font-size: $font-size-lg;
+                }
+            }
+
+            .modal-body {
+                padding: $spacing-md $spacing-lg;
+
+                .user-item {
+                    .user-avatar .avatar-circle {
+                        width: 40px;
+                        height: 40px;
+                        font-size: $font-size-md;
+                    }
+
+                    .user-info .user-name {
+                        font-size: $font-size-md;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-room-users-modal {
+        .modal-content {
+            .modal-header h3 {
+                flex-direction: column;
+                gap: 4px;
+                text-align: center;
+            }
+
+            .modal-body {
+                .user-item {
+                    flex-direction: column;
+                    text-align: center;
+
+                    .user-info .user-details {
+                        align-items: center;
+                    }
+                }
+            }
+        }
+    }
+}
