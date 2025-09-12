@@ -7,39 +7,23 @@ import { useYTPopup, useAuth } from '../../context/LogBookContext';
 import ReactGridLayout from 'react-grid-layout';
 import './Playlist.scss';
 
-const Playlist = ({
-    playlist,
-    addSong,
-    updatePlaylistSongs,
-    deletePlaylistSongs,
-    updatePlaylistTitle,
-}) => {
+const Playlist = () => {
     const { openYTPopup, playTrackInPopup, currentTrack, isPopupOpen } = useYTPopup();
     const { currentUser } = useAuth();
-    const { setActiveTab } = useLogBook();
+    const {
+        fetchPlaylists,
+        setActiveTab,
+        getPlaylists,
+        addSong: ctxAddSong,
+        updatePlaylistSongs: ctxUpdatePlaylistSongs,
+        deleteSong: ctxDeleteSong,
+        addPlaylist: ctxAddPlaylist,
+        updatePlaylistTitle: ctxUpdatePlaylistTitle,
+    } = useLogBook();
     const linkInputRef = useRef(null);
     const { playId } = useParams();
 
-    const pl = Array.isArray(playlist) && playlist.find((p) => p.playId === playId);
-    const [localPl, setLocalPl] = useState(null);
-
-    // 로컬 혹은 서버 플레이리스트 소스 결정
-    const plData = pl || localPl;
-
-    const songs = (plData?.songs || [])
-        .slice()
-        .sort((a, b) => (Number(a.SEQ) || 0) - (Number(b.SEQ) || 0));
-
-    const layout = songs?.map((item, idx) => ({
-        i: item.contentId || idx.toString(),
-        x: 0,
-        y: idx,
-        w: 12,
-        h: 1,
-    }));
-
-    const ownerId = pl?.userId || pl?.ownerId || (pl?.user && (pl?.user.userId || pl?.user.id));
-    const authId =
+    const userId =
         currentUser?.userId ||
         currentUser?.id ||
         (() => {
@@ -51,12 +35,54 @@ const Playlist = ({
             } catch (e) {
                 return null;
             }
-        })() ||
-        localStorage.getItem('userId') ||
-        null;
+        })();
 
-    const isOwner = Boolean(ownerId && authId && String(ownerId) === String(authId));
-    // console.log('isOwner', isOwner, ownerId, authId);
+    useEffect(() => {
+        if (!userId) return;
+        fetchPlaylists(userId).catch((e) => {
+            console.error('fetchPlaylists error', e);
+        });
+    }, [userId, fetchPlaylists]);
+
+    // context 캐시에서 바로 읽음
+    const playlist = getPlaylists(userId) || [];
+
+    const playlistItem = Array.isArray(playlist) && playlist.find((p) => p.playId === playId);
+
+    const addSong = (playId, song) => {
+        if (!userId) return;
+        const s = { ...song, SEQ: String(Date.now() % 1000000) };
+        ctxAddSong(userId, playId, s);
+    };
+
+    const updatePlaylistSongs = (playId, songs) => {
+        if (!userId) return;
+        ctxUpdatePlaylistSongs(userId, playId, songs);
+    };
+
+    const deletePlaylistSongs = (playId, contentId) => {
+        if (!userId) return;
+        ctxDeleteSong(userId, playId, contentId);
+    };
+
+    const songs = (playlistItem?.songs || [])
+        .slice()
+        .sort((a, b) => (Number(a.SEQ) || 0) - (Number(b.SEQ) || 0));
+
+    const layout = songs?.map((item, idx) => ({
+        i: item.contentId || idx.toString(),
+        x: 0,
+        y: idx,
+        w: 12,
+        h: 1,
+    }));
+
+    const ownerId =
+        playlistItem?.userId ||
+        playlistItem?.ownerId ||
+        (playlistItem?.user && (playlistItem?.user.userId || playlistItem?.user.id));
+
+    const isOwner = Boolean(ownerId && userId && String(ownerId) === String(userId));
 
     const [link, setLink] = useState('');
     const [title, setTitle] = useState('');
@@ -64,8 +90,8 @@ const Playlist = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isEditingTitle, setIsEditingTitle] = useState(false);
-    const [editTitle, setEditTitle] = useState(pl?.title || '');
-    const [localTitle, setLocalTitle] = useState(pl?.title || '');
+    const [editTitle, setEditTitle] = useState(playlistItem?.title || '');
+    const [localTitle, setLocalTitle] = useState(playlistItem?.title || '');
 
     const handlePlayAll = (startIndex = 0) => {
         if (songs?.length > 0) {
@@ -146,8 +172,8 @@ const Playlist = ({
             thumbnail: thumbnail || '',
         };
         if (typeof addSong === 'function') {
-            if (!pl.playId) return setError('Playlist not ready');
-            addSong(pl.playId, newSong);
+            if (!playlistItem.playId) return setError('Playlist not ready');
+            addSong(playlistItem.playId, newSong);
         } else {
             console.warn('addSong not provided');
         }
@@ -163,10 +189,10 @@ const Playlist = ({
     }, []);
 
     useEffect(() => {
-        const t = pl?.title || '';
+        const t = playlistItem?.title || '';
         setLocalTitle(t);
         if (!isEditingTitle) setEditTitle(t);
-    }, [pl?.title]);
+    }, [playlistItem?.title]);
 
     const startEditTitle = () => {
         setEditTitle(localTitle || '');
@@ -183,20 +209,9 @@ const Playlist = ({
     const confirmEditTitle = async () => {
         const newT = (editTitle || '').trim();
         if (!newT) return setError('Title cannot be empty');
-        if (typeof updatePlaylistTitle === 'function') {
-            try {
-                const res = updatePlaylistTitle(pl?.playId, newT);
-                if (res && typeof res.then === 'function') await res;
-                setLocalTitle(newT);
-                setIsEditingTitle(false);
-            } catch (err) {
-                console.error('updatePlaylistTitle error', err);
-                setError('Failed to update playlist title');
-            }
-        } else {
-            setLocalTitle(newT);
-            setIsEditingTitle(false);
-        }
+        ctxUpdatePlaylistTitle(userId, playlistItem?.playId, newT);
+        setLocalTitle(newT);
+        setIsEditingTitle(false);
     };
 
     return (
@@ -315,7 +330,7 @@ const Playlist = ({
                 </div>
                 <div className='playlist-title-right'>
                     <Link
-                        to={`/blog?userId=${encodeURIComponent(ownerId || authId || '')}`}
+                        to={`/blog?userId=${encodeURIComponent(ownerId || userId || '')}`}
                         className='goto-blog-btn'
                         onClick={() => {
                             try {
@@ -351,7 +366,7 @@ const Playlist = ({
                                 return { ...s, SEQ: String(idx + 1) };
                             });
                             if (typeof updatePlaylistSongs === 'function') {
-                                updatePlaylistSongs(pl?.playId, newSongs);
+                                updatePlaylistSongs(playlistItem?.playId, newSongs);
                             }
                         }}
                     >
@@ -360,7 +375,7 @@ const Playlist = ({
                                 <PlaylistItem
                                     item={item}
                                     deletePlaylistSongs={deletePlaylistSongs}
-                                    playId={pl?.playId}
+                                    playId={playlistItem?.playId}
                                     index={idx}
                                     onPlay={() => handlePlayItem(idx)}
                                     isActive={currentTrack === idx}

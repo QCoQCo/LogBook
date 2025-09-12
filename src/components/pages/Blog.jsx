@@ -14,12 +14,23 @@ const Blog = () => {
     const userId = searchParam.get('userId');
 
     // 현재 클릭한 element 정보를 전달받기 위한 context의 State
-    const { clickedItem, isBlogEditting, getUserInfo, activeTab, setActiveTab } = useLogBook();
+    const {
+        clickedItem,
+        isBlogEditting,
+        getUserInfo,
+        activeTab,
+        setActiveTab,
+        fetchPlaylists,
+        getPlaylists,
+        addPlaylist: ctxAddPlaylist,
+        deletePlaylist: ctxDeletePlaylist,
+    } = useLogBook();
     // Modal 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { currentUser } = useAuth();
-    const [playlists, setPlaylists] = useState([]);
+    // 컴포넌트 로컬 state 대신 context 캐시 사용
+    const playlists = getPlaylists(userId) || [];
 
     const releaseModal = () => {
         setIsModalOpen(false);
@@ -31,68 +42,39 @@ const Blog = () => {
 
     const isOwner = Boolean(currentUser && userId && String(currentUser?.id) === String(userId));
 
-    const fetchPlaylist = async () => {
-        try {
-            const response = await axios.get(`/data/playlistData.json`);
+    useEffect(() => {
+        if (!userId) return;
+        // context의 fetchPlaylists가 내부 캐시에 저장하므로 결과를 set 하지 않음
+        fetchPlaylists(userId).catch((e) => {
+            console.error('fetchPlaylists error', e);
+        });
+    }, [userId, fetchPlaylists]);
 
-            if (response.status === 200) {
-                const userLists = Array.isArray(response.data)
-                    ? response.data.filter((item) => item.userId === userId)
-                    : [];
-                // localStorage에서 사용자별 저장된 플레이리스트 로드
-                try {
-                    const key = `playlists_${userId}`;
-                    const raw = localStorage.getItem(key);
-                    const localLists = raw ? JSON.parse(raw) : [];
-
-                    // 병합: 로컬에 있는 항목을 우선으로 하고 서버 항목은 존재하지 않을 때만 추가
-                    const merged = [
-                        ...localLists,
-                        ...userLists.filter((s) => !localLists.some((l) => l.playId === s.playId)),
-                    ];
-                    setPlaylists(merged);
-                } catch (e) {
-                    console.error('localStorage load error', e);
-                    setPlaylists(userLists);
-                }
+    const handleDelete = async (playId) => {
+        if (!userId) return;
+        if (typeof ctxDeletePlaylist === 'function') {
+            try {
+                await ctxDeletePlaylist(userId, playId);
+                return;
+            } catch (e) {
+                console.error('ctxDeletePlaylist error', e);
             }
-        } catch (error) {
-            console.error('Error fetching playlist:', error);
+        }
+        // fallback: localStorage 직접 수정 후 캐시 갱신
+        try {
+            const key = `playlist_${userId}`;
+            const raw = localStorage.getItem(key);
+            const arr = raw ? JSON.parse(raw) : [];
+            const next = (Array.isArray(arr) ? arr : []).filter((p) => p.playId !== playId);
+            localStorage.setItem(key, JSON.stringify(next));
+            await fetchPlaylists(userId);
+        } catch (e) {
+            console.error('localStorage save error', e);
         }
     };
 
-    useEffect(() => {
-        fetchPlaylist();
-    }, [userId]);
-
-    // sync tab query param to context on mount/param change
-    useEffect(() => {
-        console.log(activeTab);
-        // const n = Number(activeTab);
-        // if (Number.isInteger(n) && n >= 1 && n <= 3) {
-        //     setActiveTab(n);
-        // }
-        // only run when tabParam changes
-    }, []);
-
-    const handleDelete = (playId) => {
-        setPlaylists((prev) => {
-            const next = prev.filter((p) => {
-                const id = p.playId;
-                return id !== playId;
-            });
-            try {
-                const key = `playlists_${userId}`;
-                localStorage.setItem(key, JSON.stringify(next));
-            } catch (e) {
-                console.error('localStorage save error', e);
-            }
-            return next;
-        });
-    };
-
     const generatePlayId = () => `play_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    const handleAddPlaylist = () => {
+    const handleAddPlaylist = async () => {
         const newPlaylist = {
             playId: generatePlayId(),
             userId: userId || null,
@@ -100,16 +82,25 @@ const Blog = () => {
             description: '',
             songs: [],
         };
-        setPlaylists((prev) => {
-            const next = [...prev, newPlaylist];
+        if (typeof ctxAddPlaylist === 'function') {
             try {
-                const key = `playlists_${userId}`;
-                localStorage.setItem(key, JSON.stringify(next));
+                await ctxAddPlaylist(userId, newPlaylist);
+                return;
             } catch (e) {
-                console.error('localStorage save error', e);
+                console.error('ctxAddPlaylist error', e);
             }
-            return next;
-        });
+        }
+        // fallback: localStorage에 추가 후 캐시 갱신
+        try {
+            const key = `playlist_${userId}`;
+            const raw = localStorage.getItem(key);
+            const arr = raw ? JSON.parse(raw) : [];
+            const next = [...(Array.isArray(arr) ? arr : []), newPlaylist];
+            localStorage.setItem(key, JSON.stringify(next));
+            await fetchPlaylists(userId);
+        } catch (e) {
+            console.error('localStorage save error', e);
+        }
     };
 
     const handleActiveTab = (n) => {
