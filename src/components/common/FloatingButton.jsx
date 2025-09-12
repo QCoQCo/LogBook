@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './FloatingButton.scss';
 import { useAuth } from '../../context/LogBookContext';
 
@@ -7,6 +7,7 @@ const FloatingButton = () => {
     const [open, setOpen] = useState(false);
     const { isLogin } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const toggle = () => setOpen((s) => !s);
 
@@ -29,11 +30,17 @@ const FloatingButton = () => {
 
     if (!isLogin) return null;
 
+    // 현재 위치와 버튼 경로가 일치하는지 확인하는 함수
+    const isCurrentPath = (path) => {
+        return location.pathname === path;
+    };
+
     const actions = [
         {
             key: 'top',
             title: '맨 위로',
             onClick: scrollTop,
+            path: null, // 스크롤 액션은 경로가 없음
             icon: (
                 <svg
                     viewBox='0 0 24 24'
@@ -55,6 +62,7 @@ const FloatingButton = () => {
             key: 'write',
             title: '새 글쓰기',
             onClick: goNewPost,
+            path: '/post/write',
             icon: (
                 <svg viewBox='0 0 24 24' width='18' height='18' fill='currentColor' aria-hidden>
                     <path d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z' />
@@ -66,6 +74,7 @@ const FloatingButton = () => {
             key: 'chat',
             title: '채팅',
             onClick: goChat,
+            path: '/chat',
             icon: (
                 <svg viewBox='0 0 24 24' width='18' height='18' fill='currentColor'>
                     <path d='M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z' />
@@ -85,6 +94,7 @@ const FloatingButton = () => {
                     const rad = (deg * Math.PI) / 180;
                     const x = Math.cos(rad) * radius;
                     const y = Math.sin(rad) * radius;
+                    const isDisabled = a.path ? isCurrentPath(a.path) : false;
                     const style = {
                         transform: open
                             ? `translate(${x}px, ${y}px) scale(1)`
@@ -96,11 +106,12 @@ const FloatingButton = () => {
                     return (
                         <button
                             key={a.key}
-                            className='fab-action'
-                            title={a.title}
-                            onClick={a.onClick}
+                            className={`fab-action ${isDisabled ? 'disabled' : ''}`}
+                            title={isDisabled ? `${a.title} (현재 페이지)` : a.title}
+                            onClick={isDisabled ? undefined : a.onClick}
                             style={style}
                             aria-hidden={!open}
+                            disabled={isDisabled}
                         >
                             {a.icon}
                         </button>
