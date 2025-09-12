@@ -583,6 +583,7 @@ const FeedPage = () => {
                                     ) {
                                         e.preventDefault();
                                     }
+                                    window.scrollTo(0, 0);
                                 }}
                             >
                                 {cols === 1 ? (
