@@ -14,23 +14,11 @@ const Blog = () => {
     const userId = searchParam.get('userId');
 
     // 현재 클릭한 element 정보를 전달받기 위한 context의 State
-    const {
-        clickedItem,
-        isBlogEditting,
-        getUserInfo,
-        activeTab,
-        setActiveTab,
-        fetchPlaylists,
-        getPlaylists,
-        addPlaylist: ctxAddPlaylist,
-        deletePlaylist: ctxDeletePlaylist,
-    } = useLogBook();
+    const { clickedItem, isBlogEditting, getUserInfo, activeTab, setActiveTab } = useLogBook();
     // Modal 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { currentUser } = useAuth();
-    // 컴포넌트 로컬 state 대신 context 캐시 사용
-    const playlists = getPlaylists(userId) || [];
 
     const releaseModal = () => {
         setIsModalOpen(false);
@@ -41,67 +29,6 @@ const Blog = () => {
     };
 
     const isOwner = Boolean(currentUser && userId && String(currentUser?.id) === String(userId));
-
-    useEffect(() => {
-        if (!userId) return;
-        // context의 fetchPlaylists가 내부 캐시에 저장하므로 결과를 set 하지 않음
-        fetchPlaylists(userId).catch((e) => {
-            console.error('fetchPlaylists error', e);
-        });
-    }, [userId, fetchPlaylists]);
-
-    const handleDelete = async (playId) => {
-        if (!userId) return;
-        if (typeof ctxDeletePlaylist === 'function') {
-            try {
-                await ctxDeletePlaylist(userId, playId);
-                return;
-            } catch (e) {
-                console.error('ctxDeletePlaylist error', e);
-            }
-        }
-        // fallback: localStorage 직접 수정 후 캐시 갱신
-        try {
-            const key = `playlist_${userId}`;
-            const raw = localStorage.getItem(key);
-            const arr = raw ? JSON.parse(raw) : [];
-            const next = (Array.isArray(arr) ? arr : []).filter((p) => p.playId !== playId);
-            localStorage.setItem(key, JSON.stringify(next));
-            await fetchPlaylists(userId);
-        } catch (e) {
-            console.error('localStorage save error', e);
-        }
-    };
-
-    const generatePlayId = () => `play_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    const handleAddPlaylist = async () => {
-        const newPlaylist = {
-            playId: generatePlayId(),
-            userId: userId || null,
-            title: 'new Playlist',
-            description: '',
-            songs: [],
-        };
-        if (typeof ctxAddPlaylist === 'function') {
-            try {
-                await ctxAddPlaylist(userId, newPlaylist);
-                return;
-            } catch (e) {
-                console.error('ctxAddPlaylist error', e);
-            }
-        }
-        // fallback: localStorage에 추가 후 캐시 갱신
-        try {
-            const key = `playlist_${userId}`;
-            const raw = localStorage.getItem(key);
-            const arr = raw ? JSON.parse(raw) : [];
-            const next = [...(Array.isArray(arr) ? arr : []), newPlaylist];
-            localStorage.setItem(key, JSON.stringify(next));
-            await fetchPlaylists(userId);
-        } catch (e) {
-            console.error('localStorage save error', e);
-        }
-    };
 
     const handleActiveTab = (n) => {
         console.log('activeTab: ', n);
@@ -159,15 +86,7 @@ const Blog = () => {
                             <BlogGridLayout userId={userId} enableModal={enableModal} />
                         )}
                         {activeTab === 2 && <div>Article</div>}
-                        {activeTab === 3 && (
-                            <BlogPlaylist
-                                userId={userId}
-                                isOwner={isOwner}
-                                playlists={playlists}
-                                handleDelete={handleDelete}
-                                handleAddPlaylist={handleAddPlaylist}
-                            />
-                        )}
+                        {activeTab === 3 && <BlogPlaylist userId={userId} isOwner={isOwner} />}
                     </div>
                 </div>
             </div>

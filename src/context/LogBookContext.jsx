@@ -633,7 +633,6 @@ export const LogBookProvider = ({ children }) => {
 
     const getPlaylists = useCallback(
         (userId) => {
-            console.log('getPlaylists:', playlistsByUser[userId]);
             return playlistsByUser[userId] || [];
         },
         [playlistsByUser]
