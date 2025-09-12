@@ -143,12 +143,12 @@ const PostEditor = ({}) => {
 
     const handleClickConfirm = (value, type) => {
         if (type === 'link') {
-            console.logtion(() => {
+            toolBarFunction(() => {
                 insertMarkdown('[', `](${value})`);
             });
         } else if (type === 'image') {
             toolBarFunction(() => {
-                console.logarkdown('![', `](${value})`);
+                insertMarkdown('![', `](${value})`);
             });
         } else if (type === 'code') {
             toolBarFunction(() => {
