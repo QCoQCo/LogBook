@@ -100,6 +100,10 @@ export const LogBookProvider = ({ children }) => {
     const [clickedItem, setClickedItem] = useState(null);
     const [elements, setElements] = useState([]);
     const [isBlogEditting, setIsBlogEditting] = useState(false);
+    const [activeTab, setActiveTabState] = useState(() => {
+        const s = sessionStorage.getItem('logbook_activeTab');
+        return s ? Number(s) : 1;
+    });
 
     // 게시글 작성 관련 상태
     const [markdown, setMarkdown] = useState('');
@@ -303,6 +307,13 @@ export const LogBookProvider = ({ children }) => {
             console.error('메시지 구독 설정 오류:', err);
             return null;
         }
+    }, []);
+
+    const setActiveTab = useCallback((n) => {
+        setActiveTabState(n);
+        try {
+            sessionStorage.setItem('logbook_activeTab', String(n));
+        } catch (e) {}
     }, []);
 
     // 사용자 데이터 로드 (컴포넌트 마운트 시)
@@ -679,6 +690,15 @@ export const LogBookProvider = ({ children }) => {
         }),
         [markdown, setMarkdown, postTitle, setPostTitle]
     );
+
+    const uiBlogState = useMemo(
+        () => ({
+            activeTab,
+            setActiveTab,
+        }),
+        [activeTab, setActiveTab]
+    );
+
     // 전체 값 통합
     const value = useMemo(
         () => ({
@@ -689,6 +709,7 @@ export const LogBookProvider = ({ children }) => {
             ...uiValues,
             ...blogValues,
             ...postEditorValues,
+            ...uiBlogState,
         }),
         [
             messageValues,
@@ -698,6 +719,7 @@ export const LogBookProvider = ({ children }) => {
             uiValues,
             blogValues,
             postEditorValues,
+            uiBlogState,
         ]
     );
 

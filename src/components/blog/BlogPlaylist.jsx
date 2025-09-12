@@ -1,51 +1,23 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
 import BlogPlaylistItem from './BlogPlaylistItem';
 import { useYTPopup } from '../../context/LogBookContext';
 
 import './BlogPlaylist.scss';
 
-const BlogPlaylist = ({ userId, isOwner }) => {
+const BlogPlaylist = ({ userId, isOwner, playlists, handleDelete, handleAddPlaylist }) => {
     const { openYTPopup } = useYTPopup();
-    const [playlists, setPlaylists] = useState([]);
-
-    const fetchPlaylist = async () => {
-        try {
-            const response = await axios.get(`/data/playlistData.json`);
-
-            if (response.status === 200) {
-                const userLists = Array.isArray(response.data)
-                    ? response.data.filter((item) => item.userId === userId)
-                    : [];
-                setPlaylists(userLists);
-            }
-        } catch (error) {
-            console.error('Error fetching playlist:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchPlaylist();
-    }, [userId]);
 
     const handlePlay = (playlist, startIndex = 0) => {
         const songsRaw = playlist?.songs;
         const songs = Array.isArray(songsRaw) ? songsRaw.filter(Boolean) : [];
-        if (!songs.length) return;
+        if (!songs.length) {
+            alert('플레이리스트 목록이 비어있습니다.');
+            return;
+        }
         try {
             openYTPopup(songs, startIndex, { clearOnClose: true });
         } catch (e) {
             console.error('play error', e);
         }
-    };
-
-    const handleDelete = (playId) => {
-        setPlaylists((prev) =>
-            prev.filter((p) => {
-                const id = p.playId;
-                return id !== playId;
-            })
-        );
     };
 
     return (
@@ -63,10 +35,11 @@ const BlogPlaylist = ({ userId, isOwner }) => {
                     />
                 ))
             ) : (
-                <div className='noBlogPlaylist'>
-                    <p>플레이리스트가 없습니다.</p>
-                </div>
+                <div className='noBlogPlaylist'></div>
             )}
+            <div className='blog-playlist-new'>
+                <button onClick={handleAddPlaylist}>+</button>
+            </div>
         </div>
     );
 };
