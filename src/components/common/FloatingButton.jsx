@@ -87,8 +87,8 @@ const FloatingButton = () => {
     const radius = 84; // px distance from the toggle
 
     return (
-        <div id='FloatingButton' className={open ? 'open' : ''} aria-hidden={false}>
-            <div className='fab-actions' aria-hidden={!open}>
+        <div id='FloatingButton' className={open ? 'open' : ''}>
+            <div className='fab-actions' inert={!open}>
                 {actions.map((a, i) => {
                     const deg = angles[i] ?? -90 - i * 30;
                     const rad = (deg * Math.PI) / 180;
@@ -110,7 +110,6 @@ const FloatingButton = () => {
                             title={isDisabled ? `${a.title} (현재 페이지)` : a.title}
                             onClick={isDisabled ? undefined : a.onClick}
                             style={style}
-                            aria-hidden={!open}
                             disabled={isDisabled}
                         >
                             {a.icon}
