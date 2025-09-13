@@ -3,7 +3,13 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import * as Common from './components/common';
 import * as Pages from './components/pages';
-import { LogBookProvider, YTPopupProvider, useAuth, useLogBook } from './context/LogBookContext';
+import {
+    LogBookProvider,
+    YTPopupProvider,
+    useAuth,
+    useLogBook,
+    AuthProvider,
+} from './context/LogBookContext';
 
 import './App.css';
 import './utils/animations.css';
@@ -34,17 +40,7 @@ function App() {
                             <Route path='/' element={<Layout />}>
                                 <Route index element={<Pages.LogBookIntro />} />
                                 <Route path='/chat' element={<Pages.ChatPage />} />
-                                <Route
-                                    path='/playlist/:playId'
-                                    element={
-                                        <Pages.Playlist
-                                            playlist={playlist}
-                                            addSong={addSong}
-                                            updatePlaylistSongs={updatePlaylistSongs}
-                                            deletePlaylistSongs={deletePlaylistSongs}
-                                        />
-                                    }
-                                />
+                                <Route path='/playlist/:playId' element={<Pages.Playlist />} />
                                 <Route path='/blog' element={<Pages.Blog />} />
                                 <Route path='/signUp' element={<Pages.SignUp />} />
                                 <Route path='/feed' element={<Pages.FeedPage />} />

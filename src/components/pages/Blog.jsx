@@ -31,7 +31,7 @@ const Blog = () => {
     const isOwner = Boolean(currentUser && userId && String(currentUser?.id) === String(userId));
 
     const handleActiveTab = (n) => {
-        console.log('activeTab: ', n);
+        // console.log('activeTab: ', n);
         setActiveTab(n);
     };
 
