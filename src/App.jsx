@@ -1,15 +1,8 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
 import * as Common from './components/common';
 import * as Pages from './components/pages';
-import {
-    LogBookProvider,
-    YTPopupProvider,
-    useAuth,
-    useLogBook,
-    AuthProvider,
-} from './context/LogBookContext';
+import { LogBookProvider, YTPopupProvider, useAuth, AuthProvider } from './context/LogBookContext';
+import { PostRoutes } from './routes';
 
 import './App.css';
 import './utils/animations.css';
@@ -44,15 +37,7 @@ function App() {
                                 <Route path='/blog' element={<Pages.Blog />} />
                                 <Route path='/signUp' element={<Pages.SignUp />} />
                                 <Route path='/feed' element={<Pages.FeedPage />} />
-                                <Route path='/post/detail' element={<Pages.PostDetail />} />
-                                <Route
-                                    path='/post/write'
-                                    element={<Pages.PostEdit isEdit={false} />}
-                                />
-                                <Route
-                                    path='/post/edit'
-                                    element={<Pages.PostEdit isEdit={true} />}
-                                />
+                                <Route path='/post/*' element={<PostRoutes />} />
                                 <Route path='error' element={<Pages.ErrorPage />} />
                             </Route>
                         </Routes>
