@@ -1,14 +1,14 @@
 import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { useLogBook } from '../../context/LogBookContext';
+import { useUserData } from '../../context';
 import * as Post from '../post';
 import './PostDetail.scss';
 
 const PostDetail = () => {
     const navigate = useNavigate();
 
-    const { userData } = useLogBook();
+    const { userData } = useUserData();
 
     const [searchParam] = useSearchParams();
     const postId = parseInt(searchParam.get('postId'));

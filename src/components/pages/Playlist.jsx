@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useLogBook } from '../../context/LogBookContext';
+import { usePlaylist, useYTPopup, useAuth, useBlog } from '../../context';
 import PlaylistItem from './PlaylistItem';
-import { useYTPopup, useAuth } from '../../context/LogBookContext';
 
 import ReactGridLayout from 'react-grid-layout';
 import './Playlist.scss';
@@ -10,16 +9,16 @@ import './Playlist.scss';
 const Playlist = () => {
     const { openYTPopup, playTrackInPopup, currentTrack, isPopupOpen } = useYTPopup();
     const { currentUser } = useAuth();
+    const { setActiveTab } = useBlog();
     const {
         fetchPlaylists,
-        setActiveTab,
         getPlaylists,
         addSong: ctxAddSong,
         updatePlaylistSongs: ctxUpdatePlaylistSongs,
         deleteSong: ctxDeleteSong,
         addPlaylist: ctxAddPlaylist,
         updatePlaylistTitle: ctxUpdatePlaylistTitle,
-    } = useLogBook();
+    } = usePlaylist();
     const linkInputRef = useRef(null);
     const { playId } = useParams();
 

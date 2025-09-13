@@ -1,7 +1,7 @@
 // Blog.jsx
 import { useState, useEffect, act } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useLogBook, useAuth } from '../../context/LogBookContext';
+import { useBlog, useAuth, useUserData } from '../../context';
 import { BlogFloatingUi, BlogGridLayout, BlogUserInfo, BlogPlaylist } from '../blog';
 import BlogElementModal from '../blog/BlogElementModal';
 import axios from 'axios';
@@ -13,8 +13,11 @@ const Blog = () => {
     const [searchParam] = useSearchParams();
     const userId = searchParam.get('userId');
 
-    // 현재 클릭한 element 정보를 전달받기 위한 context의 State
-    const { clickedItem, isBlogEditting, getUserInfo, activeTab, setActiveTab } = useLogBook();
+    // Blog Context 사용
+    const { clickedItem, isBlogEditting, activeTab, setActiveTab } = useBlog();
+
+    // UserData Context 사용
+    const { getUserInfo } = useUserData();
     // Modal 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
 

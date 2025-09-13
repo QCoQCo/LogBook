@@ -1,12 +1,12 @@
 import axios from 'axios';
 import ReactGridLayout from 'react-grid-layout';
 import { useEffect, useState } from 'react';
-import { useLogBook } from '../../context/LogBookContext';
+import { useBlog } from '../../context';
 import BlogLayoutItem from './BlogLayoutItem';
 
 const BlogGridLayout = ({ userId, enableModal }) => {
     const [newItemCounter, setNewItemCounter] = useState(0);
-    const { layout, setLayout, draggingItem, setElements, isBlogEditting } = useLogBook();
+    const { layout, setLayout, draggingItem, setElements, isBlogEditting } = useBlog();
 
     useEffect(() => {
         getUserBlogData();

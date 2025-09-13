@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import Login from './Login';
-import { useLogBook, useAuth } from '../../context/LogBookContext';
+import { useAuth, useUserData, useUI } from '../../context';
 import UserInfoModal from '../chat/UserInfoModal';
 import {
     initAuthChannel,
@@ -13,8 +13,8 @@ import './Header.scss';
 
 const Header = () => {
     const navigate = useNavigate();
-    const { isChatPage, getUserInfo, getUserProfilePhoto, userDataLoaded, showLogin, toggleLogin } =
-        useLogBook(); // 다크모드 상태 구독
+    const { isChatPage, showLogin, toggleLogin } = useUI(); // 다크모드 상태 구독
+    const { getUserInfo, getUserProfilePhoto, userDataLoaded } = useUserData();
     const { currentUser, isLogin, logout } = useAuth();
     const [showMenu, setShowMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useLogBook } from '../../context/LogBookContext';
+import { useUI } from '../../context';
 import './Footer.scss';
 
 const Footer = () => {
-    const { isChatPage } = useLogBook(); // 다크모드 상태 구독
+    const { isChatPage } = useUI(); // 다크모드 상태 구독
 
     return (
         <footer id='Footer' className={isChatPage ? 'dark-mode' : ''}>

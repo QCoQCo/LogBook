@@ -70,7 +70,7 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
     position: relative;
     flex: 0.45;
     min-width: 0;
-    z-index: 999999;
+    z-index: 999;
     // Chat Header
     .chat-wrapper {
         // height: 100%;
@@ -658,7 +658,6 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
         .swiper-slide {
             width: 280px;
             height: 200px;
-            cursor: pointer;
 
             .chat-room-card {
                 position: relative;
@@ -671,6 +670,10 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                 flex-direction: column;
                 justify-content: space-between;
                 transition: $transition-fast;
+                cursor: pointer;
+                user-select: none;
+                z-index: 10;
+                pointer-events: auto;
 
                 &:hover {
                     background: $bg-medium;
@@ -704,6 +707,8 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                     justify-content: center;
                     transition: $transition-fast;
                     opacity: 0;
+                    z-index: 10;
+                    pointer-events: auto;
 
                     &:hover {
                         background: $danger-color;
@@ -994,7 +999,8 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
             border-radius: $border-radius-sm;
             font-weight: bold;
             cursor: help;
-            z-index: 2;
+            z-index: 10;
+            pointer-events: auto;
         }
 
         // 시스템 채팅방 스타일링
@@ -1393,7 +1399,7 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
     .user-playlist-thumbs {
         .swiper-slide {
             opacity: 0.6;
-            transition: $transition-fast;
+            // transition: $transition-fast;
             cursor: pointer;
 
             &.swiper-slide-thumb-active {

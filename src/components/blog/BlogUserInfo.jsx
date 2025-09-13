@@ -1,4 +1,4 @@
-import { useLogBook, useAuth } from '../../context/LogBookContext';
+import { useBlog, useAuth, useUserData } from '../../context';
 import { useEffect, useRef, useState } from 'react';
 
 const BlogUserInfo = ({ userId }) => {
@@ -6,7 +6,8 @@ const BlogUserInfo = ({ userId }) => {
     const [introText, setIntroText] = useState('');
     const [user, setUser] = useState(null);
     const introTextRef = useRef();
-    const { userData, isBlogEditting, setIsBlogEditting, getUserInfo } = useLogBook();
+    const { isBlogEditting, setIsBlogEditting } = useBlog();
+    const { userData, getUserInfo } = useUserData();
     const { currentUser, isLogin } = useAuth();
 
     const handleChangeIntroText = (e) => {
