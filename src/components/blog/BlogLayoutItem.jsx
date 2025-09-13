@@ -26,7 +26,7 @@ const GridItemTop = ({ item, type, handleClickDelete }) => {
 };
 
 const GridContent = ({ type, content }) => {
-    const { isBlogEditting } = useLogBook();
+    const { isBlogEditting } = useBlog();
 
     switch (type) {
         case 'image':
@@ -57,10 +57,9 @@ const GridContent = ({ type, content }) => {
 };
 
 const BlogLayoutItem = ({ item, handleClickDelete, enableModal }) => {
-    const { setClickedItem, elements } = useLogBook();
+    const { setClickedItem, elements, isBlogEditting } = useBlog();
     const itemType = item.i.split('-')[0];
     const itemContent = elements.find((element) => element.i === item.i)?.content;
-    const { isBlogEditting } = useLogBook();
 
     return (
         <div className={isBlogEditting ? `${item.i} is-editting` : `${item.i}`}>
