@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
-import { useAuth, useLogBook } from '../../context/LogBookContext';
+import { useAuth, useChat, usePlaylist } from '../../context';
 import { sendMessageToRoom } from '../../utils/chatService';
 
 // Import Swiper styles
@@ -12,7 +12,7 @@ import 'swiper/css/thumbs';
 
 const UserPlaylist = ({ openYTPopup, playTrackInPopup, currentTrack, isPopupOpen }) => {
     const { currentUser, isLogin } = useAuth();
-    const { currentChatRoom } = useLogBook();
+    const { currentChatRoom } = useChat();
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
     const [playlistData, setPlaylistData] = useState([]);
     const [loading, setLoading] = useState(false);

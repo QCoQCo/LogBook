@@ -1,9 +1,9 @@
 // BlogDroppable.jsx
 import { useContext } from 'react';
-import { useLogBook } from '../../context/LogBookContext';
+import { useBlog } from '../../context';
 
 const BlogDroppable = ({ droppableItem }) => {
-    const { draggingItem, setDraggingItem } = useLogBook();
+    const { draggingItem, setDraggingItem } = useBlog();
 
     const handleDragStart = (e) => {
         setDraggingItem(droppableItem);

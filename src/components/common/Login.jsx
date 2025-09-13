@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import './login.scss';
 import { loginClient } from '../../utils/auth';
-import { useAuth } from '../../context/LogBookContext';
+import { useAuth } from '../../context';
 
 const Login = ({ onClose = () => {} }) => {
     const { login } = useAuth();

@@ -1,7 +1,16 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import * as Common from './components/common';
 import * as Pages from './components/pages';
-import { LogBookProvider, YTPopupProvider, useAuth, AuthProvider } from './context/LogBookContext';
+import {
+    AuthProvider,
+    useAuth,
+    ChatProvider,
+    BlogProvider,
+    PlaylistProvider,
+    YTPopupProvider,
+    UserDataProvider,
+    UIProvider,
+} from './context';
 import { PostRoutes } from './routes';
 
 import './App.css';
@@ -26,24 +35,35 @@ const Layout = () => {
 function App() {
     return (
         <AuthProvider>
-            <LogBookProvider>
-                <YTPopupProvider>
-                    <BrowserRouter>
-                        <Routes>
-                            <Route path='/' element={<Layout />}>
-                                <Route index element={<Pages.LogBookIntro />} />
-                                <Route path='/chat' element={<Pages.ChatPage />} />
-                                <Route path='/playlist/:playId' element={<Pages.Playlist />} />
-                                <Route path='/blog' element={<Pages.Blog />} />
-                                <Route path='/signUp' element={<Pages.SignUp />} />
-                                <Route path='/feed' element={<Pages.FeedPage />} />
-                                <Route path='/post/*' element={<PostRoutes />} />
-                                <Route path='error' element={<Pages.ErrorPage />} />
-                            </Route>
-                        </Routes>
-                    </BrowserRouter>
-                </YTPopupProvider>
-            </LogBookProvider>
+            <UserDataProvider>
+                <UIProvider>
+                    <ChatProvider>
+                        <BlogProvider>
+                            <PlaylistProvider>
+                                <YTPopupProvider>
+                                    <BrowserRouter>
+                                        <Routes>
+                                            <Route path='/' element={<Layout />}>
+                                                <Route index element={<Pages.LogBookIntro />} />
+                                                <Route path='/chat' element={<Pages.ChatPage />} />
+                                                <Route
+                                                    path='/playlist/:playId'
+                                                    element={<Pages.Playlist />}
+                                                />
+                                                <Route path='/blog' element={<Pages.Blog />} />
+                                                <Route path='/signUp' element={<Pages.SignUp />} />
+                                                <Route path='/feed' element={<Pages.FeedPage />} />
+                                                <Route path='/post/*' element={<PostRoutes />} />
+                                                <Route path='error' element={<Pages.ErrorPage />} />
+                                            </Route>
+                                        </Routes>
+                                    </BrowserRouter>
+                                </YTPopupProvider>
+                            </PlaylistProvider>
+                        </BlogProvider>
+                    </ChatProvider>
+                </UIProvider>
+            </UserDataProvider>
         </AuthProvider>
     );
 }

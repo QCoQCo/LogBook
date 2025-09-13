@@ -1,13 +1,12 @@
 import { Routes, Route } from 'react-router-dom';
-import PostDetail from '../components/pages/PostDetail';
-import PostEdit from '../components/pages/PostEdit';
+import * as Pages from '../components/pages';
 
 const PostRoutes = () => {
     return (
         <Routes>
-            <Route path='/detail' element={<PostDetail />} />
-            <Route path='/edit' element={<PostEdit isEdit={true} />} />
-            <Route path='/write' element={<PostEdit isEdit={false} />} />
+            <Route path='/detail' element={<Pages.PostDetail />} />
+            <Route path='/edit' element={<Pages.PostEdit isEdit={true} />} />
+            <Route path='/write' element={<Pages.PostEdit isEdit={false} />} />
         </Routes>
     );
 };

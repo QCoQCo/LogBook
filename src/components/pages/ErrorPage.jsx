@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useLogBook } from '../../context/LogBookContext';
+import { useUI } from '../../context';
 import './ErrorPage.scss';
 
 const ErrorPage = () => {
-    const { setIsChatPage } = useLogBook();
+    const { setIsChatPage } = useUI();
     // LogBookIntro 페이지 진입 시 다크모드 활성화
     useEffect(() => {
         setIsChatPage(true);

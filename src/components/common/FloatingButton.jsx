@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './FloatingButton.scss';
-import { useAuth } from '../../context/LogBookContext';
+import { useAuth } from '../../context';
 
 const FloatingButton = () => {
     const [open, setOpen] = useState(false);

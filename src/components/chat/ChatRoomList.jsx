@@ -1,13 +1,12 @@
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow } from 'swiper/modules';
-import { useLogBook, useAuth } from '../../context/LogBookContext';
+import { useChat, useAuth } from '../../context';
 import { useCallback, useMemo } from 'react';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 
 const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
-    const { chatRoomList, currentChatRoom, switchChatRoom, deleteChatRoom, roomUsers } =
-        useLogBook();
+    const { chatRoomList, currentChatRoom, switchChatRoom, deleteChatRoom, roomUsers } = useChat();
     const { currentUser, isLogin } = useAuth();
 
     // 특정 채팅방의 실제 접속 유저수 가져오기 - 메모이제이션
@@ -91,9 +90,11 @@ const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
 
             <Swiper
                 effect={'coverflow'}
-                grabCursor={true}
+                grabCursor={false}
                 centeredSlides={true}
                 slidesPerView={'auto'}
+                allowTouchMove={true}
+                touchStartPreventDefault={false}
                 coverflowEffect={{
                     rotate: 50,
                     stretch: 0,
@@ -110,7 +111,15 @@ const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
                             className={`chat-room-card ${
                                 currentChatRoom?.id === room.id ? 'active' : ''
                             } ${room.isSystem ? 'system-room' : 'user-room'}`}
-                            onClick={() => handleRoomClick(room)}
+                            onClick={(e) => {
+                                // 삭제 버튼이나 시스템 배지 클릭이 아닌 경우에만 채팅방 클릭 처리
+                                if (
+                                    !e.target.closest('.delete-room-btn') &&
+                                    !e.target.closest('.system-badge')
+                                ) {
+                                    handleRoomClick(room);
+                                }
+                            }}
                         >
                             <div className='room-name'>{room.name}</div>
                             <div className='room-info'>

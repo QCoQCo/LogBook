@@ -1,6 +1,6 @@
 import BlogPlaylistItem from './BlogPlaylistItem';
 import React, { useEffect } from 'react';
-import { useYTPopup, useLogBook } from '../../context/LogBookContext';
+import { useYTPopup, usePlaylist } from '../../context';
 
 import './BlogPlaylist.scss';
 
@@ -11,7 +11,7 @@ const BlogPlaylist = ({ userId, isOwner }) => {
         getPlaylists,
         addPlaylist: ctxAddPlaylist,
         deletePlaylist: ctxDeletePlaylist,
-    } = useLogBook();
+    } = usePlaylist();
 
     // 마운트 시 또는 userId 변경 시 context에 데이터 로드 요청
     useEffect(() => {

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useLogBook } from '../../context/LogBookContext';
+import { useChat, useUserData } from '../../context';
 import UserInfoModal from './UserInfoModal';
 
 // 메시지 날짜/시간 포맷팅 유틸리티 함수
@@ -66,7 +66,7 @@ const ChatMessage = ({
     currentTrack,
     isPopupOpen,
 }) => {
-    const { getUserProfilePhoto, getUserInfo, userDataLoaded, userDataLoading } = useLogBook();
+    const { getUserProfilePhoto, getUserInfo, userDataLoaded, userDataLoading } = useUserData();
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 

@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useLogBook } from '../../context/LogBookContext';
+import { useBlog } from '../../context';
 
 const GridItemTop = ({ item, type, handleClickDelete }) => {
-    const { setElements, isBlogEditting } = useLogBook();
+    const { setElements, isBlogEditting } = useBlog();
 
     return (
         <div className='grid-item-top'>

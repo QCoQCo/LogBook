@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { subscribeToRoomUsers } from '../../utils/chatService';
-import { useLogBook } from '../../context/LogBookContext';
+import { useUserData } from '../../context';
 import './ChatRoomUsersModal.scss';
 
 const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
-    const { getUserProfilePhoto } = useLogBook();
+    const { getUserProfilePhoto } = useUserData();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
