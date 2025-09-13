@@ -1,11 +1,13 @@
 import axios from 'axios';
-import { Link, useSearchParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 import { useLogBook } from '../../context/LogBookContext';
 import * as Post from '../post';
 import './PostDetail.scss';
 
 const PostDetail = () => {
+    const navigate = useNavigate();
+
     const { userData } = useLogBook();
 
     const [searchParam] = useSearchParams();
@@ -13,10 +15,45 @@ const PostDetail = () => {
 
     const [currentPost, setCurrentPost] = useState(null);
     const [postOwner, setPostOwner] = useState(null);
+    const [loadError, setLoadError] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [headerHeight, setHeaderHeight] = useState(0);
+
+    const [likes, setLikes] = useState(21); // temporary likes feature
+    const [isLiked, setIsLiked] = useState(false);
+
+    const postHeaderRef = useRef(null);
+    const timeoutRef = useRef(null);
 
     useEffect(() => {
         getPostData();
     }, [postId, userData]);
+
+    useEffect(() => {
+        if (!currentPost || !postOwner) {
+            timeoutRef.current = setTimeout(() => {
+                setLoadError(true);
+            }, 5000);
+        } else {
+            clearTimeout(timeoutRef.current);
+        }
+
+        return () => {
+            clearTimeout(timeoutRef.current);
+        };
+    }, [currentPost, postOwner]);
+
+    useEffect(() => {
+        if (currentPost && postOwner) {
+            setHeaderHeight(postHeaderRef.current.getBoundingClientRect().height);
+        }
+    }, [currentPost]);
+
+    useEffect(() => {
+        if (loadError) {
+            navigate('/error');
+        }
+    }, [loadError]);
 
     const getPostData = async () => {
         try {
@@ -33,42 +70,60 @@ const PostDetail = () => {
         }
     };
 
+    // handlers
+    const handleClickFollowBtn = () => {
+        setIsFollowing((prev) => !prev);
+    };
+
+    const handleClickLike = () => {
+        if (isLiked) {
+            setLikes((prev) => prev - 1);
+        } else {
+            setLikes((prev) => prev + 1);
+        }
+        setIsLiked((prev) => !prev);
+    };
+
+    const handleClickShare = async () => {
+        const currentUrl = window.location.href;
+
+        try {
+            await navigator.clipboard.writeText(currentUrl);
+        } catch (error) {
+            console.error('URL 복사에 실패했습니다:', error);
+        }
+    };
+
     return (
         <div id='PostDetail'>
             {currentPost && postOwner ? (
-                <div>
-                    <div className='post-title'>{currentPost.title}</div>
-                    <div className='post-info-area'>
-                        <div className='post-info-top'>
-                            <div className='post-info-left'>
-                                <Link to={``} className='post-owner'>
-                                    {postOwner.nickName}
-                                </Link>
-                                <span>•</span>
-                                <p className='post-created-at'>
-                                    {new Date(currentPost.createdAt).toLocaleDateString('ko-KR', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                    })}
-                                </p>
-                            </div>
-                            <button className='follow-post-owner'>팔로우</button>
-                        </div>
-                        <div className='post-tags'>
-                            {currentPost.tags.map((tag) => (
-                                <button className='tag-button' onClick={() => {}} key={tag}>
-                                    {tag}
-                                </button>
-                            ))}
-                        </div>
+                <div className='post-wrapper'>
+                    <div className='sticky-area'>
+                        <Post.PostStickyUtils
+                            headerHeight={headerHeight}
+                            isLiked={isLiked}
+                            likes={likes}
+                            handleClickLike={handleClickLike}
+                            handleClickShare={handleClickShare}
+                        />
                     </div>
-                    <Post.PostViewer markdown={currentPost.content} />
-                    <div className='post-owner'></div>
-                    <div className='post-comments'></div>
+                    <div className='post-area'>
+                        <Post.PostDetailHeader
+                            ref={postHeaderRef}
+                            currentPost={currentPost}
+                            postOwner={postOwner}
+                            isFollowing={isFollowing}
+                            handleClickFollowBtn={handleClickFollowBtn}
+                        />
+                        <Post.PostViewer markdown={currentPost.content} />
+                        <Post.PostDetailProfile postOwner={postOwner} />
+                        <div className='post-comments'></div>
+                    </div>
                 </div>
             ) : (
-                <div>게시물을 불러오는 중입니다...</div>
+                <div className='post-loading'>
+                    <p className='post-loading-animation'></p>
+                </div>
             )}
         </div>
     );

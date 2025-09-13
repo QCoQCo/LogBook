@@ -210,6 +210,15 @@
     }
 }
 
+@keyframes loading-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 /* Fade Animations */
 @keyframes fade-in {
     0% {
