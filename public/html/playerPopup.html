@@ -559,9 +559,9 @@
                     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
                     if (Array.isArray(saved)) playlist = saved.slice();
                     // console.log(
-                        '[playerPopup] mergeInjected - saved playlist length:',
-                        playlist.length
-                    );
+                    //     '[playerPopup] mergeInjected - saved playlist length:',
+                    //     playlist.length
+                    // );
                 } catch (e) {
                     playlist = [];
                     console.warn('[playerPopup] mergeInjected parse error', e);
@@ -838,15 +838,15 @@
                 if (!item) return;
                 setIndex(i);
                 // console.log(
-                    '[playerPopup] playIndex -> i:',
-                    i,
-                    'videoId:',
-                    item.videoId,
-                    'userInitiated:',
-                    userInitiated,
-                    'playerReady:',
-                    _playerReady
-                );
+                //     '[playerPopup] playIndex -> i:',
+                //     i,
+                //     'videoId:',
+                //     item.videoId,
+                //     'userInitiated:',
+                //     userInitiated,
+                //     'playerReady:',
+                //     _playerReady
+                // );
 
                 if (item.videoId) {
                     try {
@@ -888,8 +888,8 @@
                                 player.loadVideoById(item.videoId);
                                 if (userInitiated) player.playVideo();
                                 // console.log(
-                                    '[playerPopup] playIndex using YT.Player.loadVideoById'
-                                );
+                                //     '[playerPopup] playIndex using YT.Player.loadVideoById'
+                                // );
                             } catch (e) {
                                 console.warn('[playerPopup] loadVideoById error', e);
                             }

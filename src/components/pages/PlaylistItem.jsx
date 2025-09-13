@@ -40,11 +40,7 @@ const PlaylistItem = ({ item, deletePlaylistSongs, playId, onPlay, isActive, isO
             )}
             <a href={item.link} target='_blank' rel='noopener noreferrer'>
                 <div className='playlist-item-profile'>
-                    <img
-                        src={item.thumbnail}
-                        alt='프로필'
-                        style={{ width: '100%', borderRadius: '50%' }}
-                    />
+                    <img src={item.thumbnail} alt='프로필' style={{ width: '100%' }} />
                 </div>
                 <div className='playlist-item-title'>{item.title}</div>
             </a>

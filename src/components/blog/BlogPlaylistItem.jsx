@@ -35,7 +35,7 @@ const BlogPlaylistItem = ({ playlist, onPlay, onDelete, isOwner }) => {
                             }}
                         >
                             <img
-                                src={playlist.songs[0].thumbnail || '/img/logBook_logo.png'}
+                                src={playlist.songs[0]?.thumbnail || '/img/logBook_logo.png'}
                                 alt={playlist.title || 'Playlist Thumbnail'}
                                 loading='lazy'
                                 style={{
