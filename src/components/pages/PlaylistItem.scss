@@ -23,12 +23,15 @@
         .playlist-item-profile {
             width: 32px;
             height: 32px;
-            border-radius: 50%;
             background: #eee;
             margin-right: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+
+            img {
+                border-radius: 5px;
+            }
         }
         .playlist-item-title {
             flex: 1;
