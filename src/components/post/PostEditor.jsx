@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { useBlog } from '../../context';
+import { usePost } from '../../context';
 import PostToolBar from './PostToolbar';
 import PostEditorModal from './PostEditorModal';
 
 const PostEditor = ({}) => {
     // useContext
-    const { markdown, setMarkdown, postTitle, setPostTitle } = useBlog();
+    const { markdown, setMarkdown, postTitle, setPostTitle } = usePost();
 
     // useNavigate
     const navigate = useNavigate();

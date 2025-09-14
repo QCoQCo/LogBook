@@ -12,7 +12,7 @@ $btn-bg-color: #92f2a75d;
 $util-bg-color: #f8f9fa;
 $util-btn-bg-color: #ffffff;
 $util-border-color: #efefef;
-$util-btn-active-bg-color: #6c5ce7;
+$util-btn-active-bg-color: #ec5983;
 
 #PostDetail {
     padding: 60px 0px;
@@ -187,6 +187,7 @@ $util-btn-active-bg-color: #6c5ce7;
 
             .post-viewer {
                 padding: 20px;
+                margin-bottom: 16px;
 
                 h1,
                 h2,
@@ -236,7 +237,7 @@ $util-btn-active-bg-color: #6c5ce7;
                 }
 
                 pre {
-                    padding: 16px;
+                    padding: 0 16px;
                     overflow: auto;
                     font-size: 85%;
                     line-height: 1;
@@ -281,9 +282,62 @@ $util-btn-active-bg-color: #6c5ce7;
                     padding: 0 1em;
                     margin-left: 0;
                     border-left: 0.25em solid $blockquote-border-color;
+                    margin-bottom: 16px;
 
                     p {
-                        margin-bottom: 0;
+                        margin-bottom: 8px;
+
+                        &:last-child {
+                            margin-bottom: 0;
+                        }
+                    }
+                }
+            }
+
+            .post-owner {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                .profile-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 24px;
+
+                    .profile-photo {
+                        width: 120px;
+                        height: 120px;
+                        border-radius: 50%;
+                        overflow: hidden;
+
+                        img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                    }
+
+                    .profile-text-area {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        gap: 8px;
+                        width: 350px;
+
+                        .user-nickname {
+                            color: $secondary-color;
+                            font-size: 24px;
+                            font-weight: 700;
+                            text-decoration: underline;
+
+                            &:hover {
+                                color: $blockquote-color;
+                            }
+                        }
+
+                        .user-introduction {
+                            font-size: 18px;
+                        }
                     }
                 }
             }

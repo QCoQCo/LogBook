@@ -3,10 +3,10 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
-import { useBlog } from '../../context';
+import { usePost } from '../../context';
 
 const PostPreview = () => {
-    const { markdown, postTitle } = useBlog();
+    const { markdown, postTitle } = usePost();
 
     return (
         <div className='post-preview'>

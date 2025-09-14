@@ -116,7 +116,11 @@ const PostDetail = () => {
                             handleClickFollowBtn={handleClickFollowBtn}
                         />
                         <Post.PostViewer markdown={currentPost.content} />
-                        <Post.PostDetailProfile postOwner={postOwner} />
+                        <Post.PostDetailProfile
+                            postOwner={postOwner}
+                            isFollowing={isFollowing}
+                            handleClickFollowBtn={handleClickFollowBtn}
+                        />
                         <div className='post-comments'></div>
                     </div>
                 </div>

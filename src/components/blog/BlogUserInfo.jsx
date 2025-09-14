@@ -59,11 +59,7 @@ const BlogUserInfo = ({ userId }) => {
                     <div className='profile-photo'>
                         <img
                             id='user-profile-photo'
-                            src={
-                                user.profilePhoto !== null
-                                    ? user.profilePhoto
-                                    : '/img/userProfile-ex.png'
-                            }
+                            src={user.profilePhoto || '/img/userProfile-ex.png'}
                             alt=''
                         />
                     </div>
