@@ -161,6 +161,24 @@ $util-btn-active-bg-color: #ec5983;
                                 }
                             }
                         }
+
+                        .post-edit-btns {
+                            display: flex;
+                            align-items: center;
+                            gap: 16px;
+
+                            .edit-post-btn,
+                            .delete-post-btn {
+                                color: $blockquote-color;
+                                font-size: 16px;
+                                font-weight: 600;
+                                line-height: 1em;
+
+                                &:hover {
+                                    color: $text-color;
+                                }
+                            }
+                        }
                     }
 
                     .post-tags {

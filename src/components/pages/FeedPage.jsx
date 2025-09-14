@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import RGL, { WidthProvider } from 'react-grid-layout';
+import { usePost } from '../../context';
 const ReactGridLayout = WidthProvider(RGL);
 import './FeedPage.scss';
 
 const FeedPage = () => {
-    const [posts, setPosts] = useState([]);
+    const { posts } = usePost();
     const skipRebuildRef = useRef(false);
     const PAGE_SIZE = 20;
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -14,20 +15,6 @@ const FeedPage = () => {
     const [dragEnabled, setDragEnabled] = useState(false);
     const [longPressedId, setLongPressedId] = useState(null);
     const pressTimer = useRef(null);
-    useEffect(() => {
-        let mounted = true;
-        fetch('/data/initData.json')
-            .then((r) => r.json())
-            .then((data) => {
-                if (!mounted) return;
-                setPosts(Array.isArray(data) ? data : []);
-            })
-            .catch(() => {
-                if (!mounted) return;
-                setPosts([]);
-            });
-        return () => (mounted = false);
-    }, []);
 
     const containerRef = useRef(null);
     const [containerWidth, setContainerWidth] = useState(1200);

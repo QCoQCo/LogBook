@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-const PostDetailProfile = ({ postOwner, isFollowing, handleClickFollowBtn }) => {
+const PostDetailProfile = ({ postOwner, isFollowing, isOwnPost, handleClickFollowBtn }) => {
     return (
         <div className='post-owner'>
             <div className='profile-left'>
@@ -29,12 +29,14 @@ const PostDetailProfile = ({ postOwner, isFollowing, handleClickFollowBtn }) => 
                     <p className='user-introduction'>{postOwner.introduction}</p>
                 </div>
             </div>
-            <button
-                className={isFollowing ? 'follow-post-owner following' : 'follow-post-owner'}
-                onClick={handleClickFollowBtn}
-            >
-                {isFollowing ? '팔로우 중' : '팔로우'}
-            </button>
+            {!isOwnPost && (
+                <button
+                    className={isFollowing ? 'follow-post-owner following' : 'follow-post-owner'}
+                    onClick={handleClickFollowBtn}
+                >
+                    {isFollowing ? '팔로우 중' : '팔로우'}
+                </button>
+            )}
         </div>
     );
 };
