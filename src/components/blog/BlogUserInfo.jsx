@@ -1,14 +1,13 @@
-import { useBlog, useAuth, useUserData } from '../../context';
+import { useBlog } from '../../context';
 import { useEffect, useRef, useState } from 'react';
 
-const BlogUserInfo = ({ userId }) => {
-    const [isOwnBlog, setIsOwnBlog] = useState(false);
+const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog }) => {
     const [introText, setIntroText] = useState('');
-    const [user, setUser] = useState(null);
+
     const introTextRef = useRef();
-    const { isBlogEditting, setIsBlogEditting } = useBlog();
-    const { userData, getUserInfo } = useUserData();
-    const { currentUser, isLogin } = useAuth();
+
+    // useContext
+    const { isBlogEditting, setIsBlogEditting, activeTab } = useBlog();
 
     const handleChangeIntroText = (e) => {
         setIntroText(e.target.value);
@@ -31,26 +30,12 @@ const BlogUserInfo = ({ userId }) => {
     }, []);
 
     useEffect(() => {
-        setUser(userData.find((user) => user.userId === userId));
-        const currentUserInfo =
-            isLogin && currentUser ? getUserInfo(currentUser.id, currentUser.nickName) : null;
-
-        if (currentUserInfo) {
-            if (currentUserInfo.userId === userId) {
-                setIsOwnBlog(true);
-            } else {
-                setIsOwnBlog(false);
-            }
-        } else {
-            setIsOwnBlog(false);
+        if (blogOwnerData) {
+            setIntroText(blogOwnerData.introduction);
         }
+    }, [blogOwnerData]);
 
-        if (user) {
-            setIntroText(user.introduction);
-        }
-    }, [userId, userData, user]);
-
-    if (!user) {
+    if (!blogOwnerData) {
         return null;
     } else {
         return (
@@ -59,7 +44,7 @@ const BlogUserInfo = ({ userId }) => {
                     <div className='profile-photo'>
                         <img
                             id='user-profile-photo'
-                            src={user.profilePhoto || '/img/userProfile-ex.png'}
+                            src={blogOwnerData.profilePhoto || '/img/userProfile-ex.png'}
                             alt=''
                         />
                     </div>
@@ -85,7 +70,7 @@ const BlogUserInfo = ({ userId }) => {
                         readOnly={isBlogEditting ? '' : 'readonly'}
                     ></textarea>
                 </div>
-                {isBlogEditting && (
+                {isBlogEditting && activeTab === 1 && (
                     <div className='user-info-btns'>
                         <button className='save-btn' onClick={handleClickConfirmBtn}>
                             저 장
@@ -95,7 +80,7 @@ const BlogUserInfo = ({ userId }) => {
                         </button>
                     </div>
                 )}
-                {!isBlogEditting && isOwnBlog && (
+                {!isBlogEditting && isOwnBlog && activeTab === 1 && (
                     <button className='edit-btn' onClick={handleClickEditBlog}>
                         내 블로그 수정하기
                     </button>

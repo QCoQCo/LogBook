@@ -144,7 +144,7 @@
             }
         }
 
-        .blog-wrapper-aria {
+        .blog-wrapper-area {
             position: relative;
             display: flex;
             flex-direction: column;
@@ -190,6 +190,12 @@
                     &:hover {
                         background: rgba(0, 0, 0, 0.04);
                         transform: translateY(-2px);
+
+                        &:disabled {
+                            cursor: not-allowed;
+                            transform: none;
+                            background: transparent;
+                        }
                     }
 
                     &.active {
