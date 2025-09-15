@@ -117,7 +117,7 @@ const Blog = () => {
                         {activeTab === 1 && (
                             <BlogGridLayout userId={userId} enableModal={enableModal} />
                         )}
-                        {activeTab === 2 && <BlogPosts />}
+                        {activeTab === 2 && <BlogPosts blogOwnerData={blogOwnerData} />}
                         {activeTab === 3 && <BlogPlaylist userId={userId} isOwnBlog={isOwnBlog} />}
                     </div>
                 </div>
