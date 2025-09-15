@@ -124,7 +124,11 @@ const Blog = () => {
             </div>
             {isModalOpen && (
                 <div className='modal-overlay' onClick={releaseModal}>
-                    <BlogElementModal item={clickedItem} releaseModal={releaseModal} />
+                    <BlogElementModal
+                        item={clickedItem}
+                        isBlogEditting={isBlogEditting}
+                        releaseModal={releaseModal}
+                    />
                 </div>
             )}
             {isBlogEditting && <BlogFloatingUi />}

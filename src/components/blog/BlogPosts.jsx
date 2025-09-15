@@ -18,7 +18,7 @@ const BlogPosts = ({ blogOwnerData }) => {
     return (
         <div className='blog-post-wrapper'>
             <div className='blog-posts-area'>
-                {blogPosts &&
+                {blogPosts && blogPosts.length > 0 ? (
                     blogPosts.map((post) => (
                         <Link
                             to={`/post/detail?postId=${post.postId}`}
@@ -39,7 +39,12 @@ const BlogPosts = ({ blogOwnerData }) => {
                                 <p>{post.title}</p>
                             </div>
                         </Link>
-                    ))}
+                    ))
+                ) : (
+                    <div className='blog-post-empty'>
+                        <img src='/img/empty_logo.png' alt='게시글 목록 비었음' />
+                    </div>
+                )}
             </div>
         </div>
     );

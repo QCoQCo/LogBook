@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useBlog } from '../../context';
 
-const BlogElementModal = ({ item, releaseModal }) => {
+const BlogElementModal = ({ item, isBlogEditting, releaseModal }) => {
     const { elements, setElements } = useBlog();
     const currentContent = item ? elements.find((element) => element.i === item.i)?.content : '';
 
@@ -10,7 +10,7 @@ const BlogElementModal = ({ item, releaseModal }) => {
     const alertRef = useRef();
 
     useEffect(() => {
-        if (['title', 'link', 'image'].includes(type)) {
+        if (isBlogEditting && ['title', 'link', 'image'].includes(type)) {
             inputRef.current.focus();
         }
 
@@ -79,7 +79,10 @@ const BlogElementModal = ({ item, releaseModal }) => {
     const type = item?.i.split('-')[0];
     const { title, placeholder } = modalData[type] || {};
 
-    return (
+    console.log(isBlogEditting);
+    console.log(currentContent);
+
+    return isBlogEditting ? (
         <div id='BlogElementModal' onClick={handleModalClick}>
             <div className='modal-top'>
                 <img className='modal-icon' src={`/img/icon-${type}.png`} alt='모달 아이콘' />
@@ -111,6 +114,10 @@ const BlogElementModal = ({ item, releaseModal }) => {
                     handleClickCancel={handleClickCancel}
                 />
             </div>
+        </div>
+    ) : (
+        <div className='blog-image-modal'>
+            <img src={currentContent} alt='이미지 크게보기' />
         </div>
     );
 };
