@@ -1,22 +1,40 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { useBlog } from '../../context';
+import { usePost } from '../../context';
 import PostToolBar from './PostToolbar';
 import PostEditorModal from './PostEditorModal';
 
-const PostEditor = ({}) => {
+const PostEditor = ({ isEdit }) => {
     // useContext
-    const { markdown, setMarkdown, postTitle, setPostTitle } = useBlog();
+    const { markdown, setMarkdown, postTitle, setPostTitle, postTags, setPostTags, posts } =
+        usePost();
 
     // useNavigate
     const navigate = useNavigate();
+
+    // params
+    const [searchParam] = useSearchParams();
+    const postId = isEdit ? parseInt(searchParam.get('postId')) : null;
+
+    // fetch post Data & set
+    useEffect(() => {
+        if (isEdit && posts) {
+            const currentPost = posts.find((post) => post.postId === postId);
+
+            if (currentPost) {
+                setPostTitle(currentPost.title);
+                setPostTags(currentPost.tags);
+                setMarkdown(currentPost.content);
+            }
+        }
+    }, [isEdit, postId, posts]);
 
     // states management
     const [showToolTip, setShowToolTip] = useState(false);
     const [hideTitle, setHideTitle] = useState(false);
     const [hideTags, setHideTags] = useState(false);
     const [tagInput, setTagInput] = useState('');
-    const [postTags, setPostTags] = useState([]);
+
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalIsOverflow, setModalIsOverflow] = useState('none');
     const [modalType, setModalType] = useState('link');

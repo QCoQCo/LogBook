@@ -11,10 +11,6 @@ export const BlogProvider = ({ children }) => {
     const [elements, setElements] = useState([]);
     const [isBlogEditting, setIsBlogEditting] = useState(false);
 
-    // 게시글 작성 관련 상태
-    const [markdown, setMarkdown] = useState('');
-    const [postTitle, setPostTitle] = useState('');
-
     // 블로그 탭 위치 관리
     const [activeTab, setActiveTabState] = useState(() => {
         const s = sessionStorage.getItem('logbook_activeTab');
@@ -56,17 +52,6 @@ export const BlogProvider = ({ children }) => {
         ]
     );
 
-    // 게시글 작성 관련 값들
-    const postEditorValues = useMemo(
-        () => ({
-            markdown,
-            setMarkdown,
-            postTitle,
-            setPostTitle,
-        }),
-        [markdown, setMarkdown, postTitle, setPostTitle]
-    );
-
     const uiBlogState = useMemo(
         () => ({
             activeTab,
@@ -79,10 +64,9 @@ export const BlogProvider = ({ children }) => {
     const value = useMemo(
         () => ({
             ...blogValues,
-            ...postEditorValues,
             ...uiBlogState,
         }),
-        [blogValues, postEditorValues, uiBlogState]
+        [blogValues, uiBlogState]
     );
 
     return <BlogContext.Provider value={value}>{children}</BlogContext.Provider>;

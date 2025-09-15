@@ -1,8 +1,25 @@
 import { forwardRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { usePost } from '../../context';
 
 const PostDetailHeader = forwardRef(
-    ({ currentPost, postOwner, isFollowing, handleClickFollowBtn }, ref) => {
+    ({ currentPost, postOwner, isFollowing, isOwnPost, handleClickFollowBtn }, ref) => {
+        const { setPosts } = usePost();
+
+        const navigate = useNavigate();
+
+        const handleClickDeletePost = () => {
+            if (confirm('정말 삭제하시겠습니까?')) {
+                setPosts((prev) => prev.filter((post) => post.postId !== currentPost.postId));
+                navigate(-1);
+                scrollToTop();
+            }
+        };
+
+        const scrollToTop = () => {
+            window.scrollTo(0, 0);
+        };
+
         return (
             <div className='post-header' ref={ref}>
                 <div className='post-title'>{currentPost.title}</div>
@@ -14,7 +31,11 @@ const PostDetailHeader = forwardRef(
                                     <img src={postOwner.profilePhoto} alt='작성자 프로필 사진' />
                                 </button>
                             )}
-                            <Link to={`/blog?userId=${postOwner.userId}`} className='post-owner'>
+                            <Link
+                                to={`/blog?userId=${postOwner.userId}`}
+                                className='post-owner'
+                                onClick={scrollToTop}
+                            >
                                 {postOwner.nickName}
                             </Link>
                             <span>•</span>
@@ -26,14 +47,31 @@ const PostDetailHeader = forwardRef(
                                 })}
                             </p>
                         </div>
-                        <button
-                            className={
-                                isFollowing ? 'follow-post-owner following' : 'follow-post-owner'
-                            }
-                            onClick={handleClickFollowBtn}
-                        >
-                            {isFollowing ? '팔로우 중' : '팔로우'}
-                        </button>
+                        {isOwnPost ? (
+                            <div className='post-edit-btns'>
+                                <Link
+                                    to={`/post/edit?postId=${currentPost.postId}`}
+                                    className='edit-post-btn'
+                                    onClick={scrollToTop}
+                                >
+                                    수정
+                                </Link>
+                                <button className='delete-post-btn' onClick={handleClickDeletePost}>
+                                    삭제
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                className={
+                                    isFollowing
+                                        ? 'follow-post-owner following'
+                                        : 'follow-post-owner'
+                                }
+                                onClick={handleClickFollowBtn}
+                            >
+                                {isFollowing ? '팔로우 중' : '팔로우'}
+                            </button>
+                        )}
                     </div>
                     <div className='post-tags'>
                         {currentPost.tags.map((tag) => (

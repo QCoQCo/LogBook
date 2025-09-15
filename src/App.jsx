@@ -15,6 +15,7 @@ import { PostRoutes } from './routes';
 
 import './App.css';
 import './utils/animations.css';
+import { PostProvider } from './context/PostContext';
 
 const Layout = () => {
     const { isLogin } = useAuth();
@@ -39,27 +40,44 @@ function App() {
                 <UIProvider>
                     <ChatProvider>
                         <BlogProvider>
-                            <PlaylistProvider>
-                                <YTPopupProvider>
-                                    <BrowserRouter>
-                                        <Routes>
-                                            <Route path='/' element={<Layout />}>
-                                                <Route index element={<Pages.LogBookIntro />} />
-                                                <Route path='/chat' element={<Pages.ChatPage />} />
-                                                <Route
-                                                    path='/playlist/:playId'
-                                                    element={<Pages.Playlist />}
-                                                />
-                                                <Route path='/blog' element={<Pages.Blog />} />
-                                                <Route path='/signUp' element={<Pages.SignUp />} />
-                                                <Route path='/feed' element={<Pages.FeedPage />} />
-                                                <Route path='/post/*' element={<PostRoutes />} />
-                                                <Route path='error' element={<Pages.ErrorPage />} />
-                                            </Route>
-                                        </Routes>
-                                    </BrowserRouter>
-                                </YTPopupProvider>
-                            </PlaylistProvider>
+                            <PostProvider>
+                                <PlaylistProvider>
+                                    <YTPopupProvider>
+                                        <BrowserRouter>
+                                            <Routes>
+                                                <Route path='/' element={<Layout />}>
+                                                    <Route index element={<Pages.LogBookIntro />} />
+                                                    <Route
+                                                        path='/chat'
+                                                        element={<Pages.ChatPage />}
+                                                    />
+                                                    <Route
+                                                        path='/playlist/:playId'
+                                                        element={<Pages.Playlist />}
+                                                    />
+                                                    <Route path='/blog' element={<Pages.Blog />} />
+                                                    <Route
+                                                        path='/signUp'
+                                                        element={<Pages.SignUp />}
+                                                    />
+                                                    <Route
+                                                        path='/feed'
+                                                        element={<Pages.FeedPage />}
+                                                    />
+                                                    <Route
+                                                        path='/post/*'
+                                                        element={<PostRoutes />}
+                                                    />
+                                                    <Route
+                                                        path='error'
+                                                        element={<Pages.ErrorPage />}
+                                                    />
+                                                </Route>
+                                            </Routes>
+                                        </BrowserRouter>
+                                    </YTPopupProvider>
+                                </PlaylistProvider>
+                            </PostProvider>
                         </BlogProvider>
                     </ChatProvider>
                 </UIProvider>
