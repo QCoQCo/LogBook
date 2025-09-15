@@ -85,7 +85,13 @@ const BlogPlaylist = ({ userId, isOwnBlog }) => {
                     />
                 ))
             ) : (
-                <div className='noBlogPlaylist'></div>
+                <div className='noBlogPlaylist'>
+                    {isOwnBlog ? (
+                        <p>플레이리스트를 추가해보세요!</p>
+                    ) : (
+                        <p>등록된 플레이리스트가 없습니다.</p>
+                    )}
+                </div>
             )}
             {isOwnBlog && (
                 <div className='blog-playlist-new'>

@@ -18,9 +18,11 @@ const Playlist = () => {
         deleteSong: ctxDeleteSong,
         addPlaylist: ctxAddPlaylist,
         updatePlaylistTitle: ctxUpdatePlaylistTitle,
+        findUserIdByPlayId,
     } = usePlaylist();
     const linkInputRef = useRef(null);
     const { playId } = useParams();
+    const playlistUserId = findUserIdByPlayId(playId) || null;
 
     const userId =
         currentUser?.userId ||
@@ -37,18 +39,19 @@ const Playlist = () => {
         })();
 
     useEffect(() => {
-        if (!userId) return;
-        fetchPlaylists(userId).catch((e) => {
+        if (!playlistUserId) return;
+        fetchPlaylists(playlistUserId).catch((e) => {
             console.error('fetchPlaylists error', e);
         });
-    }, [userId, fetchPlaylists]);
+    }, [playId, fetchPlaylists]);
 
     // context 캐시에서 바로 읽음
-    const playlist = getPlaylists(userId) || [];
+    const playlist = getPlaylists(playlistUserId) || [];
 
     const playlistItem = Array.isArray(playlist) && playlist.find((p) => p.playId === playId);
 
     const addSong = (playId, song) => {
+        ``;
         if (!userId) return;
         const s = { ...song, SEQ: String(Date.now() % 1000000) };
         ctxAddSong(userId, playId, s);
