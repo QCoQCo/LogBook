@@ -145,14 +145,14 @@ const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
                                         >
                                             <div className='user-avatar'>
                                                 <div className='avatar-circle'>
-                                                    {UserProfilePhoto(user) ? (
-                                                        <img
-                                                            src={UserProfilePhoto(user)}
-                                                            alt='user-avatar'
-                                                        />
-                                                    ) : (
-                                                        user.name.charAt(0).toUpperCase()
-                                                    )}
+                                                    <img
+                                                        src={
+                                                            UserProfilePhoto(user)
+                                                                ? UserProfilePhoto(user)
+                                                                : '/img/userProfile-ex.png'
+                                                        }
+                                                        alt='user-avatar'
+                                                    />
                                                 </div>
                                                 <div className='online-indicator'></div>
                                             </div>

@@ -576,14 +576,14 @@ const ChatPage = () => {
                             )}
 
                             {/* 디버깅 정보 (개발 모드에서만 표시) */}
-                            {process.env.NODE_ENV === 'development' && currentChatRoom && (
+                            {/*process.env.NODE_ENV === 'development' && currentChatRoom && (
                                 <div className='debug-info'>
                                     <small>
                                         현재 채팅방: {currentChatRoom.name} | 메시지 수:{' '}
                                         {messages.length}
                                     </small>
                                 </div>
-                            )}
+                            )*/}
 
                             <Chat.ChatMessage
                                 messages={messages}
