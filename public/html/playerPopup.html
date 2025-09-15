@@ -378,6 +378,29 @@
             .vol-fill[aria-hidden='true'] {
                 pointer-events: none;
             }
+
+            /* 토스트/알림 스타일 */
+            #notice {
+                position: fixed;
+                left: 50%;
+                bottom: 24px;
+                /* top: 24px; */
+                transform: translateX(-50%) translateY(0);
+                background: rgba(0, 0, 0, 0.84);
+                color: #fff;
+                padding: 8px 12px;
+                border-radius: 8px;
+                font-size: 13px;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.18s ease, transform 0.18s ease;
+                z-index: 9999;
+            }
+            #notice.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-6px);
+                pointer-events: auto;
+            }
         </style>
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     </head>
@@ -512,6 +535,9 @@
             </div>
         </div>
 
+        <!-- 토스트 알림 요소 -->
+        <div id="notice" aria-hidden="true" aria-live="polite"></div>
+
         <script>
             // State
             let __injected = [];
@@ -553,6 +579,22 @@
                 window._curIndex = i;
             }
 
+            // 간단한 토스트 표시 유틸
+            function showNotice(msg, ms = 2000) {
+                try {
+                    const n = document.getElementById('notice');
+                    if (!n) return;
+                    n.textContent = msg;
+                    n.classList.add('show');
+                    n.setAttribute('aria-hidden', 'false');
+                    if (n._hideT) clearTimeout(n._hideT);
+                    n._hideT = setTimeout(() => {
+                        n.classList.remove('show');
+                        n.setAttribute('aria-hidden', 'true');
+                    }, ms);
+                } catch {}
+            }
+
             // Merge injected items + restore saved
             function mergeInjected() {
                 try {
@@ -566,6 +608,7 @@
                     playlist = [];
                     console.warn('[playerPopup] mergeInjected parse error', e);
                 }
+                let skipped = 0;
                 (Array.isArray(__injected) ? __injected : []).forEach((it) => {
                     const exists = playlist.some(
                         (p) =>
@@ -574,12 +617,14 @@
                             (p.link && it.link && p.link === it.link)
                     );
                     if (!exists) playlist.push(it);
+                    else skipped++;
                 });
                 try {
                     const savedIdx = parseInt(localStorage.getItem(STORAGE_INDEX_KEY), 10);
                     if (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < playlist.length)
                         startIndex = savedIdx;
                 } catch {}
+                if (skipped > 0) showNotice('중복된 내용은 제외하고 표현됩니다', 3000);
             }
 
             // UI builders
@@ -939,6 +984,7 @@
                             window.opener.postMessage({ cmd: 'init_ack' }, allowedOrigin || '*');
                     } else if (d.cmd === 'append' && Array.isArray(d.items)) {
                         const before = playlist.length;
+                        let skipped = 0;
                         d.items.forEach((it) => {
                             const exists = playlist.some(
                                 (p) =>
@@ -947,11 +993,13 @@
                                     (p.link && it.link && p.link === it.link)
                             );
                             if (!exists) playlist.push(it);
+                            else skipped++;
                         });
                         if (playlist.length !== before) {
                             savePlaylist();
                             buildList();
                         }
+                        if (skipped > 0) showNotice('중복된 내용은 제외하고 표현됩니다', 3000);
                     } else if (d.cmd === 'playIndex' && typeof d.index === 'number') {
                         playIndex(d.index, { userInitiated: true });
                     } else if (d.cmd === 'playLast') {
