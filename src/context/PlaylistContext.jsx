@@ -145,6 +145,17 @@ export const PlaylistProvider = ({ children }) => {
         [playlistsByUser, savePlaylists]
     );
 
+    const deletePlaylist = useCallback(
+        (userId, playId) => {
+            if (!userId || !playId) return [];
+            const lists = playlistsByUser[userId] || [];
+            const next = (lists || []).filter((pl) => String(pl.playId) !== String(playId));
+            savePlaylists(userId, next);
+            return next;
+        },
+        [playlistsByUser, savePlaylists]
+    );
+
     const updatePlaylistTitle = useCallback(
         (userId, playId, title) => {
             const lists = playlistsByUser[userId] || [];
@@ -154,6 +165,54 @@ export const PlaylistProvider = ({ children }) => {
         },
         [playlistsByUser, savePlaylists]
     );
+
+    const findUserIdByPlayId = useCallback(
+        (playId) => {
+            if (!playId) return null;
+            // 1) 먼저 메모리 캐시 확인
+            const entries = Object.entries(playlistsByUser || {});
+            for (const [uid, lists] of entries) {
+                if (!Array.isArray(lists)) continue;
+                if (lists.some((pl) => String(pl.playId) === String(playId))) return uid;
+            }
+
+            // 2) 캐시에 없으면 로컬스토리지에서 찾아보기 (STORAGE_KEY_PREFIX 사용)
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (!key || !key.startsWith(STORAGE_KEY_PREFIX)) continue;
+                    const uid = key.slice(STORAGE_KEY_PREFIX.length);
+                    const raw = localStorage.getItem(key);
+                    if (!raw) continue;
+                    const lists = JSON.parse(raw);
+                    if (
+                        Array.isArray(lists) &&
+                        lists.some((pl) => String(pl.playId) === String(playId))
+                    ) {
+                        // 발견되면 메모리 캐시에도 넣어두기
+                        setPlaylistsByUser((prev) => ({ ...(prev || {}), [uid]: lists }));
+                        return uid;
+                    }
+                }
+            } catch (e) {
+                // parsing 문제나 접근 오류 무시
+            }
+
+            return null;
+        },
+        [playlistsByUser, setPlaylistsByUser]
+    );
+
+    // 빠른 조회용 인덱 생성 함수 (여러번 조회할 때 사용)
+    const buildPlayIdIndex = useCallback(() => {
+        const idx = new Map();
+        Object.entries(playlistsByUser || {}).forEach(([uid, lists]) => {
+            (lists || []).forEach((pl) => {
+                if (pl && pl.playId) idx.set(String(pl.playId), uid);
+            });
+        });
+        return idx;
+    }, [playlistsByUser]);
 
     // 플레이리스트 관련 값들
     const playlistValues = useMemo(
@@ -165,7 +224,10 @@ export const PlaylistProvider = ({ children }) => {
             updatePlaylistSongs,
             deleteSong,
             addPlaylist,
+            deletePlaylist,
             updatePlaylistTitle,
+            findUserIdByPlayId,
+            buildPlayIdIndex,
         }),
         [
             fetchPlaylists,
@@ -175,7 +237,10 @@ export const PlaylistProvider = ({ children }) => {
             updatePlaylistSongs,
             deleteSong,
             addPlaylist,
+            deletePlaylist,
             updatePlaylistTitle,
+            findUserIdByPlayId,
+            buildPlayIdIndex,
         ]
     );
 
