@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
-import { useAuth, useLogBook } from '../../context/LogBookContext';
+import { useAuth, useChat, usePlaylist } from '../../context';
 import { sendMessageToRoom } from '../../utils/chatService';
 
 // Import Swiper styles
@@ -12,7 +12,7 @@ import 'swiper/css/thumbs';
 
 const UserPlaylist = ({ openYTPopup, playTrackInPopup, currentTrack, isPopupOpen }) => {
     const { currentUser, isLogin } = useAuth();
-    const { currentChatRoom } = useLogBook();
+    const { currentChatRoom } = useChat();
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
     const [playlistData, setPlaylistData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -106,7 +106,7 @@ const UserPlaylist = ({ openYTPopup, playTrackInPopup, currentTrack, isPopupOpen
     const handleSongSelect = useCallback(
         (song) => {
             setCurrentSong(song);
-            console.log('선택된 노래:', song.title);
+            // console.log('선택된 노래:', song.title);
 
             // playerPopup으로 재생
             if (openYTPopup && song.link) {
@@ -175,7 +175,7 @@ const UserPlaylist = ({ openYTPopup, playTrackInPopup, currentTrack, isPopupOpen
                     currentUser.nickName
                 );
 
-                console.log('음악 공유 완료:', song.title);
+                // console.log('음악 공유 완료:', song.title);
             } catch (error) {
                 console.error('음악 공유 오류:', error);
                 alert('음악 공유에 실패했습니다. 다시 시도해주세요.');

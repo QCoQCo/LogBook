@@ -73,7 +73,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                         <div className='user-profile-section'>
                             <div className='profile-image'>
                                 <img
-                                    src={userInfo.profilePhoto}
+                                    src={userInfo.profilePhoto || '/img/userProfile-ex.png'}
                                     alt={`${userInfo.nickName}의 프로필`}
                                     onError={(e) => {
                                         e.target.src = '/img/userProfile-ex.png';

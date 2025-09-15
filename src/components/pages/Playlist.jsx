@@ -1,39 +1,28 @@
 import { useState, useRef, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import { usePlaylist, useYTPopup, useAuth, useBlog } from '../../context';
 import PlaylistItem from './PlaylistItem';
-import { useYTPopup, useAuth } from '../../context/LogBookContext';
 
 import ReactGridLayout from 'react-grid-layout';
 import './Playlist.scss';
 
-const Playlist = ({
-    playlist,
-    addSong,
-    updatePlaylistSongs,
-    deletePlaylistSongs,
-    updatePlaylistTitle,
-}) => {
+const Playlist = () => {
     const { openYTPopup, playTrackInPopup, currentTrack, isPopupOpen } = useYTPopup();
     const { currentUser } = useAuth();
+    const { setActiveTab } = useBlog();
+    const {
+        fetchPlaylists,
+        getPlaylists,
+        addSong: ctxAddSong,
+        updatePlaylistSongs: ctxUpdatePlaylistSongs,
+        deleteSong: ctxDeleteSong,
+        addPlaylist: ctxAddPlaylist,
+        updatePlaylistTitle: ctxUpdatePlaylistTitle,
+    } = usePlaylist();
     const linkInputRef = useRef(null);
     const { playId } = useParams();
 
-    const pl = (Array.isArray(playlist) && playlist.find((p) => p.playId === playId)) ||
-        playlist[0] || { songs: [], title: '' };
-    const songs = (pl.songs || [])
-        .slice()
-        .sort((a, b) => (Number(a.SEQ) || 0) - (Number(b.SEQ) || 0));
-
-    const layout = songs.map((item, idx) => ({
-        i: item.contentId || idx.toString(),
-        x: 0,
-        y: idx,
-        w: 12,
-        h: 1,
-    }));
-
-    const ownerId = pl.userId || pl.ownerId || (pl.user && (pl.user.userId || pl.user.id));
-    const authId =
+    const userId =
         currentUser?.userId ||
         currentUser?.id ||
         (() => {
@@ -45,12 +34,54 @@ const Playlist = ({
             } catch (e) {
                 return null;
             }
-        })() ||
-        localStorage.getItem('userId') ||
-        null;
+        })();
 
-    const isOwner = Boolean(ownerId && authId && String(ownerId) === String(authId));
-    // console.log('isOwner', isOwner, ownerId, authId);
+    useEffect(() => {
+        if (!userId) return;
+        fetchPlaylists(userId).catch((e) => {
+            console.error('fetchPlaylists error', e);
+        });
+    }, [userId, fetchPlaylists]);
+
+    // context 캐시에서 바로 읽음
+    const playlist = getPlaylists(userId) || [];
+
+    const playlistItem = Array.isArray(playlist) && playlist.find((p) => p.playId === playId);
+
+    const addSong = (playId, song) => {
+        if (!userId) return;
+        const s = { ...song, SEQ: String(Date.now() % 1000000) };
+        ctxAddSong(userId, playId, s);
+    };
+
+    const updatePlaylistSongs = (playId, songs) => {
+        if (!userId) return;
+        ctxUpdatePlaylistSongs(userId, playId, songs);
+    };
+
+    const deletePlaylistSongs = (playId, contentId) => {
+        if (!userId) return;
+        ctxDeleteSong(userId, playId, contentId);
+    };
+
+    const songs = (playlistItem?.songs || [])
+        .slice()
+        .sort((a, b) => (Number(a.SEQ) || 0) - (Number(b.SEQ) || 0));
+
+    const layout = songs?.map((item, idx) => ({
+        i: item.contentId || idx.toString(),
+        x: 0,
+        y: idx,
+        w: 12,
+        h: 1,
+    }));
+
+    const ownerId =
+        playlistItem?.userId ||
+        playlistItem?.ownerId ||
+        (playlistItem?.user && (playlistItem?.user.userId || playlistItem?.user.id));
+
+    const isOwner = Boolean(ownerId && userId && String(ownerId) === String(userId));
 
     const [link, setLink] = useState('');
     const [title, setTitle] = useState('');
@@ -58,11 +89,11 @@ const Playlist = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isEditingTitle, setIsEditingTitle] = useState(false);
-    const [editTitle, setEditTitle] = useState(pl.title || '');
-    const [localTitle, setLocalTitle] = useState(pl.title || '');
+    const [editTitle, setEditTitle] = useState(playlistItem?.title || '');
+    const [localTitle, setLocalTitle] = useState(playlistItem?.title || '');
 
     const handlePlayAll = (startIndex = 0) => {
-        if (songs.length > 0) {
+        if (songs?.length > 0) {
             openYTPopup(songs, startIndex, { clearOnClose: true });
         }
     };
@@ -112,7 +143,7 @@ const Playlist = ({
         setError('');
         setTitle('');
         setThumbnail('');
-        if (v && songs.some((s) => normalizeLink(s.link || '') === normalizeLink(v))) {
+        if (v && songs?.some((s) => normalizeLink(s.link || '') === normalizeLink(v))) {
             setError('This link is already in the playlist');
             return;
         }
@@ -127,7 +158,7 @@ const Playlist = ({
         e.preventDefault();
         setError('');
         if (!link.trim()) return setError('Link is required');
-        if (songs.some((s) => normalizeLink(s.link || '') === normalizeLink(link)))
+        if (songs?.some((s) => normalizeLink(s.link || '') === normalizeLink(link)))
             return setError('This link is already in the playlist');
         if (!isYouTubeUrl(link)) return setError('Only YouTube links are allowed');
         if (!title) return setError('Waiting for YouTube metadata');
@@ -140,13 +171,11 @@ const Playlist = ({
             thumbnail: thumbnail || '',
         };
         if (typeof addSong === 'function') {
-            if (!pl.playId) return setError('Playlist not ready');
-            addSong(pl.playId, newSong);
+            if (!playlistItem.playId) return setError('Playlist not ready');
+            addSong(playlistItem.playId, newSong);
         } else {
             console.warn('addSong not provided');
         }
-
-        openYTPopup([newSong], 0, { clearOnClose: true });
 
         setLink('');
         setTitle('');
@@ -159,10 +188,10 @@ const Playlist = ({
     }, []);
 
     useEffect(() => {
-        const t = pl.title || '';
+        const t = playlistItem?.title || '';
         setLocalTitle(t);
         if (!isEditingTitle) setEditTitle(t);
-    }, [pl.title]);
+    }, [playlistItem?.title]);
 
     const startEditTitle = () => {
         setEditTitle(localTitle || '');
@@ -179,35 +208,82 @@ const Playlist = ({
     const confirmEditTitle = async () => {
         const newT = (editTitle || '').trim();
         if (!newT) return setError('Title cannot be empty');
-        if (typeof updatePlaylistTitle === 'function') {
-            try {
-                const res = updatePlaylistTitle(pl.playId, newT);
-                if (res && typeof res.then === 'function') await res;
-                setLocalTitle(newT);
-                setIsEditingTitle(false);
-            } catch (err) {
-                console.error('updatePlaylistTitle error', err);
-                setError('Failed to update playlist title');
-            }
-        } else {
-            setLocalTitle(newT);
-            setIsEditingTitle(false);
-        }
+        ctxUpdatePlaylistTitle(userId, playlistItem?.playId, newT);
+        setLocalTitle(newT);
+        setIsEditingTitle(false);
     };
 
     return (
         <div id='Playlist'>
             <div className='playlist-title'>
-                {!isEditingTitle ? (
-                    <div className='title-view'>
-                        <div className='title-text'>{localTitle}</div>
-                        <div className='title-actions'>
-                            {isOwner && (
+                <div className='playlist-title-left'>
+                    {!isEditingTitle ? (
+                        <div className='title-view'>
+                            <div className='title-text'>{localTitle}</div>
+                            <div className='title-actions'>
+                                {isOwner && (
+                                    <button
+                                        type='button'
+                                        className='title-edit-btn'
+                                        aria-label='Edit playlist title'
+                                        onClick={startEditTitle}
+                                    >
+                                        <svg
+                                            width='16'
+                                            height='16'
+                                            viewBox='0 0 24 24'
+                                            fill='none'
+                                            xmlns='http://www.w3.org/2000/svg'
+                                        >
+                                            <path
+                                                d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'
+                                                stroke='currentColor'
+                                                strokeWidth='1.5'
+                                            />
+                                            <path
+                                                d='M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z'
+                                                stroke='currentColor'
+                                                strokeWidth='1.5'
+                                            />
+                                        </svg>
+                                    </button>
+                                )}
+                                {songs.length > 0 && (
+                                    <button
+                                        type='button'
+                                        className='title-play-all-btn'
+                                        aria-label='Play all'
+                                        onClick={() => handlePlayAll(0)}
+                                    >
+                                        <svg
+                                            width='16'
+                                            height='16'
+                                            viewBox='0 0 24 24'
+                                            fill='currentColor'
+                                            xmlns='http://www.w3.org/2000/svg'
+                                        >
+                                            <path d='M8 5v14l11-7z' />
+                                        </svg>
+                                        <span>Play All</span>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className='title-edit'>
+                            <input
+                                className='title-edit-input'
+                                type='text'
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                aria-label='Edit playlist title input'
+                            />
+                            <div className='title-edit-btns'>
                                 <button
                                     type='button'
-                                    className='title-edit-btn'
-                                    aria-label='Edit playlist title'
-                                    onClick={startEditTitle}
+                                    className='title-confirm-btn'
+                                    aria-label='Confirm title'
+                                    onClick={confirmEditTitle}
                                 >
                                     <svg
                                         width='16'
@@ -217,96 +293,53 @@ const Playlist = ({
                                         xmlns='http://www.w3.org/2000/svg'
                                     >
                                         <path
-                                            d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'
+                                            d='M20 6L9 17l-5-5'
                                             stroke='currentColor'
-                                            strokeWidth='1.5'
-                                        />
-                                        <path
-                                            d='M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z'
-                                            stroke='currentColor'
-                                            strokeWidth='1.5'
+                                            strokeWidth='2'
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
                                         />
                                     </svg>
                                 </button>
-                            )}
-                            {songs.length > 0 && (
                                 <button
                                     type='button'
-                                    className='title-play-all-btn'
-                                    aria-label='Play all'
-                                    onClick={() => handlePlayAll(0)}
+                                    className='title-cancel-btn'
+                                    aria-label='Cancel title edit'
+                                    onClick={cancelEditTitle}
                                 >
                                     <svg
                                         width='16'
                                         height='16'
                                         viewBox='0 0 24 24'
-                                        fill='currentColor'
+                                        fill='none'
                                         xmlns='http://www.w3.org/2000/svg'
                                     >
-                                        <path d='M8 5v14l11-7z' />
+                                        <path
+                                            d='M18 6L6 18M6 6l12 12'
+                                            stroke='currentColor'
+                                            strokeWidth='2'
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                        />
                                     </svg>
-                                    <span>Play All</span>
                                 </button>
-                            )}
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <div className='title-edit'>
-                        <input
-                            className='title-edit-input'
-                            type='text'
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            aria-label='Edit playlist title input'
-                        />
-                        <div className='title-edit-btns'>
-                            <button
-                                type='button'
-                                className='title-confirm-btn'
-                                aria-label='Confirm title'
-                                onClick={confirmEditTitle}
-                            >
-                                <svg
-                                    width='16'
-                                    height='16'
-                                    viewBox='0 0 24 24'
-                                    fill='none'
-                                    xmlns='http://www.w3.org/2000/svg'
-                                >
-                                    <path
-                                        d='M20 6L9 17l-5-5'
-                                        stroke='currentColor'
-                                        strokeWidth='2'
-                                        strokeLinecap='round'
-                                        strokeLinejoin='round'
-                                    />
-                                </svg>
-                            </button>
-                            <button
-                                type='button'
-                                className='title-cancel-btn'
-                                aria-label='Cancel title edit'
-                                onClick={cancelEditTitle}
-                            >
-                                <svg
-                                    width='16'
-                                    height='16'
-                                    viewBox='0 0 24 24'
-                                    fill='none'
-                                    xmlns='http://www.w3.org/2000/svg'
-                                >
-                                    <path
-                                        d='M18 6L6 18M6 6l12 12'
-                                        stroke='currentColor'
-                                        strokeWidth='2'
-                                        strokeLinecap='round'
-                                        strokeLinejoin='round'
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
+                <div className='playlist-title-right'>
+                    <Link
+                        to={`/blog?userId=${encodeURIComponent(ownerId || userId || '')}`}
+                        className='goto-blog-btn'
+                        onClick={() => {
+                            try {
+                                setActiveTab(3);
+                            } catch (e) {}
+                        }}
+                    >
+                        블로그로 이동
+                    </Link>
+                </div>
             </div>
             <div className='playlist-contents'>
                 {songs.length > 0 ? (
@@ -332,7 +365,7 @@ const Playlist = ({
                                 return { ...s, SEQ: String(idx + 1) };
                             });
                             if (typeof updatePlaylistSongs === 'function') {
-                                updatePlaylistSongs(pl.playId, newSongs);
+                                updatePlaylistSongs(playlistItem?.playId, newSongs);
                             }
                         }}
                     >
@@ -341,7 +374,7 @@ const Playlist = ({
                                 <PlaylistItem
                                     item={item}
                                     deletePlaylistSongs={deletePlaylistSongs}
-                                    playId={pl.playId}
+                                    playId={playlistItem?.playId}
                                     index={idx}
                                     onPlay={() => handlePlayItem(idx)}
                                     isActive={currentTrack === idx}

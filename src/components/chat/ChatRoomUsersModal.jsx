@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { subscribeToRoomUsers } from '../../utils/chatService';
-import { useLogBook } from '../../context/LogBookContext';
+import { useUserData } from '../../context';
 import './ChatRoomUsersModal.scss';
 
 const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
-    const { getUserProfilePhoto } = useLogBook();
+    const { getUserProfilePhoto } = useUserData();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -145,14 +145,14 @@ const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
                                         >
                                             <div className='user-avatar'>
                                                 <div className='avatar-circle'>
-                                                    {UserProfilePhoto(user) ? (
-                                                        <img
-                                                            src={UserProfilePhoto(user)}
-                                                            alt='user-avatar'
-                                                        />
-                                                    ) : (
-                                                        user.name.charAt(0).toUpperCase()
-                                                    )}
+                                                    <img
+                                                        src={
+                                                            UserProfilePhoto(user)
+                                                                ? UserProfilePhoto(user)
+                                                                : '/img/userProfile-ex.png'
+                                                        }
+                                                        alt='user-avatar'
+                                                    />
                                                 </div>
                                                 <div className='online-indicator'></div>
                                             </div>

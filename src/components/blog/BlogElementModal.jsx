@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLogBook } from '../../context/LogBookContext';
+import { useBlog } from '../../context';
 
 const BlogElementModal = ({ item, releaseModal }) => {
-    const { elements, setElements } = useLogBook();
+    const { elements, setElements } = useBlog();
     const currentContent = item ? elements.find((element) => element.i === item.i)?.content : '';
 
     const [modalContent, setModalContent] = useState(currentContent ? currentContent : '');

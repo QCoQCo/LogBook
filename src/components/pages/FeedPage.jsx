@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import RGL, { WidthProvider } from 'react-grid-layout';
+import { usePost } from '../../context';
 const ReactGridLayout = WidthProvider(RGL);
 import './FeedPage.scss';
 
 const FeedPage = () => {
-    const [posts, setPosts] = useState([]);
+    const { posts } = usePost();
     const skipRebuildRef = useRef(false);
     const PAGE_SIZE = 20;
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -14,20 +15,6 @@ const FeedPage = () => {
     const [dragEnabled, setDragEnabled] = useState(false);
     const [longPressedId, setLongPressedId] = useState(null);
     const pressTimer = useRef(null);
-    useEffect(() => {
-        let mounted = true;
-        fetch('/data/initData.json')
-            .then((r) => r.json())
-            .then((data) => {
-                if (!mounted) return;
-                setPosts(Array.isArray(data) ? data : []);
-            })
-            .catch(() => {
-                if (!mounted) return;
-                setPosts([]);
-            });
-        return () => (mounted = false);
-    }, []);
 
     const containerRef = useRef(null);
     const [containerWidth, setContainerWidth] = useState(1200);
@@ -109,15 +96,15 @@ const FeedPage = () => {
             ? gridLayoutRef.current
             : [];
         try {
-            console.info(
-                'rebuildPostsIntoGrid called, current.length=',
-                current.length,
-                'visiblePosts.length=',
-                (visiblePosts || []).length,
-                'cols=',
-                cols
-            );
-            console.info('rebuildPostsIntoGrid current sample:', current.slice(0, 6));
+            // console.info(
+            //     'rebuildPostsIntoGrid called, current.length=',
+            //     current.length,
+            //     'visiblePosts.length=',
+            //     (visiblePosts || []).length,
+            //     'cols=',
+            //     cols
+            // );
+            // console.info('rebuildPostsIntoGrid current sample:', current.slice(0, 6));
         } catch (err) {}
 
         const existingPostMap = new Map();
@@ -209,15 +196,15 @@ const FeedPage = () => {
             static: String(it.i).startsWith('snippet-') ? false : true,
         }));
         try {
-            console.info(
-                'rebuildPostsIntoGrid result.len=',
-                final.length,
-                'snippetEntries.len=',
-                snippetEntries.length,
-                'postEntries.len=',
-                postEntries.length
-            );
-            console.info('rebuildPostsIntoGrid final sample:', final.slice(0, 8));
+            // console.info(
+            //     'rebuildPostsIntoGrid result.len=',
+            //     final.length,
+            //     'snippetEntries.len=',
+            //     snippetEntries.length,
+            //     'postEntries.len=',
+            //     postEntries.length
+            // );
+            // console.info('rebuildPostsIntoGrid final sample:', final.slice(0, 8));
         } catch (err) {}
         return final;
     };
@@ -242,8 +229,8 @@ const FeedPage = () => {
                 };
             });
 
-            console.info('compareLayoutToDom', note, 'mapped sample:', mapped.slice(0, 8));
-            console.info('compareLayoutToDom dom sample:', domItems.slice(0, 8));
+            // console.info('compareLayoutToDom', note, 'mapped sample:', mapped.slice(0, 8));
+            // console.info('compareLayoutToDom dom sample:', domItems.slice(0, 8));
 
             const domById = new Map(domItems.map((d) => [String(d.i), d.parsed]));
             const diffs = [];
@@ -263,12 +250,12 @@ const FeedPage = () => {
                     }
                 }
             });
-            console.info(
-                'compareLayoutToDom diffs.count=',
-                diffs.length,
-                'sample:',
-                diffs.slice(0, 8)
-            );
+            // console.info(
+            //     'compareLayoutToDom diffs.count=',
+            //     diffs.length,
+            //     'sample:',
+            //     diffs.slice(0, 8)
+            // );
         } catch (err) {
             /* ignore */
         }
@@ -411,7 +398,7 @@ const FeedPage = () => {
 
     useEffect(() => {
         if (forceMoveRef.current) {
-            console.info('Skipping layout rebuild while dragging (forceMove-Ref)');
+            //console.info('Skipping layout rebuild while dragging (forceMove-Ref)');
             return;
         }
 
@@ -583,6 +570,7 @@ const FeedPage = () => {
                                     ) {
                                         e.preventDefault();
                                     }
+                                    window.scrollTo(0, 0);
                                 }}
                             >
                                 {cols === 1 ? (

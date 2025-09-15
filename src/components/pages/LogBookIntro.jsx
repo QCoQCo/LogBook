@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLogBook, useAuth } from '../../context/LogBookContext';
+import { useUI, useAuth } from '../../context';
 import './LogBookIntro.scss';
 
 const LogBookIntro = () => {
-    const { isChatPage, setIsChatPage, toggleLogin } = useLogBook(); // 다크모드 상태 구독
+    const { isChatPage, setIsChatPage, toggleLogin } = useUI(); // 다크모드 상태 구독
     const { currentUser, isLogin } = useAuth();
     const [scrollY, setScrollY] = useState(0);
     const [isFeatureVid, setIsFeatureVid] = useState(null);

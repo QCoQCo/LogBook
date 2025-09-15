@@ -1,37 +1,36 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
 import BlogPlaylistItem from './BlogPlaylistItem';
-import { useYTPopup } from '../../context/LogBookContext';
+import React, { useEffect } from 'react';
+import { useYTPopup, usePlaylist } from '../../context';
 
 import './BlogPlaylist.scss';
 
 const BlogPlaylist = ({ userId, isOwner }) => {
     const { openYTPopup } = useYTPopup();
-    const [playlists, setPlaylists] = useState([]);
+    const {
+        fetchPlaylists,
+        getPlaylists,
+        addPlaylist: ctxAddPlaylist,
+        deletePlaylist: ctxDeletePlaylist,
+    } = usePlaylist();
 
-    const fetchPlaylist = async () => {
-        try {
-            const response = await axios.get(`/data/playlistData.json`);
-
-            if (response.status === 200) {
-                const userLists = Array.isArray(response.data)
-                    ? response.data.filter((item) => item.userId === userId)
-                    : [];
-                setPlaylists(userLists);
-            }
-        } catch (error) {
-            console.error('Error fetching playlist:', error);
-        }
-    };
-
+    // 마운트 시 또는 userId 변경 시 context에 데이터 로드 요청
     useEffect(() => {
-        fetchPlaylist();
-    }, [userId]);
+        if (!userId) return;
+        fetchPlaylists(userId).catch((e) => {
+            console.error('fetchPlaylists error', e);
+        });
+    }, [userId, fetchPlaylists]);
+
+    // context 캐시에서 바로 읽음
+    const playlists = getPlaylists(userId) || [];
 
     const handlePlay = (playlist, startIndex = 0) => {
         const songsRaw = playlist?.songs;
         const songs = Array.isArray(songsRaw) ? songsRaw.filter(Boolean) : [];
-        if (!songs.length) return;
+        if (!songs.length) {
+            alert('플레이리스트 목록이 비어있습니다.');
+            return;
+        }
         try {
             openYTPopup(songs, startIndex, { clearOnClose: true });
         } catch (e) {
@@ -39,13 +38,36 @@ const BlogPlaylist = ({ userId, isOwner }) => {
         }
     };
 
-    const handleDelete = (playId) => {
-        setPlaylists((prev) =>
-            prev.filter((p) => {
-                const id = p.playId;
-                return id !== playId;
-            })
-        );
+    const handleAddPlaylist = async () => {
+        const newPlaylist = {
+            playId: `play_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+            userId: userId || null,
+            title: 'new Playlist',
+            description: '',
+            songs: [],
+        };
+        if (typeof ctxAddPlaylist === 'function') {
+            try {
+                await ctxAddPlaylist(userId, newPlaylist);
+                return;
+            } catch (e) {
+                console.error('ctxAddPlaylist error', e);
+            }
+        }
+        // fallback: 없음 (context에서 처리되도록 권장)
+    };
+
+    const handleDelete = async (playId) => {
+        if (!userId) return;
+        if (typeof ctxDeletePlaylist === 'function') {
+            try {
+                await ctxDeletePlaylist(userId, playId);
+                return;
+            } catch (e) {
+                console.error('ctxDeletePlaylist error', e);
+            }
+        }
+        // fallback: 없음 (context에서 처리되도록 권장)
     };
 
     return (
@@ -63,10 +85,11 @@ const BlogPlaylist = ({ userId, isOwner }) => {
                     />
                 ))
             ) : (
-                <div className='noBlogPlaylist'>
-                    <p>플레이리스트가 없습니다.</p>
-                </div>
+                <div className='noBlogPlaylist'></div>
             )}
+            <div className='blog-playlist-new'>
+                {isOwner && <button onClick={handleAddPlaylist}>+</button>}
+            </div>
         </div>
     );
 };

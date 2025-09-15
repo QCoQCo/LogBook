@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useLogBook, useAuth, useYTPopup } from '../../context/LogBookContext';
+import { useChat, useAuth, useYTPopup, useUserData, useUI } from '../../context';
 import { validateRoomPassword } from '../../utils/chatService';
 import * as Chat from '../chat';
 
 import './ChatPage.scss';
 
 const ChatPage = () => {
-    // LogBook Context 사용
+    // Chat Context 사용
     const {
         messages,
         loading,
@@ -14,8 +14,6 @@ const ChatPage = () => {
         sendMessage,
         deleteMessage,
         clearError,
-        updateUserNickname,
-        setIsChatPage,
         currentChatRoom,
         chatRoomList,
         joinRoom,
@@ -25,8 +23,13 @@ const ChatPage = () => {
         updateUserOnlineStatus,
         createChatRoom,
         switchChatRoom,
-        toggleLogin,
-    } = useLogBook();
+    } = useChat();
+
+    // UserData Context 사용
+    const { updateUserNickname } = useUserData();
+
+    // UI Context 사용
+    const { setIsChatPage, toggleLogin } = useUI();
 
     // Auth Context 사용
     const { currentUser: authUser, isLogin } = useAuth();
@@ -573,14 +576,14 @@ const ChatPage = () => {
                             )}
 
                             {/* 디버깅 정보 (개발 모드에서만 표시) */}
-                            {process.env.NODE_ENV === 'development' && currentChatRoom && (
+                            {/*process.env.NODE_ENV === 'development' && currentChatRoom && (
                                 <div className='debug-info'>
                                     <small>
                                         현재 채팅방: {currentChatRoom.name} | 메시지 수:{' '}
                                         {messages.length}
                                     </small>
                                 </div>
-                            )}
+                            )*/}
 
                             <Chat.ChatMessage
                                 messages={messages}

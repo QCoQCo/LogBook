@@ -1,9 +1,10 @@
 // Blog.jsx
-import { useState } from 'react';
+import { useState, useEffect, act } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useLogBook, useAuth } from '../../context/LogBookContext';
+import { useBlog, useAuth, useUserData } from '../../context';
 import { BlogFloatingUi, BlogGridLayout, BlogUserInfo, BlogPlaylist } from '../blog';
 import BlogElementModal from '../blog/BlogElementModal';
+import axios from 'axios';
 
 import './Blog.scss';
 
@@ -12,11 +13,13 @@ const Blog = () => {
     const [searchParam] = useSearchParams();
     const userId = searchParam.get('userId');
 
-    // 현재 클릭한 element 정보를 전달받기 위한 context의 State
-    const { clickedItem, isBlogEditting, getUserInfo } = useLogBook();
+    // Blog Context 사용
+    const { clickedItem, isBlogEditting, activeTab, setActiveTab } = useBlog();
+
+    // UserData Context 사용
+    const { getUserInfo } = useUserData();
     // Modal 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState(1);
 
     const { currentUser } = useAuth();
 
@@ -30,6 +33,11 @@ const Blog = () => {
 
     const isOwner = Boolean(currentUser && userId && String(currentUser?.id) === String(userId));
 
+    const handleActiveTab = (n) => {
+        // console.log('activeTab: ', n);
+        setActiveTab(n);
+    };
+
     return (
         <div id='Blog'>
             <div className='blog-wrapper'>
@@ -39,7 +47,7 @@ const Blog = () => {
                         <button
                             type='button'
                             className={activeTab === 1 ? 'home active' : 'home'}
-                            onClick={() => setActiveTab(1)}
+                            onClick={() => handleActiveTab(1)}
                             aria-label='home'
                             title='home'
                         >
@@ -52,7 +60,7 @@ const Blog = () => {
                         <button
                             type='button'
                             className={activeTab === 2 ? 'article active' : 'article'}
-                            onClick={() => setActiveTab(2)}
+                            onClick={() => handleActiveTab(2)}
                             aria-label='article'
                             title='article'
                         >
@@ -65,7 +73,7 @@ const Blog = () => {
                         <button
                             type='button'
                             className={activeTab === 3 ? 'playlist active' : 'playlist'}
-                            onClick={() => setActiveTab(3)}
+                            onClick={() => handleActiveTab(3)}
                             aria-label='playlist'
                             title='playlist'
                         >
