@@ -226,8 +226,6 @@
 
 -   **npm** 또는 **yarn**
 
--   **Firebase 프로젝트** (선택사항 - 채팅 기능 사용 시)
-
 ### 📦 설치
 
 1. **저장소 클론**
@@ -453,7 +451,5 @@ LogBook 프로젝트에 기여해주세요! 🌊
 ---
 
 _Made with ❤️ by the LogBook Team_
-
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FQCoQCo%2FLogBook&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=visitors&edge_flat=false)](https://hits.seeyoufarm.com)
 
 </div>
