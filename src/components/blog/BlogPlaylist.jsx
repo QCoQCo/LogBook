@@ -4,7 +4,7 @@ import { useYTPopup, usePlaylist } from '../../context';
 
 import './BlogPlaylist.scss';
 
-const BlogPlaylist = ({ userId, isOwner }) => {
+const BlogPlaylist = ({ userId, isOwnBlog }) => {
     const { openYTPopup } = useYTPopup();
     const {
         fetchPlaylists,
@@ -81,15 +81,17 @@ const BlogPlaylist = ({ userId, isOwner }) => {
                         onDelete={() =>
                             handleDelete(playlist.playId || playlist.id || playlist.SEQ)
                         }
-                        isOwner={isOwner}
+                        isOwnBlog={isOwnBlog}
                     />
                 ))
             ) : (
                 <div className='noBlogPlaylist'></div>
             )}
-            <div className='blog-playlist-new'>
-                {isOwner && <button onClick={handleAddPlaylist}>+</button>}
-            </div>
+            {isOwnBlog && (
+                <div className='blog-playlist-new'>
+                    <button onClick={handleAddPlaylist}>+</button>
+                </div>
+            )}
         </div>
     );
 };
