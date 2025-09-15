@@ -6,6 +6,8 @@
 
 ![LogBook Banner](./public/img/logBook_logo.png)
 
+**🌊 바다처럼 자유롭고, 보물처럼 소중한 당신의 이야기를 기록하세요 ⚓**
+
 [![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
 
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -78,14 +80,6 @@
 
 -   ✅ **반응형 디자인** 자동 적용
 
-<details>
-
-<summary>🎬 블로그 디자인 데모 보기</summary>
-
-![Blog Design Demo](./public/video/blog.mov)
-
-</details>
-
 ### 💬 실시간 채팅 시스템
 
 > Firebase Firestore 기반의 완전한 채팅 플랫폼
@@ -100,14 +94,6 @@
 
 -   ✅ **방 참여자 관리** 시스템
 
-<details>
-
-<summary>🎬 채팅 시스템 데모 보기</summary>
-
-![Chat System Demo](./public/video/chatsss.mov)
-
-</details>
-
 ### 🎵 YouTube 음악 플레이리스트
 
 > 음악과 함께하는 블로그 경험
@@ -119,14 +105,6 @@
 -   ✅ **Swiper 슬라이더**를 활용한 세련된 UI
 
 -   ✅ **개인 플레이리스트** 생성 및 관리
-
-<details>
-
-<summary>🎬 플레이리스트 데모 보기</summary>
-
-![Playlist Demo](./public/video/plis.mov)
-
-</details>
 
 ### 👤 소셜 프로필 시스템
 
@@ -140,14 +118,6 @@
 
 -   ✅ **팔로우/팔로워** 시스템 (예정)
 
-<details>
-
-<summary>🎬 프로필 시스템 데모 보기</summary>
-
-![Profile System Demo](./public/video/profile.mov)
-
-</details>
-
 ### ⌨️ Velog 스타일 마크다운 편집기
 
 > 개발자에게 친숙한 글쓰기 경험
@@ -160,59 +130,189 @@
 
 -   ✅ **다양한 텍스트 스타일링** 옵션
 
-<details>
-
-<summary>🎬 마크다운 편집기 데모 보기</summary>
-
-![Markdown Editor Demo](./public/video/MDeditor.mov)
-
-</details>
-
 ---
 
 ## ⚡ 기술 스택
 
 <div align="center">
 
-### 🖥️ Frontend
+### 🖥️ Frontend Technologies
 
-| Technology | Description | Version |
-
-| --------------------------------------------------------------------------------------------------------------------- | ----------------------- | ------- |
-
-| ![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black) | 모던 React 기능 활용 | ^19.1.1 |
-
-| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white) | 번개처럼 빠른 개발 환경 | ^7.1.2 |
-
-| ![SCSS](https://img.shields.io/badge/SCSS-CC6699?style=flat-square&logo=sass&logoColor=white) | 고급 CSS 전처리기 | - |
-
-| ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=flat-square&logo=react-router&logoColor=white) | SPA 라우팅 시스템 | ^7.8.1 |
+<table>
+<tr>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="60" height="60" alt="React"/>
+<br/>
+<strong>React</strong>
+<br/>
+<sub>^19.1.1</sub>
+<br/>
+<code>모던 React 기능 활용</code>
+</td>
+<td align="center" width="200">
+<img src="https://vitejs.dev/logo.svg" width="60" height="60" alt="Vite"/>
+<br/>
+<strong>Vite</strong>
+<br/>
+<sub>^7.1.2</sub>
+<br/>
+<code>번개처럼 빠른 개발 환경</code>
+</td>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sass/sass-original.svg" width="60" height="60" alt="SCSS"/>
+<br/>
+<strong>SCSS</strong>
+<br/>
+<sub>Latest</sub>
+<br/>
+<code>고급 CSS 전처리기</code>
+</td>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="60" height="60" alt="React Router"/>
+<br/>
+<strong>React Router</strong>
+<br/>
+<sub>^7.8.1</sub>
+<br/>
+<code>SPA 라우팅 시스템</code>
+</td>
+</tr>
+</table>
 
 ### 🔥 Backend & Database
 
-| Technology | Description | Version |
-
-| ----------------------------------------------------------------------------------------------------------- | ------------------------- | ------- |
-
-| ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black) | Google BaaS 플랫폼 | ^12.1.0 |
-
-| ![Firestore](https://img.shields.io/badge/Firestore-FFCA28?style=flat-square&logo=firebase&logoColor=black) | NoSQL 실시간 데이터베이스 | - |
-
-**추가예정**
+<table>
+<tr>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" width="60" height="60" alt="Firebase"/>
+<br/>
+<strong>Firebase</strong>
+<br/>
+<sub>^12.1.0</sub>
+<br/>
+<code>Google BaaS 플랫폼</code>
+</td>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" width="60" height="60" alt="Firestore"/>
+<br/>
+<strong>Firestore</strong>
+<br/>
+<sub>Latest</sub>
+<br/>
+<code>NoSQL 실시간 데이터베이스</code>
+</td>
+<td align="center" width="200">
+<img src="https://img.icons8.com/color/60/000000/coming-soon.png" width="60" height="60" alt="Coming Soon"/>
+<br/>
+<strong>추가 예정</strong>
+<br/>
+<sub>Soon</sub>
+<br/>
+<code>백엔드 확장</code>
+</td>
+</tr>
+</table>
 
 ### 🎨 UI/UX Libraries
 
-| Technology | Description | Version |
+<table>
+<tr>
+<td align="center" width="200">
+<img src="https://swiperjs.com/images/swiper-logo.svg" width="60" height="60" alt="Swiper"/>
+<br/>
+<strong>Swiper</strong>
+<br/>
+<sub>^11.2.10</sub>
+<br/>
+<code>터치 슬라이더 라이브러리</code>
+</td>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="60" height="60" alt="React Grid Layout"/>
+<br/>
+<strong>React Grid Layout</strong>
+<br/>
+<sub>^1.5.2</sub>
+<br/>
+<code>드래그 앤 드롭 그리드</code>
+</td>
+<td align="center" width="200">
+<img src="https://img.icons8.com/color/60/000000/markdown.png" width="60" height="60" alt="React Markdown"/>
+<br/>
+<strong>React Markdown</strong>
+<br/>
+<sub>^10.1.0</sub>
+<br/>
+<code>마크다운 렌더링</code>
+</td>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="60" height="60" alt="Axios"/>
+<br/>
+<strong>Axios</strong>
+<br/>
+<sub>^1.11.0</sub>
+<br/>
+<code>HTTP 클라이언트</code>
+</td>
+</tr>
+</table>
 
-| --------------------------------------------------------------------------------------------------- | ---------------------------- | -------- |
+### 🛠️ Development Tools
 
-| ![Swiper](https://img.shields.io/badge/Swiper-6332F6?style=flat-square&logo=swiper&logoColor=white) | 터치 슬라이더 라이브러리 | ^11.2.10 |
+<table>
+<tr>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" width="60" height="60" alt="JavaScript"/>
+<br/>
+<strong>JavaScript</strong>
+<br/>
+<sub>ES6+</sub>
+<br/>
+<code>모던 자바스크립트</code>
+</td>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="60" height="60" alt="HTML5"/>
+<br/>
+<strong>HTML5</strong>
+<br/>
+<sub>Latest</sub>
+<br/>
+<code>시맨틱 마크업</code>
+</td>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" width="60" height="60" alt="CSS3"/>
+<br/>
+<strong>CSS3</strong>
+<br/>
+<sub>Latest</sub>
+<br/>
+<code>스타일링</code>
+</td>
+<td align="center" width="200">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="60" height="60" alt="Git"/>
+<br/>
+<strong>Git</strong>
+<br/>
+<sub>Latest</sub>
+<br/>
+<code>버전 관리</code>
+</td>
+</tr>
+</table>
 
-| React Grid Layout | 드래그 앤 드롭 그리드 시스템 | ^1.5.2 |
+### 📊 기술 스택 요약
 
-| React Markdown | 마크다운 렌더링 | ^10.1.0 |
+<div align="center">
 
-| Axios | HTTP 클라이언트 | ^1.11.0 |
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![SCSS](https://img.shields.io/badge/SCSS-CC6699?style=for-the-badge&logo=sass&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+
+</div>
 
 </div>
 
@@ -451,5 +551,9 @@ LogBook 프로젝트에 기여해주세요! 🌊
 ---
 
 _Made with ❤️ by the LogBook Team_
+
+[NOTION](https://www.notion.so/KULL-24f27e5202b980279044dafa45b829d6?pvs=25)
+
+[GITHUB](https://github.com/QCoQCo/LogBook)
 
 </div>
