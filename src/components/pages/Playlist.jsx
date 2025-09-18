@@ -18,9 +18,11 @@ const Playlist = () => {
         deleteSong: ctxDeleteSong,
         addPlaylist: ctxAddPlaylist,
         updatePlaylistTitle: ctxUpdatePlaylistTitle,
+        findUserIdByPlayId,
     } = usePlaylist();
     const linkInputRef = useRef(null);
     const { playId } = useParams();
+    const playlistUserId = findUserIdByPlayId(playId) || null;
 
     const userId =
         currentUser?.userId ||
@@ -37,18 +39,19 @@ const Playlist = () => {
         })();
 
     useEffect(() => {
-        if (!userId) return;
-        fetchPlaylists(userId).catch((e) => {
+        if (!playlistUserId) return;
+        fetchPlaylists(playlistUserId).catch((e) => {
             console.error('fetchPlaylists error', e);
         });
-    }, [userId, fetchPlaylists]);
+    }, [playId, fetchPlaylists]);
 
     // context 캐시에서 바로 읽음
-    const playlist = getPlaylists(userId) || [];
+    const playlist = getPlaylists(playlistUserId) || [];
 
     const playlistItem = Array.isArray(playlist) && playlist.find((p) => p.playId === playId);
 
     const addSong = (playId, song) => {
+        ``;
         if (!userId) return;
         const s = { ...song, SEQ: String(Date.now() % 1000000) };
         ctxAddSong(userId, playId, s);
@@ -115,12 +118,42 @@ const Playlist = () => {
 
     const normalizeLink = (u = '') => u.trim().replace(/\/?$/, '').toLowerCase();
 
+    // YouTube 비디오 ID 추출 (다양한 URL 포맷 처리)
+    const extractYouTubeId = (value) => {
+        if (!value) return null;
+        try {
+            const u = new URL(value);
+            const hn = u.hostname.replace('www.', '');
+            if (hn === 'youtu.be') return u.pathname.replace(/^\//, '');
+            if (/youtube.com$/.test(hn)) {
+                const v = u.searchParams.get('v');
+                if (v) return v;
+                const m = u.pathname.match(/\/(embed|v|shorts)\/([^\/\?&]+)/);
+                if (m) return m[2];
+            }
+        } catch (e) {
+            // fallback regex
+            const m = value.match(/(?:v=|\/embed\/|youtu\.be\/|\/shorts\/)([A-Za-z0-9_-]{6,})/);
+            if (m) return m[1];
+        }
+        return null;
+    };
+
     const fetchYouTubeMeta = async (videoUrl) => {
         try {
             setLoading(true);
             setError('');
+            // extract id (accept either full URL or raw id)
+            const id =
+                extractYouTubeId(videoUrl) ||
+                (typeof videoUrl === 'string' && /^[A-Za-z0-9_-]{6,}$/.test(videoUrl)
+                    ? videoUrl
+                    : null);
+            console.log('[fetchYouTubeMeta] raw:', videoUrl, 'id:', id);
+            if (!id) throw new Error('Invalid YouTube link or id');
+            const normalized = `https://www.youtube.com/watch?v=${id}`;
             const oembed = `https://www.youtube.com/oembed?url=${encodeURIComponent(
-                videoUrl
+                normalized
             )}&format=json`;
             const res = await fetch(oembed);
             if (!res.ok) throw new Error('Failed to fetch oEmbed');
@@ -129,7 +162,8 @@ const Playlist = () => {
             setThumbnail(data.thumbnail_url || '');
         } catch (err) {
             console.error('oEmbed error', err);
-            setError('Failed to fetch YouTube metadata');
+            if (err.message === 'Invalid YouTube link or id') setError('Invalid YouTube link');
+            else setError('Failed to fetch YouTube metadata');
             setTitle('');
             setThumbnail('');
         } finally {
@@ -143,7 +177,8 @@ const Playlist = () => {
         setError('');
         setTitle('');
         setThumbnail('');
-        if (v && songs?.some((s) => normalizeLink(s.link || '') === normalizeLink(v))) {
+        const vid = extractYouTubeId(v);
+        if (v && vid && songs?.some((s) => extractYouTubeId(s.link || '') === vid)) {
             setError('This link is already in the playlist');
             return;
         }
@@ -157,16 +192,20 @@ const Playlist = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setError('');
-        if (!link.trim()) return setError('Link is required');
-        if (songs?.some((s) => normalizeLink(s.link || '') === normalizeLink(link)))
+        const raw = (link || '').trim();
+        if (!raw) return setError('Link is required');
+        if (!isYouTubeUrl(raw)) return setError('Only YouTube links are allowed');
+        const vid = extractYouTubeId(raw);
+        if (!vid) return setError('Invalid YouTube link');
+        // ID 기준으로 중복 검사
+        if (songs?.some((s) => extractYouTubeId(s.link || '') === vid))
             return setError('This link is already in the playlist');
-        if (!isYouTubeUrl(link)) return setError('Only YouTube links are allowed');
         if (!title) return setError('Waiting for YouTube metadata');
 
         const newSong = {
             contentId: `song${Date.now()}`,
             title: title.trim(),
-            link: link.trim(),
+            link: `https://www.youtube.com/watch?v=${extractYouTubeId(raw)}`,
             createAt: new Date().toISOString(),
             thumbnail: thumbnail || '',
         };

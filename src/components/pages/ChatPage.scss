@@ -757,6 +757,27 @@ $box-shadow-focus: 0 0 0 3px rgba(156, 195, 133, 0.2);
                 }
             }
         }
+        .swiper-button-next,
+        .swiper-button-prev {
+            color: $accent-color;
+            background: rgba(0, 0, 0, 0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            transition: $transition-fast;
+
+            &:hover {
+                background: $accent-color;
+                color: $primary-bg;
+                transform: scale(1.1);
+            }
+
+            &::after {
+                font-size: 16px;
+                font-weight: bold;
+            }
+        }
     }
 
     .no-rooms {
