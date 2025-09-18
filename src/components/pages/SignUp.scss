@@ -1,0 +1,142 @@
+// SignUp.scss
+
+#SignUp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+
+    .signup-container {
+        width: 360px;
+        max-width: 92vw;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+
+        .signup-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .signup-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+
+            .form-row {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+
+                .label-text {
+                    font-size: 12px;
+                    font-weight: 600;
+                    margin-left: 6px;
+
+                    .necessary {
+                        color: #e74c3c;
+                    }
+                }
+
+                .input-field {
+                    width: 100%;
+                    height: 40px;
+                    padding: 8px 12px;
+                    border-radius: 14px;
+                    border: 2px solid #222;
+                    outline: none;
+                    box-sizing: border-box;
+                    font-size: 14px;
+                }
+            }
+
+            .pw-rules {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                margin-top: 8px;
+                padding-left: 6px;
+
+                .pw-rule {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 12px;
+                    color: #666;
+
+                    .pw-rule-icon {
+                        width: 18px;
+                        height: 18px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        font-size: 12px;
+                    }
+                }
+
+                .pw-rule.ok {
+                    color: #10b981;
+                    .pw-rule-icon {
+                        background: #d1fae5;
+                        color: #065f46;
+                    }
+                }
+
+                .pw-rule.fail {
+                    color: #e74c3c;
+                    .pw-rule-icon {
+                        background: #fee2e2;
+                        color: #7f1d1d;
+                    }
+                }
+            }
+
+            .form-actions {
+                display: flex;
+                justify-content: center;
+                margin-top: 8px;
+
+                .submit-btn {
+                    background: #fff;
+                    border: 2px solid #222;
+                    padding: 10px 22px;
+                    border-radius: 24px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    transition: transform 140ms ease, box-shadow 140ms ease,
+                        background-color 160ms ease, color 160ms ease;
+                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+                }
+
+                .submit-btn:hover:not([disabled]) {
+                    transform: translateY(-3px) scale(1.02);
+                    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12);
+                    background: #222;
+                    color: #fff;
+                }
+
+                .submit-btn[disabled],
+                .submit-btn[aria-disabled='true'] {
+                    opacity: 0.45;
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                }
+            }
+
+            .field-error {
+                color: #e74c3c;
+                font-size: 12px;
+                margin-top: 6px;
+                margin-left: 6px;
+            }
+        }
+    }
+}

@@ -1,0 +1,378 @@
+[
+    {
+        "userId": "musiclover",
+        "playId": "playlist001",
+        "title": "My Favorite Songs",
+        "description": "A collection of my all-time favorite tracks.",
+        "songs": [
+            {
+                "SEQ": "1",
+                "contentId": "song101",
+                "title": "Official髭男dism - イエスタデイ［Official Video］",
+                "link": "https://www.youtube.com/watch?v=DuMqFknYHBs&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=3",
+                "createAt": "2023-10-01T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/DuMqFknYHBs/hqdefault.jpg"
+            },
+            {
+                "SEQ": "2",
+                "contentId": "song102",
+                "title": "春を告げる",
+                "link": "https://www.youtube.com/watch?v=EwpKUV0ECvQ&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=1",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/EwpKUV0ECvQ/hqdefault.jpg"
+            },
+            {
+                "SEQ": "3",
+                "contentId": "song103",
+                "title": "yama『us』Music Video",
+                "link": "https://www.youtube.com/watch?v=f8dw0JS3Yrg&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=2",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/f8dw0JS3Yrg/hqdefault.jpg"
+            },
+            {
+                "SEQ": "4",
+                "contentId": "song104",
+                "title": "Ao To Natsu",
+                "link": "https://www.youtube.com/watch?v=-QxMzUEJH4Q&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=4",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/-QxMzUEJH4Q/hqdefault.jpg"
+            },
+            {
+                "SEQ": "5",
+                "contentId": "song105",
+                "title": "Mrs. GREEN APPLE「ライラック」Official Music Video",
+                "link": "https://www.youtube.com/watch?v=QjrkrVmC-8M&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=5",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/QjrkrVmC-8M/hqdefault.jpg"
+            },
+            {
+                "SEQ": "6",
+                "contentId": "song106",
+                "title": "Sukidakara",
+                "link": "https://www.youtube.com/watch?v=SVkGRoLicuA&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=6",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/SVkGRoLicuA/hqdefault.jpg"
+            }
+        ]
+    },
+    {
+        "userId": "musiclover",
+        "playId": "playlist002",
+        "title": "My Favorite Songs2",
+        "description": "A collection of my all-time favorite tracks.",
+        "songs": [
+            {
+                "SEQ": "1",
+                "contentId": "song101",
+                "title": "Official髭男dism - イエスタデイ［Official Video］",
+                "link": "https://www.youtube.com/watch?v=DuMqFknYHBs&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=3",
+                "createAt": "2023-10-01T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/DuMqFknYHBs/hqdefault.jpg"
+            },
+            {
+                "SEQ": "2",
+                "contentId": "song102",
+                "title": "春を告げる",
+                "link": "https://www.youtube.com/watch?v=EwpKUV0ECvQ&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=1",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/EwpKUV0ECvQ/hqdefault.jpg"
+            },
+            {
+                "SEQ": "3",
+                "contentId": "song103",
+                "title": "yama『us』Music Video",
+                "link": "https://www.youtube.com/watch?v=f8dw0JS3Yrg&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=2",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/f8dw0JS3Yrg/hqdefault.jpg"
+            },
+            {
+                "SEQ": "4",
+                "contentId": "song104",
+                "title": "Ao To Natsu",
+                "link": "https://www.youtube.com/watch?v=-QxMzUEJH4Q&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=4",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/-QxMzUEJH4Q/hqdefault.jpg"
+            },
+            {
+                "SEQ": "5",
+                "contentId": "song105",
+                "title": "Mrs. GREEN APPLE「ライラック」Official Music Video",
+                "link": "https://www.youtube.com/watch?v=QjrkrVmC-8M&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=5",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/QjrkrVmC-8M/hqdefault.jpg"
+            }
+        ]
+    },
+    {
+        "userId": "admin",
+        "playId": "playlist789",
+        "title": "My Favorite Songs",
+        "description": "A collection of my all-time favorite tracks.",
+        "songs": [
+            {
+                "SEQ": "1",
+                "contentId": "song101",
+                "title": "Wrong Right Now",
+                "link": "https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ",
+                "createAt": "2023-10-01T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg"
+            },
+            {
+                "SEQ": "2",
+                "contentId": "song102",
+                "title": "Honky Tonk World",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "3",
+                "contentId": "song103",
+                "title": "Someday",
+                "link": "https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "4",
+                "contentId": "song104",
+                "title": "Hips Don't Lie",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "5",
+                "contentId": "song105",
+                "title": "Take Me Home Country Roads",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            }
+        ]
+    },
+    {
+        "userId": "susybaka",
+        "playId": "playlist790",
+        "title": "My Favorite Songs1",
+        "description": "A collection of my all-time favorite tracks.",
+        "songs": [
+            {
+                "SEQ": "1",
+                "contentId": "song100",
+                "title": "Back Porch",
+                "link": "https://youtu.be/4VeeXAVQe-8?list=PLcb9huQ-qWFjDcdQ_K_9708MZcocmHJOY",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/4VeeXAVQe-8/hqdefault.jpg"
+            },
+            {
+                "SEQ": "2",
+                "contentId": "song101",
+                "title": "Wrong Right Now",
+                "link": "https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ",
+                "createAt": "2023-10-01T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg"
+            },
+            {
+                "SEQ": "3",
+                "contentId": "song102",
+                "title": "Honky Tonk World",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "4",
+                "contentId": "song103",
+                "title": "Someday",
+                "link": "https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "5",
+                "contentId": "song104",
+                "title": "Hips Don't Lie",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "6",
+                "contentId": "song105",
+                "title": "Take Me Home Country Roads",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            }
+        ]
+    },
+    {
+        "userId": "susybaka",
+        "playId": "playlist791",
+        "title": "My Favorite Songs2",
+        "description": "A collection of my all-time favorite tracks.",
+        "songs": [
+            {
+                "SEQ": "1",
+                "contentId": "song101",
+                "title": "Wrong Right Now",
+                "link": "https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ",
+                "createAt": "2023-10-01T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg"
+            },
+            {
+                "SEQ": "2",
+                "contentId": "song102",
+                "title": "Honky Tonk World",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "3",
+                "contentId": "song103",
+                "title": "Someday",
+                "link": "https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "4",
+                "contentId": "song104",
+                "title": "Hips Don't Lie",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            },
+            {
+                "SEQ": "5",
+                "contentId": "song105",
+                "title": "Take Me Home Country Roads",
+                "link": "https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB",
+                "createAt": "2023-10-02T12:00:00Z",
+                "thumbnail": "https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg"
+            }
+        ]
+    },
+    {
+        "playId": "play_1757772815502_xw83u0x",
+        "userId": "developer123",
+        "title": "힙한척 할때 듣는 플리",
+        "description": "",
+        "songs": [
+            {
+                "contentId": "song1757772908180",
+                "title": "Red Hot Chili Peppers - Dark Necessities [OFFICIAL AUDIO]",
+                "link": "https://www.youtube.com/watch?v=qJ_Tw0w3lLA&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0",
+                "createAt": "2025-09-13T14:15:08.180Z",
+                "thumbnail": "https://i.ytimg.com/vi/qJ_Tw0w3lLA/hqdefault.jpg",
+                "SEQ": "1"
+            },
+            {
+                "contentId": "song1757773104228",
+                "title": "Break",
+                "link": "https://www.youtube.com/watch?v=sE0tKkHrwJo&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=10",
+                "createAt": "2025-09-13T14:18:24.228Z",
+                "thumbnail": "https://i.ytimg.com/vi/sE0tKkHrwJo/hqdefault.jpg",
+                "SEQ": "2"
+            },
+            {
+                "contentId": "song1757773118094",
+                "title": "The Sun",
+                "link": "https://www.youtube.com/watch?v=cnXVKlebQqc&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=39",
+                "createAt": "2025-09-13T14:18:38.094Z",
+                "thumbnail": "https://i.ytimg.com/vi/cnXVKlebQqc/hqdefault.jpg",
+                "SEQ": "3"
+            },
+            {
+                "contentId": "song1757773130790",
+                "title": "[M/V] 술탄 오브 더 디스코 - 사라지는 꿈",
+                "link": "https://www.youtube.com/watch?v=7fsavq0mU2k&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=63",
+                "createAt": "2025-09-13T14:18:50.790Z",
+                "thumbnail": "https://i.ytimg.com/vi/7fsavq0mU2k/hqdefault.jpg",
+                "SEQ": "4"
+            },
+            {
+                "contentId": "song1757773153882",
+                "title": "[DADA/ARTIST] 아시안체어샷 (Asian Chairshot) - 꽃 (Flower)",
+                "link": "https://www.youtube.com/watch?v=WP_tXVGufVw&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=123",
+                "createAt": "2025-09-13T14:19:13.882Z",
+                "thumbnail": "https://i.ytimg.com/vi/WP_tXVGufVw/hqdefault.jpg",
+                "SEQ": "5"
+            }
+        ]
+    },
+    {
+        "playId": "play_1757773816168_hlib9ii",
+        "userId": "developer123",
+        "title": "십덕 플리",
+        "description": "",
+        "songs": [
+            {
+                "contentId": "song1757773875096",
+                "title": "うまぴょい伝説",
+                "link": "https://www.youtube.com/watch?v=VFOg6mHtZcA&list=RDVFOg6mHtZcA&start_radio=1",
+                "createAt": "2025-09-13T14:31:15.096Z",
+                "thumbnail": "https://i.ytimg.com/vi/VFOg6mHtZcA/hqdefault.jpg",
+                "SEQ": "1"
+            },
+            {
+                "contentId": "song1757774254010",
+                "title": "テトリス / 重音テトSV",
+                "link": "https://www.youtube.com/watch?v=Soy4jGPHr3g&list=RDSoy4jGPHr3g&start_radio=1",
+                "createAt": "2025-09-13T14:37:34.010Z",
+                "thumbnail": "https://i.ytimg.com/vi/Soy4jGPHr3g/hqdefault.jpg",
+                "SEQ": "2"
+            },
+            {
+                "contentId": "song1757773983734",
+                "title": "お願いマッスル",
+                "link": "https://youtu.be/-Jget2NBi30?si=X_EQZIJmWW-r3ZIp",
+                "createAt": "2025-09-13T14:33:03.734Z",
+                "thumbnail": "https://i.ytimg.com/vi/-Jget2NBi30/hqdefault.jpg",
+                "SEQ": "3"
+            },
+            {
+                "contentId": "song1757774123513",
+                "title": "DECO*27 - モニタリング (Best Friend Remix) feat. 初音ミク",
+                "link": "https://www.youtube.com/watch?v=C-CYwNz3z8w&list=RDC-CYwNz3z8w&start_radio=1",
+                "createAt": "2025-09-13T14:35:23.513Z",
+                "thumbnail": "https://i.ytimg.com/vi/C-CYwNz3z8w/hqdefault.jpg",
+                "SEQ": "4"
+            },
+            {
+                "contentId": "song1757773902018",
+                "title": "YOASOBI「アイドル」 Official Music Video",
+                "link": "https://youtu.be/ZRtdQ81jPUQ?si=hezJb08AVq0OSewW",
+                "createAt": "2025-09-13T14:31:42.018Z",
+                "thumbnail": "https://i.ytimg.com/vi/ZRtdQ81jPUQ/hqdefault.jpg",
+                "SEQ": "5"
+            },
+            {
+                "contentId": "song1757773949370",
+                "title": "fripSide - only my railgun (Audio)",
+                "link": "https://youtu.be/ZhIxg6_Femo?si=aROnU-w6iiEf8PYw",
+                "createAt": "2025-09-13T14:32:29.370Z",
+                "thumbnail": "https://i.ytimg.com/vi/ZhIxg6_Femo/hqdefault.jpg",
+                "SEQ": "6"
+            },
+            {
+                "contentId": "song1757774066243",
+                "title": "Koihakaosunoshimobenari",
+                "link": "https://www.youtube.com/watch?v=Lcb7Za77lfw&list=PLoe0-nEh-V8f2Adl6S5sJYvBxRoqd589w",
+                "createAt": "2025-09-13T14:34:26.243Z",
+                "thumbnail": "https://i.ytimg.com/vi/Lcb7Za77lfw/hqdefault.jpg",
+                "SEQ": "7"
+            },
+            {
+                "contentId": "song1757774206863",
+                "title": "TVアニメ『ダンダダン』HAYASii「Hunting Soul」【lyric video】",
+                "link": "https://www.youtube.com/watch?v=XoodunTw0kw&list=RDXoodunTw0kw&start_radio=1",
+                "createAt": "2025-09-13T14:36:46.863Z",
+                "thumbnail": "https://i.ytimg.com/vi/XoodunTw0kw/hqdefault.jpg",
+                "SEQ": "8"
+            }
+        ]
+    }
+]
