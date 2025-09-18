@@ -89,7 +89,7 @@
     },
     {
         "postId": 9,
-        "userId": 0,
+        "userId": 2,
         "title": "작업흐름 자동화: GitHub Actions로 시작하기",
         "content": "CI/CD를 처음 도입하는 팀을 위해 GitHub Actions 기반의 간단한 워크플로 작성법, 보안, 그리고 배포 전략을 단계별로 안내합니다.\n\n![GitHub Actions 이미지](https://picsum.photos/seed/9/600/360)",
         "createdAt": "2025-01-10T16:20:00Z",
@@ -161,7 +161,7 @@
         "createdAt": "2024-07-01T07:00:00Z",
         "updateAt": "2024-07-01T07:00:00Z",
         "deleteAt": null,
-        "thumbnail": "https://picsum.photos/seed/15/600/360",
+        "thumbnail": null,
         "tags": ["에러핸들링", "백엔드", "프론트엔드", "개발팁"]
     },
     {

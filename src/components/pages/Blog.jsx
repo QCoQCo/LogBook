@@ -1,10 +1,9 @@
 // Blog.jsx
-import { useState, useEffect, act } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useBlog, useAuth, useUserData } from '../../context';
-import { BlogFloatingUi, BlogGridLayout, BlogUserInfo, BlogPlaylist } from '../blog';
+import { BlogFloatingUi, BlogGridLayout, BlogUserInfo, BlogPosts, BlogPlaylist } from '../blog';
 import BlogElementModal from '../blog/BlogElementModal';
-import axios from 'axios';
 
 import './Blog.scss';
 
@@ -13,15 +12,45 @@ const Blog = () => {
     const [searchParam] = useSearchParams();
     const userId = searchParam.get('userId');
 
-    // Blog Context 사용
-    const { clickedItem, isBlogEditting, activeTab, setActiveTab } = useBlog();
+    // Blog, UserData Context 사용
+    const { clickedItem, isBlogEditting, setIsBlogEditting, activeTab, setActiveTab } = useBlog();
+    const { userData } = useUserData();
+    const { currentUser, isLogin } = useAuth();
 
-    // UserData Context 사용
-    const { getUserInfo } = useUserData();
-    // Modal 상태 관리
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // States
+    const [isModalOpen, setIsModalOpen] = useState(false); // Modal 상태 관리
+    const [isOwnBlog, setIsOwnBlog] = useState(false); // 블로그 소유자 여부
+    const [blogOwnerData, setBlogOwnerData] = useState(null); // 블로그 소유주 데이터
 
-    const { currentUser } = useAuth();
+    // Refs
+    const postsTabBtnRef = useRef(null);
+    const playListTabBtnRef = useRef(null);
+
+    useEffect(() => {
+        setBlogOwnerData(userData.find((user) => user.userId === userId));
+    }, [userId, userData]);
+
+    useEffect(() => {
+        if (isLogin && currentUser) {
+            if (currentUser.id === userId) {
+                setIsOwnBlog(true);
+            } else {
+                setIsOwnBlog(false);
+            }
+        } else {
+            setIsOwnBlog(false);
+        }
+    }, [userId, currentUser]);
+
+    useEffect(() => {
+        if (isBlogEditting) {
+            postsTabBtnRef.current.disabled = true;
+            playListTabBtnRef.current.disabled = true;
+        } else {
+            postsTabBtnRef.current.disabled = false;
+            playListTabBtnRef.current.disabled = false;
+        }
+    }, [isBlogEditting]);
 
     const releaseModal = () => {
         setIsModalOpen(false);
@@ -31,8 +60,6 @@ const Blog = () => {
         setIsModalOpen(true);
     };
 
-    const isOwner = Boolean(currentUser && userId && String(currentUser?.id) === String(userId));
-
     const handleActiveTab = (n) => {
         // console.log('activeTab: ', n);
         setActiveTab(n);
@@ -41,8 +68,8 @@ const Blog = () => {
     return (
         <div id='Blog'>
             <div className='blog-wrapper'>
-                <BlogUserInfo userId={userId} />
-                <div className='blog-wrapper-aria'>
+                <BlogUserInfo userId={userId} isOwnBlog={isOwnBlog} blogOwnerData={blogOwnerData} />
+                <div className='blog-wrapper-area'>
                     <div className='blog-wrapper-tab'>
                         <button
                             type='button'
@@ -59,19 +86,21 @@ const Blog = () => {
                         </button>
                         <button
                             type='button'
+                            ref={postsTabBtnRef}
                             className={activeTab === 2 ? 'article active' : 'article'}
                             onClick={() => handleActiveTab(2)}
-                            aria-label='article'
-                            title='article'
+                            aria-label='posts'
+                            title='posts'
                         >
                             <img
                                 src='/img/icon-edit.svg'
-                                alt='article'
+                                alt='posts'
                                 style={{ width: 30, height: 30, display: 'block' }}
                             />
                         </button>
                         <button
                             type='button'
+                            ref={playListTabBtnRef}
                             className={activeTab === 3 ? 'playlist active' : 'playlist'}
                             onClick={() => handleActiveTab(3)}
                             aria-label='playlist'
@@ -88,14 +117,18 @@ const Blog = () => {
                         {activeTab === 1 && (
                             <BlogGridLayout userId={userId} enableModal={enableModal} />
                         )}
-                        {activeTab === 2 && <div>Article</div>}
-                        {activeTab === 3 && <BlogPlaylist userId={userId} isOwner={isOwner} />}
+                        {activeTab === 2 && <BlogPosts blogOwnerData={blogOwnerData} />}
+                        {activeTab === 3 && <BlogPlaylist userId={userId} isOwnBlog={isOwnBlog} />}
                     </div>
                 </div>
             </div>
             {isModalOpen && (
                 <div className='modal-overlay' onClick={releaseModal}>
-                    <BlogElementModal item={clickedItem} releaseModal={releaseModal} />
+                    <BlogElementModal
+                        item={clickedItem}
+                        isBlogEditting={isBlogEditting}
+                        releaseModal={releaseModal}
+                    />
                 </div>
             )}
             {isBlogEditting && <BlogFloatingUi />}

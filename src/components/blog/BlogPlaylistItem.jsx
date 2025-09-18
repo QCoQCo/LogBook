@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import './BlogPlaylistItem.scss';
 
-const BlogPlaylistItem = ({ playlist, onPlay, onDelete, isOwner }) => {
+const BlogPlaylistItem = ({ playlist, onPlay, onDelete, isOwnBlog }) => {
     const handlePlay = (e) => {
         onPlay(playlist.playId);
     };
@@ -70,7 +70,7 @@ const BlogPlaylistItem = ({ playlist, onPlay, onDelete, isOwner }) => {
                     </svg>
                 </button>
 
-                {isOwner && (
+                {isOwnBlog && (
                     <button
                         type='button'
                         className='btn delete'

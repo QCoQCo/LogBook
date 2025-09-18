@@ -1,9 +1,10 @@
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { EffectCoverflow } from 'swiper/modules';
+import { EffectCoverflow, Navigation } from 'swiper/modules';
 import { useChat, useAuth } from '../../context';
 import { useCallback, useMemo } from 'react';
-import 'swiper/css';
 import 'swiper/css/effect-coverflow';
+import 'swiper/css/navigation';
+import 'swiper/css';
 
 const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
     const { chatRoomList, currentChatRoom, switchChatRoom, deleteChatRoom, roomUsers } = useChat();
@@ -95,6 +96,7 @@ const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
                 slidesPerView={'auto'}
                 allowTouchMove={true}
                 touchStartPreventDefault={false}
+                navigation={true}
                 coverflowEffect={{
                     rotate: 50,
                     stretch: 0,
@@ -102,7 +104,7 @@ const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
                     modifier: 1,
                     slideShadows: true,
                 }}
-                modules={[EffectCoverflow]}
+                modules={[EffectCoverflow, Navigation]}
                 className='chat-room-swiper'
             >
                 {displayRooms.map((room) => (

@@ -71,6 +71,8 @@ const BlogLayoutItem = ({ item, handleClickDelete, enableModal }) => {
                         setClickedItem(item);
                         enableModal();
                     } else if (itemType === 'image') {
+                        setClickedItem(item);
+                        enableModal();
                     }
                 }}
             >
