@@ -275,7 +275,7 @@ const Header = () => {
                                             <Link
                                                 to={`/blog?userId=${currentUserInfo.userId}`}
                                                 onClick={() => {
-                                                    showMenu(false);
+                                                    setShowMenu(false);
                                                 }}
                                             >
                                                 내 블로그
