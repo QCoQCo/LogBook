@@ -53,7 +53,7 @@ export const sendMessageToRoom = async (
     messageText,
     userId,
     userName,
-    sessionId = null
+    sessionId = null,
 ) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
@@ -87,7 +87,7 @@ export const subscribeToRoomMessages = (
     roomName,
     onMessagesUpdate,
     onError,
-    messageLimit = 100
+    messageLimit = 100,
 ) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
@@ -95,7 +95,7 @@ export const subscribeToRoomMessages = (
         const messagesQuery = query(
             collection(db, collectionName),
             orderBy('timestamp', 'asc'),
-            limit(messageLimit)
+            limit(messageLimit),
         );
 
         const unsubscribe = onSnapshot(
@@ -124,7 +124,7 @@ export const subscribeToRoomMessages = (
                 }
 
                 if (onError) onError(error);
-            }
+            },
         );
 
         return unsubscribe;
@@ -176,7 +176,7 @@ export const subscribeToChatRooms = (onRoomsUpdate, onError) => {
             (error) => {
                 console.error('채팅방 목록 구독 오류:', error);
                 if (onError) onError(error);
-            }
+            },
         );
 
         return unsubscribe;
@@ -212,7 +212,7 @@ export const initializeDefaultChatRooms = async () => {
                     isSystem: true, // 🔑 시스템 채팅방 표시
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp(),
-                })
+                }),
             );
         }
 
@@ -389,7 +389,7 @@ export const deleteChatRoom = async (roomId) => {
         try {
             const presenceQuery = query(
                 collection(db, 'presence'),
-                where('roomName', '==', roomData.name)
+                where('roomName', '==', roomData.name),
             );
             const presenceSnapshot = await getDocs(presenceQuery);
             const presenceBatch = [];
@@ -404,7 +404,7 @@ export const deleteChatRoom = async (roomId) => {
         } catch (presenceError) {
             console.warn(
                 'Presence 데이터 삭제 중 오류 발생, 채팅방 삭제는 계속 진행:',
-                presenceError
+                presenceError,
             );
         }
 
@@ -448,7 +448,7 @@ export const joinChatRoom = async (roomName, userId, userName, sessionId = null)
                 isOnline: true,
                 browserTab: document.visibilityState === 'visible',
             },
-            { merge: true }
+            { merge: true },
         ); // merge 옵션으로 기존 데이터 보존
     } catch (error) {
         console.error('채팅방 접속 등록 오류:', error);
@@ -572,7 +572,7 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
             (error) => {
                 console.error(`채팅방 ${roomName} 유저 구독 오류:`, error);
                 if (onError) onError(error);
-            }
+            },
         );
 
         return unsubscribe;
@@ -692,7 +692,7 @@ export const cleanupOfflinePresenceForRoom = async (roomName, expireMinutes = 5)
         const roomOfflineQuery = query(
             collection(db, 'presence'),
             where('roomName', '==', roomName),
-            where('isOnline', '==', false)
+            where('isOnline', '==', false),
         );
 
         const snapshot = await getDocs(roomOfflineQuery);
