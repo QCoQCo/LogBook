@@ -1,5 +1,7 @@
+################################
 # Logs
-logs
+################################
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,20 +9,55 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+################################
+# Node / Frontend
+################################
+node_modules/
+dist/
+dist-ssr/
 *.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+################################
+# Build outputs (Java / Gradle)
+################################
+build/
+out/
+bin/
+.gradle/
+
+################################
+# IntelliJ IDEA
+################################
 .idea
+
+################################
+# VS Code
+################################
+.vscode/
+!.vscode/extensions.json
+
+################################
+# STS / Eclipse
+################################
+.classpath
+.project
+.settings/
+.factorypath
+.springBeans
+.sts4-cache/
+.apt_generated
+
+################################
+# OS / Misc
+################################
 .DS_Store
+.env
+
+################################
+# Visual Studio (혹시 모를 경우)
+################################
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-.env
