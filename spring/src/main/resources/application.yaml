@@ -1,3 +1,39 @@
 spring:
   application:
     name: logbook
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${db.host}:${db.port}/${db.name}?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
+    username: ${db.username}
+    password: ${db.password}
+  jpa:
+    hibernate:
+      ddl-auto: create
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect		#방언 설정
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    org.hibernate.SQL: debug              # 실행 SQL 로그 레벨
+    org.hibernate.orm.jdbc.bind: trace    # SQL에 담긴 실제 파라미터(값) 확인
+    org.springframework.web.servlet.resource.ResourceHttpRequestHandler: ERROR # 리소스 미발견 로그 숨김
+
+server:
+  port: 8080
+
+file:
+  upload:
+    host: ${sftp.host}
+    port: ${sftp.port}
+    username: ${sftp.username}
+    password: ${sftp.password}
+    uploadPath: ${sftp.uploadPath}
