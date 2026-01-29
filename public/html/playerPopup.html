@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>LogBook Player</title>
+        <link rel="icon" href="/img/icon-image.png" type="image/png" />
+        <style>
+            /* 기본 레이아웃 */
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                background: #f6f8fb;
+                font-family: system-ui, Arial;
+                color: #222;
+            }
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+
+            #wrap {
+                display: flex;
+                height: 100%;
+                overflow-x: hidden;
+                margin: 0 auto;
+            }
+            .left {
+                flex: 1;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            .right {
+                width: 400px;
+                border-left: 1px solid #e6e9ee;
+                background: #fff;
+                padding: 12px 14px;
+            }
+
+            @media (max-width: 1000px) {
+                .left {
+                    flex: 0 0 60%;
+                }
+                .right {
+                    flex: 0 0 40%;
+                }
+            }
+
+            /* 플레이어/컨트롤 기본 */
+            #player {
+                width: 100%;
+                aspect-ratio: 16/9;
+                background: #000;
+            }
+            .controlWrap {
+                display: flex;
+                gap: 16px;
+                flex-direction: column;
+                width: 100%;
+            }
+            .progress {
+                width: 100%;
+                max-width: 640px;
+                height: 6px;
+                background: #e9eef7;
+                border-radius: 3px;
+                overflow: hidden;
+            }
+            .progress > i {
+                display: block;
+                height: 100%;
+                background: linear-gradient(90deg, #4aa3ff, #6dd3ff);
+                width: 0%;
+                transition: width 0.2s linear;
+            }
+
+            .controls {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                max-width: 640px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .time {
+                font-size: 12px;
+                color: #556;
+                margin-left: 8px;
+            }
+
+            /* 버튼 공통 */
+            .ctrl-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 6px;
+                border: none;
+                background: #fff;
+                box-shadow: 0 2px 6px rgba(10, 20, 40, 0.06);
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+            }
+            .playlist-controls .ctrl-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+
+            .ctrl-btn:hover {
+                transform: translateY(-1px);
+                transition: transform 0.08s ease;
+            }
+
+            /* seek 전용 (아이콘 포함) */
+            .ctrl-btn.seek-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 10px;
+                background: #fff;
+                padding: 0;
+            }
+            .ctrl-btn.seek-btn .seek-icon {
+                width: 20px;
+                height: 20px;
+                display: inline-block;
+                vertical-align: middle;
+            }
+            .seek-num {
+                font-size: 12px;
+                font-weight: 700;
+                margin-left: 6px;
+                color: #1e88e5;
+                vertical-align: middle;
+            }
+
+            /* 재생목록 스타일 */
+            .playlist-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 8px;
+            }
+            .playlist-title {
+                font-weight: 700;
+            }
+            .plist {
+                overflow: auto;
+                max-height: calc(100% - 48px);
+                padding-right: 6px;
+            }
+            .p-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px;
+                border-bottom: 1px solid #f0f2f6;
+                cursor: pointer;
+            }
+            .p-thumb {
+                width: 48px;
+                height: 48px;
+                border-radius: 6px;
+                overflow: hidden;
+                background: #f3f6fa;
+                flex: 0 0 48px;
+            }
+            .p-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .p-meta {
+                flex: 1;
+            }
+            .p-title {
+                font-size: 13px;
+                line-height: 1.2;
+                color: #1a1a1a;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .p-actions {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            .p-actions button {
+                border: none;
+                background: transparent;
+                cursor: pointer;
+                color: #5b6b80;
+            }
+            .p-actions button:hover {
+                color: #1e88e5;
+            }
+            .p-item.active .p-title {
+                font-weight: 700;
+            }
+            .p-item.active .p-actions button {
+                color: #1e88e5;
+                font-weight: 700;
+            }
+            .p-handle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                color: #6b7788;
+                cursor: grab;
+                user-select: none;
+                margin-right: 8px;
+            }
+            .p-item.dragging .p-handle {
+                cursor: grabbing;
+                opacity: 0.8;
+            }
+
+            /* clear 버튼 스타일 */
+            .playlist-controls .clear-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 6px 10px;
+                height: 36px;
+                border-radius: 8px;
+                background: transparent;
+                border: 1px solid #eee;
+                color: #b71c1c;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            }
+            .playlist-controls .clear-btn:hover {
+                background: rgba(183, 28, 28, 0.06);
+                transform: translateY(-1px);
+            }
+            .playlist-controls .clear-btn[disabled] {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            /* Volume: 구조화된 스타일 (중복 제거) */
+            .volume-wrap {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                position: relative;
+            }
+            .mute-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 6px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                background: #fff;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(10, 20, 40, 0.06);
+            }
+
+            /* vol-pop: 토글로 열리는 팝업, 기본은 숨김 */
+            .vol-pop {
+                position: absolute;
+                top: -125px;
+                left: 4px;
+                transform-origin: bottom center;
+                border-radius: 8px;
+                padding: 0;
+                opacity: 0;
+                display: flex;
+                align-items: center;
+                transition: opacity 0.12s ease, transform 0.12s cubic-bezier(0.2, 0.9, 0.3, 1);
+                z-index: 60;
+                min-width: 40px;
+                /* background: linear-gradient(to top, transparent, rgb(224, 224, 224) 63%); */
+            }
+            .vol-pop.open {
+                pointer-events: auto;
+                opacity: 1;
+            }
+
+            /* vol-track / vol-fill: 렌더링은 vol-fill로만 처리 (input 배경 사용 안함) */
+            .vol-track {
+                position: relative;
+                width: 40px;
+                height: 120px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: none;
+                border-radius: 8px;
+                background: rgb(224, 224, 224);
+            }
+            .vol-fill {
+                position: absolute;
+                left: 50%;
+                bottom: 0;
+                width: 40px;
+                transform: translateX(-50%);
+                background: linear-gradient(180deg, #4aa3ff, #6dd3ff);
+                border-radius: 8px;
+                transition: height 0.08s ease;
+            }
+
+            /* range input: 트랙 숨기고 thumb만 보이게(포인터는 input이 담당) */
+            .volume-slider {
+                position: absolute;
+                background-color: #f0f0f0;
+                -webkit-appearance: none;
+                appearance: none;
+                background: transparent;
+                transform: rotate(-90deg);
+                transform-origin: 50% 50%;
+                z-index: 10;
+                cursor: pointer;
+                border: none;
+                padding: 0;
+                margin: 0;
+                left: -120%;
+                border-radius: 20px;
+            }
+            .volume-slider::-webkit-slider-runnable-track {
+                height: 6px;
+                background: transparent;
+                border-radius: 6px;
+            }
+            .volume-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 14px;
+                height: 14px;
+                background: #fff;
+                border: 2px solid #1e88e5;
+                border-radius: 50%;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+                margin-top: 0;
+            }
+            .volume-slider::-moz-range-track {
+                background: transparent;
+                height: 6px;
+                border-radius: 6px;
+            }
+            .volume-slider::-moz-range-thumb {
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                border: 2px solid #1e88e5;
+                background: #fff;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+            }
+
+            /* 브라우저 기본 트랙/프로그레스 표시 강제 제거 (rotate된 input에서 보이는 색상 제거) */
+            .volume-slider,
+            .volume-slider::-webkit-slider-runnable-track,
+            .volume-slider::-webkit-slider-thumb,
+            .volume-slider::-moz-range-track,
+            .volume-slider::-moz-range-progress,
+            .volume-slider::-moz-range-thumb {
+                background: transparent !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            /* 반응/접근성 보정 */
+            .vol-fill[aria-hidden='true'] {
+                pointer-events: none;
+            }
+
+            /* 토스트/알림 스타일 */
+            #notice {
+                position: fixed;
+                left: 50%;
+                bottom: 24px;
+                /* top: 24px; */
+                transform: translateX(-50%) translateY(0);
+                background: rgba(0, 0, 0, 0.84);
+                color: #fff;
+                padding: 8px 12px;
+                border-radius: 8px;
+                font-size: 13px;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.18s ease, transform 0.18s ease;
+                z-index: 9999;
+            }
+            #notice.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-6px);
+                pointer-events: auto;
+            }
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    </head>
+    <body>
+        <div id="wrap">
+            <div class="left">
+                <div id="player"></div>
+                <div class="controlWrap">
+                    <div class="progress" id="progress"><i id="progBar"></i></div>
+                    <div class="controls">
+                        <button id="prev" class="ctrl-btn" title="이전" aria-label="이전">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden
+                            >
+                                <path d="M6 6v12h2V6H6zm4 6l8 6V6l-8 6z" />
+                            </svg>
+                        </button>
+                        <button
+                            id="seekBack"
+                            class="ctrl-btn seek-btn"
+                            title="-5초"
+                            aria-label="5초 뒤로"
+                        >
+                            -5s
+                        </button>
+                        <button id="play" class="ctrl-btn" title="재생" aria-label="재생">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden
+                            >
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        </button>
+                        <button
+                            id="pause"
+                            class="ctrl-btn"
+                            title="일시정지"
+                            aria-label="일시정지"
+                            style="display: none"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden
+                            >
+                                <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                            </svg>
+                        </button>
+                        <button
+                            id="seekForward"
+                            class="ctrl-btn seek-btn"
+                            title="+5초"
+                            aria-label="5초 앞으로"
+                        >
+                            +5s
+                        </button>
+
+                        <button id="next" class="ctrl-btn" title="다음" aria-label="다음">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                aria-hidden
+                            >
+                                <path d="M6 6v12l8-6-8-6zM18 6v12h-2V6h2z" />
+                            </svg>
+                        </button>
+                        <div class="volume-wrap" aria-hidden="false">
+                            <button
+                                id="muteBtn"
+                                class="mute-btn"
+                                title="음소거 전환"
+                                aria-label="Mute toggle"
+                            >
+                                🔊
+                            </button>
+                            <!-- vol-pop: 클릭 시 열리는 세로 슬라이더 컨테이너 -->
+                            <div id="volPop" class="vol-pop" aria-hidden="true">
+                                <div class="vol-track" id="volTrack" aria-hidden="false">
+                                    <div class="vol-fill" id="volFill" aria-hidden="true"></div>
+                                    <!-- 실제 range : horizontal로 만들고 rotate로 세로 표현 (pointer는 input에서 처리) -->
+                                    <input
+                                        id="volume"
+                                        class="volume-slider"
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        value="100"
+                                        aria-label="볼륨"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex: 1"></div>
+                        <div class="time" id="time">0:00 / 0:00</div>
+                    </div>
+                </div>
+            </div>
+            <div class="right">
+                <div class="playlist-header">
+                    <div class="playlist-title">재생 목록</div>
+
+                    <div class="playlist-controls">
+                        <button id="shuffle" class="ctrl-btn" title="셔플" aria-label="셔플">
+                            🔀
+                        </button>
+                        <button id="repeat" class="ctrl-btn" title="반복" aria-label="반복">
+                            🔁
+                        </button>
+                        <button
+                            id="clearAll"
+                            class="clear-btn"
+                            title="목록 전체 삭제"
+                            aria-label="목록 전체 삭제"
+                        >
+                            전체삭제
+                        </button>
+                    </div>
+                </div>
+                <div class="plist" id="plist"></div>
+            </div>
+        </div>
+
+        <!-- 토스트 알림 요소 -->
+        <div id="notice" aria-hidden="true" aria-live="polite"></div>
+
+        <script>
+            // State
+            let __injected = [];
+            let startIndex = 0;
+            let __clearOnClose = false;
+            const STORAGE_KEY = 'logbook_yt_playlist_v1';
+            const STORAGE_INDEX_KEY = 'logbook_yt_playlist_index_v1';
+            const STORAGE_SHUFFLE_KEY = 'logbook_yt_playlist_shuffle_v1';
+            const STORAGE_REPEAT_KEY = 'logbook_yt_playlist_repeat_v1';
+            const STORAGE_VOLUME_KEY = 'logbook_yt_volume_v1';
+
+            let playlist = [];
+            let player = null;
+            let _playerReady = false;
+            let _pendingPlay = null;
+            let _userInitiatedPlay = false;
+            let _shuffle = false;
+            let _repeat = 'off'; // 'off' | 'all' | 'one'
+            let _volume = 100;
+            let _muted = false;
+
+            // Storage helpers
+            function savePlaylist() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
+                } catch {}
+            }
+            function saveIndex() {
+                try {
+                    localStorage.setItem(STORAGE_INDEX_KEY, String(currentIndex()));
+                } catch {}
+            }
+
+            // Index helpers
+            function currentIndex() {
+                return (window._curIndex = window._curIndex ?? startIndex);
+            }
+            function setIndex(i) {
+                window._curIndex = i;
+            }
+
+            // 간단한 토스트 표시 유틸
+            function showNotice(msg, ms = 2000) {
+                try {
+                    const n = document.getElementById('notice');
+                    if (!n) return;
+                    n.textContent = msg;
+                    n.classList.add('show');
+                    n.setAttribute('aria-hidden', 'false');
+                    if (n._hideT) clearTimeout(n._hideT);
+                    n._hideT = setTimeout(() => {
+                        n.classList.remove('show');
+                        n.setAttribute('aria-hidden', 'true');
+                    }, ms);
+                } catch {}
+            }
+
+            // Merge injected items + restore saved
+            function mergeInjected() {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+                    if (Array.isArray(saved)) playlist = saved.slice();
+                    // console.log(
+                    //     '[playerPopup] mergeInjected - saved playlist length:',
+                    //     playlist.length
+                    // );
+                } catch (e) {
+                    playlist = [];
+                    console.warn('[playerPopup] mergeInjected parse error', e);
+                }
+                let skipped = 0;
+                (Array.isArray(__injected) ? __injected : []).forEach((it) => {
+                    const exists = playlist.some(
+                        (p) =>
+                            (p.contentId && it.contentId && p.contentId === it.contentId) ||
+                            (p.videoId && it.videoId && p.videoId === it.videoId) ||
+                            (p.link && it.link && p.link === it.link)
+                    );
+                    if (!exists) playlist.push(it);
+                    else skipped++;
+                });
+                try {
+                    const savedIdx = parseInt(localStorage.getItem(STORAGE_INDEX_KEY), 10);
+                    if (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < playlist.length)
+                        startIndex = savedIdx;
+                } catch {}
+                if (skipped > 0) showNotice('중복된 내용은 제외하고 표현됩니다', 3000);
+            }
+
+            // UI builders
+            function buildList() {
+                const wrap = document.getElementById('plist');
+                if (!wrap) return;
+                wrap.innerHTML = '';
+                if (!playlist || !playlist.length) {
+                    wrap.innerHTML =
+                        '<div class="empty" style="padding:16px;color:#556">재생 목록이 비어 있습니다.</div>';
+                    const clearBtn = document.getElementById('clearAll');
+                    if (clearBtn) clearBtn.disabled = true;
+                    return;
+                }
+                const clearBtn = document.getElementById('clearAll');
+                if (clearBtn) clearBtn.disabled = false;
+
+                playlist.forEach((it, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'p-item';
+                    // 식별자 / 순서 재구성에 사용
+                    el.dataset.id = it.contentId || it.videoId || it.link || String(idx);
+                    el.dataset.index = String(idx);
+
+                    // 핸들(p-handle) 추가 — Sortable의 handle로 사용
+                    el.innerHTML =
+                        '<div class="p-handle" title="Drag" aria-hidden>☰</div>' +
+                        '<div class="p-thumb"><img alt="thumb" src="' +
+                        (it.thumbnail || '') +
+                        '"/></div>' +
+                        '<div class="p-meta"><div class="p-title">' +
+                        (it.title || '') +
+                        '</div></div>' +
+                        '<div class="p-actions">' +
+                        '<button class="act-play" title="재생" aria-label="재생">' +
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z"/></svg>' +
+                        '</button>' +
+                        '<button class="act-del" title="삭제" aria-label="삭제">' +
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                        '</button>' +
+                        '</div>';
+
+                    // 기존 클릭 바인딩 유지
+                    const playBtn = el.querySelector('.act-play');
+                    const delBtn = el.querySelector('.act-del');
+                    if (playBtn)
+                        playBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            playIndex(idx, { userInitiated: true });
+                        });
+                    const seekBackBtn = document.getElementById('seekBack');
+                    const seekForwardBtn = document.getElementById('seekForward');
+                    function safeSeekBy(offsetSec) {
+                        try {
+                            if (!player || !_playerReady) return;
+                            const dur = player.getDuration ? Math.max(0, player.getDuration()) : 0;
+                            let cur = player.getCurrentTime
+                                ? Math.max(0, player.getCurrentTime())
+                                : 0;
+                            let target = cur + offsetSec;
+                            if (target < 0) target = 0;
+                            if (dur && target > dur) target = dur;
+                            if (typeof player.seekTo === 'function') {
+                                player.seekTo(target, true);
+                            }
+                            // UI 즉시 갱신
+                            setTimeout(updatePlayControls, 120);
+                        } catch (e) {
+                            console.warn('[playerPopup] safeSeekBy error', e);
+                        }
+                    }
+                    if (seekBackBtn) seekBackBtn.addEventListener('click', () => safeSeekBy(-5));
+                    if (seekForwardBtn)
+                        seekForwardBtn.addEventListener('click', () => safeSeekBy(5));
+                    if (delBtn)
+                        delBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            removeIndex(idx);
+                        });
+                    el.addEventListener('click', () => playIndex(idx, { userInitiated: true }));
+
+                    // native draggable 관련 코드 제거(더 이상 필요)
+                    wrap.appendChild(el);
+                });
+
+                // Sortable 재초기화(항목이 새로 그려질 때마다 안전하게 재설정)
+                try {
+                    const plistEl = document.getElementById('plist');
+                    if (window._plistSortable) {
+                        try {
+                            window._plistSortable.destroy();
+                        } catch (e) {}
+                        window._plistSortable = null;
+                    }
+                    if (plistEl) {
+                        window._plistSortable = new Sortable(plistEl, {
+                            handle: '.p-handle',
+                            animation: 150,
+                            onEnd: function () {
+                                reorderPlaylistFromDOM();
+                            },
+                        });
+                    }
+                } catch (e) {
+                    console.warn('[playerPopup] Sortable init error', e);
+                }
+
+                savePlaylist();
+                updateNow();
+            }
+
+            function updateNow() {
+                Array.from(document.querySelectorAll('.p-item')).forEach((el, i) => {
+                    el.classList.toggle('active', i === currentIndex());
+                });
+                updatePlayControls();
+            }
+
+            function reorderPlaylistFromDOM() {
+                try {
+                    const plist = document.getElementById('plist');
+                    if (!plist) return;
+                    const nodes = Array.from(plist.querySelectorAll('.p-item'));
+                    const newOrder = [];
+                    nodes.forEach((node) => {
+                        const id = node.dataset.id;
+                        const found = playlist.find(
+                            (p) =>
+                                (p.contentId && String(p.contentId) === id) ||
+                                (p.videoId && String(p.videoId) === id) ||
+                                (p.link && String(p.link) === id) ||
+                                false
+                        );
+                        if (found) newOrder.push(found);
+                    });
+                    // fallback: if some items not matched, append remaining
+                    if (newOrder.length !== playlist.length) {
+                        playlist.forEach((p) => {
+                            if (!newOrder.includes(p)) newOrder.push(p);
+                        });
+                    }
+                    // 현재 재생중인 아이템의 id 유지해서 인덱스 재설정
+                    const curId =
+                        (playlist[currentIndex()] &&
+                            (playlist[currentIndex()].contentId ||
+                                playlist[currentIndex()].videoId ||
+                                playlist[currentIndex()].link)) ||
+                        null;
+                    playlist = newOrder;
+                    savePlaylist();
+                    // currentIndex 조정
+                    if (curId) {
+                        const newIdx = playlist.findIndex(
+                            (p) => String(p.contentId || p.videoId || p.link) === String(curId)
+                        );
+                        if (newIdx >= 0) setIndex(newIdx);
+                    }
+                    saveIndex();
+                    buildList(); // 다시 렌더(데이터-인덱스 동기화)
+                    updateNow();
+                } catch (e) {
+                    console.warn('[playerPopup] reorderPlaylistFromDOM error', e);
+                }
+            }
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.p-item:not(.dragging)')];
+                return draggableElements.reduce(
+                    (closest, child) => {
+                        const box = child.getBoundingClientRect();
+                        const offset = y - box.top - box.height / 2;
+                        if (offset < 0 && offset > closest.offset) {
+                            return { offset: offset, element: child };
+                        } else {
+                            return closest;
+                        }
+                    },
+                    { offset: Number.NEGATIVE_INFINITY }
+                ).element;
+            }
+
+            function updatePlayControls() {
+                const playBtn = document.getElementById('play');
+                const pauseBtn = document.getElementById('pause');
+                if (!playBtn || !pauseBtn) return;
+                if (!_playerReady || !player) {
+                    playBtn.style.display = 'inline-flex';
+                    pauseBtn.style.display = 'none';
+                    return;
+                }
+                let state = null;
+                try {
+                    state = player.getPlayerState();
+                } catch {}
+                if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
+                    playBtn.style.display = 'none';
+                    pauseBtn.style.display = 'inline-flex';
+                } else {
+                    playBtn.style.display = 'inline-flex';
+                    pauseBtn.style.display = 'none';
+                }
+            }
+
+            function removeIndex(i) {
+                if (!playlist[i]) return;
+                playlist.splice(i, 1);
+                if (currentIndex() >= playlist.length) setIndex(Math.max(0, playlist.length - 1));
+                savePlaylist();
+                saveIndex();
+                buildList();
+                updateNow();
+            }
+
+            function playNext() {
+                if (!playlist.length) return;
+                // 'one' 반복이면 같은 인덱스 재생
+                if (_repeat === 'one') {
+                    playIndex(currentIndex(), { userInitiated: true });
+                    return;
+                }
+                // 셔플 모드
+                if (_shuffle) {
+                    let next = Math.floor(Math.random() * playlist.length);
+                    if (playlist.length > 1) {
+                        let attempts = 0;
+                        while (next === currentIndex() && attempts++ < 8) {
+                            next = Math.floor(Math.random() * playlist.length);
+                        }
+                    }
+                    playIndex(next, { userInitiated: true });
+                    return;
+                }
+                // 기본 순차 재생
+                const nextIndex = currentIndex() + 1;
+                if (nextIndex >= playlist.length) {
+                    if (_repeat === 'all') {
+                        playIndex(0, { userInitiated: true });
+                    } else {
+                        // 끝에 도달하면 정지(혹은 원하면 플레이 상태 유지)
+                        updatePlayControls();
+                    }
+                    return;
+                }
+                playIndex(nextIndex, { userInitiated: true });
+            }
+            function playPrev() {
+                if (!playlist.length) return;
+                const i = (currentIndex() - 1 + playlist.length) % playlist.length;
+                playIndex(i, { userInitiated: true });
+            }
+
+            // Playback
+            function playIndex(i, opts = {}) {
+                const userInitiated = !!opts.userInitiated;
+                const item = playlist[i];
+                if (!item) return;
+                setIndex(i);
+                // console.log(
+                //     '[playerPopup] playIndex -> i:',
+                //     i,
+                //     'videoId:',
+                //     item.videoId,
+                //     'userInitiated:',
+                //     userInitiated,
+                //     'playerReady:',
+                //     _playerReady
+                // );
+
+                if (item.videoId) {
+                    try {
+                        // 이미 동일한 비디오가 player에 로드되어 있는지 확인
+                        const sameLoaded =
+                            player &&
+                            typeof player.getVideoData === 'function' &&
+                            String(
+                                (player.getVideoData() && player.getVideoData().video_id) || ''
+                            ) === String(item.videoId);
+
+                        const state =
+                            player && typeof player.getPlayerState === 'function'
+                                ? player.getPlayerState()
+                                : null;
+
+                        if (sameLoaded && player && _playerReady) {
+                            // 동일 비디오가 로드되어 있고 재생 중이 아니면 재생(현재시간에서 재개)
+                            if (
+                                state !== YT.PlayerState.PLAYING &&
+                                state !== YT.PlayerState.BUFFERING
+                            ) {
+                                try {
+                                    player.playVideo();
+                                } catch (e) {
+                                    console.warn('[playerPopup] playVideo error', e);
+                                }
+                                // console.log('[playerPopup] resumed existing video');
+                            } else {
+                                // console.log('[playerPopup] already playing');
+                            }
+                        } else if (
+                            player &&
+                            typeof player.loadVideoById === 'function' &&
+                            _playerReady
+                        ) {
+                            // 기존 동작: 새로 로드
+                            try {
+                                player.loadVideoById(item.videoId);
+                                if (userInitiated) player.playVideo();
+                                // console.log(
+                                //     '[playerPopup] playIndex using YT.Player.loadVideoById'
+                                // );
+                            } catch (e) {
+                                console.warn('[playerPopup] loadVideoById error', e);
+                            }
+                        } else {
+                            // player 준비 전의 대기 처리
+                            _pendingPlay = i;
+                            if (userInitiated) _userInitiatedPlay = true;
+                            // console.log('[playerPopup] playIndex pending until player ready');
+                        }
+                    } catch (e) {
+                        console.warn('[playerPopup] playIndex error', e);
+                    }
+                } else if (item.link) {
+                    window.open(item.link, '_blank');
+                }
+                saveIndex();
+                updateNow();
+            }
+
+            // Messaging
+            function receiveMessage(ev) {
+                try {
+                    const allowedOrigin = window.location && window.location.origin;
+                    if (!ev || !ev.source) return;
+                    if (window.opener && ev.source !== window.opener) return;
+                    if (ev.origin && allowedOrigin && ev.origin !== allowedOrigin) return;
+                    const d = ev && ev.data;
+                    if (!d) return;
+                    if (d.cmd === 'init') {
+                        __injected = Array.isArray(d.items) ? d.items : [];
+                        startIndex = Number(d.startIndex) || 0;
+                        __clearOnClose = !!(d.opts && d.opts.clearOnClose);
+                        mergeInjected();
+                        buildList();
+                        savePlaylist();
+                        saveIndex();
+                        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+                            const tag = document.createElement('script');
+                            tag.src = 'https://www.youtube.com/iframe_api';
+                            document.head.appendChild(tag);
+                        } else {
+                            onYouTubeIframeAPIReady();
+                        }
+                        if (d.opts && d.opts.autoplay && playlist.length)
+                            _pendingPlay = startIndex || playlist.length - 1;
+                        if (window.opener)
+                            window.opener.postMessage({ cmd: 'init_ack' }, allowedOrigin || '*');
+                    } else if (d.cmd === 'append' && Array.isArray(d.items)) {
+                        const before = playlist.length;
+                        let skipped = 0;
+                        d.items.forEach((it) => {
+                            const exists = playlist.some(
+                                (p) =>
+                                    (p.contentId && it.contentId && p.contentId === it.contentId) ||
+                                    (p.videoId && it.videoId && p.videoId === it.videoId) ||
+                                    (p.link && it.link && p.link === it.link)
+                            );
+                            if (!exists) playlist.push(it);
+                            else skipped++;
+                        });
+                        if (playlist.length !== before) {
+                            savePlaylist();
+                            buildList();
+                        }
+                        if (skipped > 0) showNotice('중복된 내용은 제외하고 표현됩니다', 3000);
+                    } else if (d.cmd === 'playIndex' && typeof d.index === 'number') {
+                        playIndex(d.index, { userInitiated: true });
+                    } else if (d.cmd === 'playLast') {
+                        const li = playlist.length - 1;
+                        if (li >= 0) playIndex(li, { userInitiated: true });
+                    } else if (d.cmd === 'request_init') {
+                        // ignored
+                    }
+                } catch (e) {
+                    console.warn('[playerPopup] receiveMessage error', e);
+                }
+            }
+            window.addEventListener('message', receiveMessage, false);
+
+            // Lifecycle
+            document.addEventListener('DOMContentLoaded', () => {
+                // console.log('[playerPopup] DOMContentLoaded - restoring playlist');
+                mergeInjected();
+                buildList();
+                try {
+                    const savedVol = parseInt(localStorage.getItem(STORAGE_VOLUME_KEY), 10);
+                    if (!isNaN(savedVol) && savedVol >= 0 && savedVol <= 100) _volume = savedVol;
+                } catch {}
+                try {
+                    const s = localStorage.getItem(STORAGE_SHUFFLE_KEY);
+                    const r = localStorage.getItem(STORAGE_REPEAT_KEY);
+                    _shuffle = s === '1';
+                    _repeat = r === 'all' || r === 'one' ? r : 'off';
+                    const shuffleBtn = document.getElementById('shuffle');
+                    const repeatBtn = document.getElementById('repeat');
+                    if (shuffleBtn) shuffleBtn.style.opacity = _shuffle ? '1' : '.6';
+                    if (repeatBtn) {
+                        repeatBtn.textContent =
+                            _repeat === 'off' ? '🔁' : _repeat === 'all' ? '🔁' : '🔂';
+                        repeatBtn.style.opacity = _repeat === 'off' ? '.7' : '1';
+                    }
+                } catch {}
+                if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+                    const tag = document.createElement('script');
+                    tag.src = 'https://www.youtube.com/iframe_api';
+                    document.head.appendChild(tag);
+                } else {
+                    onYouTubeIframeAPIReady();
+                }
+                if ((!playlist || !playlist.length) && window.opener) {
+                    // console.log('[playerPopup] requesting init from opener');
+                    try {
+                        window.opener.postMessage(
+                            { cmd: 'request_init' },
+                            window.location.origin || '*'
+                        );
+                    } catch {}
+                }
+            });
+
+            // YouTube IFrame API
+            function onYouTubeIframeAPIReady() {
+                try {
+                    if (player) return; // singleton
+                    const v = (playlist[startIndex] && playlist[startIndex].videoId) || '';
+                    player = new YT.Player('player', {
+                        height: '360',
+                        width: '640',
+                        videoId: v,
+                        playerVars: { rel: 0, modestbranding: 1, controls: 0, playsinline: 1 },
+                        events: {
+                            onReady: () => {
+                                _playerReady = true;
+                                updateNow();
+                                try {
+                                    if (typeof player.setVolume === 'function')
+                                        player.setVolume(_volume);
+                                    if (_volume === 0 && typeof player.mute === 'function') {
+                                        player.mute();
+                                        _muted = true;
+                                    } else if (typeof player.unMute === 'function') {
+                                        player.unMute();
+                                        _muted = false;
+                                    }
+                                } catch (e) {}
+                                if (_pendingPlay !== null) {
+                                    const item = playlist[_pendingPlay];
+                                    if (item && item.videoId) {
+                                        try {
+                                            player.loadVideoById(item.videoId);
+                                            if (_userInitiatedPlay) player.playVideo();
+                                        } catch {}
+                                    }
+                                    _pendingPlay = null;
+                                    _userInitiatedPlay = false;
+                                }
+                            },
+                            onStateChange: (e) => {
+                                if (e.data === YT.PlayerState.ENDED) playNext();
+                                updatePlayControls();
+                            },
+                        },
+                    });
+                } catch (e) {
+                    console.warn('[playerPopup] onYouTubeIframeAPIReady error', e);
+                }
+            }
+            window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+            // Controls
+            (function attachControls() {
+                const playBtn = document.getElementById('play');
+                const pauseBtn = document.getElementById('pause');
+                const prevBtn = document.getElementById('prev');
+                const nextBtn = document.getElementById('next');
+                const seekBackBtn = document.getElementById('seekBack');
+                const seekForwardBtn = document.getElementById('seekForward');
+                const clearBtn = document.getElementById('clearAll');
+                const shuffleBtn = document.getElementById('shuffle');
+                const repeatBtn = document.getElementById('repeat');
+                const volumeEl = document.getElementById('volume');
+                const muteBtn = document.getElementById('muteBtn');
+                const volPop = document.getElementById('volPop');
+                const volFill = document.getElementById('volFill');
+                const volTrack = document.getElementById('volTrack');
+
+                function _safeSeekBy(offsetSec) {
+                    try {
+                        if (!player || !_playerReady || typeof player.getCurrentTime !== 'function')
+                            return;
+                        const cur = Math.max(0, player.getCurrentTime());
+                        const dur = Math.max(0, player.getDuration ? player.getDuration() : 0);
+                        let target = cur + offsetSec;
+                        if (target < 0) target = 0;
+                        if (dur && target > dur) target = dur;
+                        if (typeof player.seekTo === 'function') player.seekTo(target, true);
+                        setTimeout(updatePlayControls, 120);
+                    } catch (e) {
+                        console.warn('[playerPopup] _safeSeekBy error', e);
+                    }
+                }
+                if (playBtn) {
+                    playBtn.addEventListener('click', () => {
+                        try {
+                            if (
+                                player &&
+                                _playerReady &&
+                                typeof player.getPlayerState === 'function'
+                            ) {
+                                const state = player.getPlayerState();
+                                // 재생 중이 아니면 재개, 이미 로드된 동일 비디오면 playVideo로 재개
+                                if (
+                                    state !== YT.PlayerState.PLAYING &&
+                                    state !== YT.PlayerState.BUFFERING
+                                ) {
+                                    try {
+                                        player.playVideo();
+                                    } catch (e) {
+                                        console.warn(e);
+                                    }
+                                }
+                            } else {
+                                // 플레이어 준비 전이면 currentIndex 재생 시도
+                                playIndex(currentIndex(), { userInitiated: true });
+                            }
+                        } catch (e) {
+                            console.warn('[playerPopup] playBtn click error', e);
+                        }
+                        setTimeout(updatePlayControls, 120);
+                    });
+                }
+                if (pauseBtn) {
+                    pauseBtn.addEventListener('click', () => {
+                        try {
+                            if (player && _playerReady && typeof player.pauseVideo === 'function')
+                                player.pauseVideo();
+                        } catch (e) {
+                            console.warn('[playerPopup] pauseBtn click error', e);
+                        }
+                        setTimeout(updatePlayControls, 120);
+                    });
+                }
+                if (prevBtn)
+                    prevBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        playPrev();
+                    });
+                if (nextBtn)
+                    nextBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        playNext();
+                    });
+                if (seekBackBtn)
+                    seekBackBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        _safeSeekBy(-5);
+                    });
+                if (seekForwardBtn)
+                    seekForwardBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        _safeSeekBy(5);
+                    });
+                if (clearBtn)
+                    clearBtn.addEventListener('click', () => {
+                        playlist = [];
+                        document.getElementById('plist').innerHTML = '';
+                        savePlaylist();
+                        setIndex(0);
+                        saveIndex();
+                        updateNow();
+                    });
+
+                if (shuffleBtn) {
+                    shuffleBtn.addEventListener('click', () => {
+                        _shuffle = !_shuffle;
+                        try {
+                            localStorage.setItem(STORAGE_SHUFFLE_KEY, _shuffle ? '1' : '0');
+                        } catch {}
+                        shuffleBtn.style.opacity = _shuffle ? '1' : '.6';
+                        // console.log('[playerPopup] shuffle set ->', _shuffle);
+                    });
+                }
+                // repeat 순환: off -> all -> one -> off
+                if (repeatBtn) {
+                    repeatBtn.addEventListener('click', () => {
+                        _repeat = _repeat === 'off' ? 'all' : _repeat === 'all' ? 'one' : 'off';
+                        try {
+                            localStorage.setItem(STORAGE_REPEAT_KEY, _repeat);
+                        } catch {}
+                        repeatBtn.textContent =
+                            _repeat === 'off' ? '🔁' : _repeat === 'all' ? '🔁' : '🔂';
+                        repeatBtn.style.opacity = _repeat === 'off' ? '.7' : '1';
+                        // console.log('[playerPopup] repeat set ->', _repeat);
+                    });
+                }
+                try {
+                    if (volumeEl) {
+                        volumeEl.value = String(_volume);
+                        volumeEl.addEventListener('input', (e) => {
+                            const v = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                            _volume = v;
+                            try {
+                                if (
+                                    player &&
+                                    _playerReady &&
+                                    typeof player.setVolume === 'function'
+                                )
+                                    player.setVolume(_volume);
+                                // if moved to 0, set muted flag
+                                _muted = _volume === 0;
+                                localStorage.setItem(STORAGE_VOLUME_KEY, String(_volume));
+                            } catch (err) {
+                                console.warn('[playerPopup] volume input error', err);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('[playerPopup] volume handlers init error', e);
+                }
+
+                // 토글 오픈/클로즈
+                if (muteBtn) {
+                    muteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (!volPop) return;
+                        const open = volPop.classList.toggle('open');
+                        volPop.setAttribute('aria-hidden', String(!open));
+                    });
+                }
+
+                function updateVolumeFill(el) {
+                    if (!el) return;
+                    const v = Number(el.value) || 0;
+                    const pct = Math.max(0, Math.min(100, Math.round((v / 100) * 100)));
+                    if (volFill) volFill.style.height = pct + '%';
+                    // input의 aria-valuenow 업데이트 (접근성)
+                    try {
+                        el.setAttribute('aria-valuenow', String(v));
+                    } catch {}
+
+                    // try {
+                    //     if (volTrack) {
+                    //         // vol-fill 색상은 변경하지 않음.
+                    //         // volTrack 배경은 "아래쪽 활성 구간은 투명"으로 두어 vol-fill 색상이 보이게 함.
+                    //         // 위쪽(비활성) 영역만 회색으로 표시.
+                    //         volTrack.style.background = `linear-gradient(to top, transparent ${pct}%, #e0e0e0 ${pct}%)`;
+                    //     }
+                    // } catch (e) {
+                    //     console.warn('[playerPopup] updateVolumeFill background error', e);
+                    // }
+                }
+
+                // 초기 배경 설정
+                if (volumeEl) {
+                    updateVolumeFill(volumeEl);
+                    volumeEl.addEventListener('input', (ev) => {
+                        updateVolumeFill(ev.target);
+                    });
+                }
+
+                // 클릭 외부 영역에서 팝업 닫기
+                document.addEventListener('click', (e) => {
+                    try {
+                        if (!volPop) return;
+                        if (!volPop.classList.contains('open')) return;
+                        // 만약 클릭이 volPop 또는 muteBtn 내부이면 무시
+                        if (volPop.contains(e.target) || (muteBtn && muteBtn.contains(e.target)))
+                            return;
+                        volPop.classList.remove('open');
+                        volPop.setAttribute('aria-hidden', 'true');
+                    } catch {}
+                });
+                // ESC로 닫기
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && volPop && volPop.classList.contains('open')) {
+                        volPop.classList.remove('open');
+                        volPop.setAttribute('aria-hidden', 'true');
+                    }
+                });
+
+                // progress bar 클릭/드래그로 탐색(seek) 처리
+                const progressEl = document.getElementById('progress');
+                let _isScrubbing = false;
+                function seekToClientX(clientX) {
+                    if (!progressEl || !player || !_playerReady) return;
+                    const rect = progressEl.getBoundingClientRect();
+                    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+                    const frac = rect.width ? x / rect.width : 0;
+                    try {
+                        const dur = player.getDuration ? Math.max(0, player.getDuration()) : 0;
+                        const target = Math.max(0, Math.min(dur, frac * dur));
+                        if (typeof player.seekTo === 'function') player.seekTo(target, true);
+                        // UI 즉시 갱신
+                        setTimeout(updatePlayControls, 80);
+                    } catch (e) {
+                        console.warn('[playerPopup] seekToClientX error', e);
+                    }
+                }
+                if (progressEl) {
+                    progressEl.addEventListener('click', (e) => seekToClientX(e.clientX));
+                    progressEl.addEventListener('mousedown', (e) => {
+                        _isScrubbing = true;
+                        seekToClientX(e.clientX);
+                    });
+                    document.addEventListener('mousemove', (e) => {
+                        if (!_isScrubbing) return;
+                        seekToClientX(e.clientX);
+                    });
+                    document.addEventListener('mouseup', () => {
+                        if (_isScrubbing) _isScrubbing = false;
+                    });
+                    // 터치 지원
+                    progressEl.addEventListener(
+                        'touchstart',
+                        (e) => {
+                            _isScrubbing = true;
+                            seekToClientX(e.touches[0].clientX);
+                        },
+                        { passive: true }
+                    );
+                    document.addEventListener(
+                        'touchmove',
+                        (e) => {
+                            if (!_isScrubbing) return;
+                            seekToClientX(e.touches[0].clientX);
+                        },
+                        { passive: true }
+                    );
+                    document.addEventListener('touchend', () => {
+                        _isScrubbing = false;
+                    });
+                }
+                setInterval(() => {
+                    if (!_playerReady || !player) return;
+                    try {
+                        const dur = player.getDuration
+                            ? Math.max(0, Math.floor(player.getDuration()))
+                            : 0;
+                        const cur = player.getCurrentTime
+                            ? Math.max(0, Math.floor(player.getCurrentTime()))
+                            : 0;
+                        const pos = dur > 0 ? (cur / dur) * 100 : 0;
+                        const fmt = (s) => Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+                        const bar = document.getElementById('progBar');
+                        if (bar) bar.style.width = (pos || 0) + '%';
+                        const time = document.getElementById('time');
+                        if (time) time.textContent = fmt(cur) + ' / ' + fmt(dur);
+                    } catch {}
+                }, 800);
+            })();
+
+            // Close notifications
+            if (window.opener) {
+                const notifyClose = () => {
+                    try {
+                        localStorage.removeItem(STORAGE_SHUFFLE_KEY);
+                        localStorage.removeItem(STORAGE_REPEAT_KEY);
+                    } catch {}
+                    try {
+                        window.opener.postMessage(
+                            { cmd: '__popup_closed' },
+                            window.location.origin || '*'
+                        );
+                    } catch {}
+                };
+                window.addEventListener('beforeunload', notifyClose);
+                window.addEventListener('unload', notifyClose);
+                window.addEventListener('pagehide', notifyClose);
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,423 @@
+$primary-color: #0366d6;
+$secondary-color: #414141;
+$text-color: #333;
+$background-color: #f8f9fa;
+$border-color: #e0e0e0;
+$blockquote-color: #6a737d;
+$blockquote-border-color: #dfe2e5;
+$code-bg-color: #1b1f230d;
+$pre-bg-color: #f6f8fa;
+$btn-text-color: #299440;
+$btn-bg-color: #92f2a75d;
+
+.post-editor-container {
+    position: relative;
+    display: flex;
+    min-height: 500px !important;
+    height: calc(100vh - 100px);
+    font-family: 'Pretendard Variable', Pretendard, sans-serif;
+    font-size: 16px;
+    background-color: $background-color;
+    color: $text-color;
+    overflow: hidden;
+
+    // 왼쪽 편집기 영역
+    .post-editor {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        height: 100%;
+        overflow-y: auto;
+        border-right: 1px solid $border-color;
+
+        .post-title-area {
+            width: 100%;
+            height: 82px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            animation-name: post-editor-slide-down;
+            animation-duration: 0.3s;
+            animation-timing-function: ease-out;
+            animation-fill-mode: forwards;
+
+            &.hidden-title {
+                animation-name: post-editor-slide-up;
+            }
+
+            .post-title-input {
+                width: 100%;
+                height: 100%;
+                font-size: 40px;
+                font-weight: 700;
+                border: none;
+                background-color: $background-color;
+
+                &:focus {
+                    outline: none;
+                }
+            }
+
+            &::after {
+                content: '';
+                display: block;
+                width: 80px;
+                height: 6px;
+                margin-top: 14px;
+                background-color: $secondary-color;
+            }
+        }
+
+        .post-tags-area {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding: 0 20px;
+            margin-bottom: 16px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            animation-name: post-editor-slide-down;
+            animation-duration: 0.3s;
+            animation-timing-function: ease-out;
+            animation-fill-mode: forwards;
+
+            &.hidden-tags {
+                animation-name: post-editor-slide-up;
+            }
+
+            .tag-item {
+                display: inline-flex;
+
+                .tag-button {
+                    padding: 4px 10px;
+                    border-radius: 12px;
+                    font-weight: 700;
+                    color: $btn-text-color;
+                    background-color: $btn-bg-color;
+                    transition: 200ms;
+
+                    &:hover {
+                        color: #ffffff;
+                        background-color: $btn-text-color;
+                    }
+                }
+            }
+
+            .post-tag-input {
+                display: inline-flex;
+                height: 24px;
+                font-size: 16px;
+                border: none;
+                background-color: $background-color;
+
+                &:focus {
+                    outline: none;
+                }
+            }
+
+            i {
+                display: block;
+                position: absolute;
+                bottom: -65px;
+                left: 10px;
+                padding: 10px 14px;
+                font-size: 12px;
+                border-radius: 8px;
+                color: #ffffff;
+                background-color: $secondary-color;
+                animation-name: tooltip-slide-down;
+                animation-duration: 0.3s;
+                animation-timing-function: ease-out;
+                animation-fill-mode: forwards;
+
+                &.tooltip-hidden {
+                    animation-name: tooltip-slide-up;
+                }
+            }
+        }
+
+        .post-editor-toolbar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px 20px;
+            background-color: $background-color;
+            animation-name: post-editor-toolbar-slide-down;
+            animation-duration: 0.3s;
+            animation-timing-function: ease-out;
+
+            &.toolbar-top-position {
+                animation-name: post-editor-toolbar-slide-up;
+                box-shadow: 0px 8px 6px -6px #d8d8d8;
+            }
+
+            button {
+                width: 30px;
+                height: 30px;
+
+                &:hover {
+                    border-radius: 4px;
+                    background-color: #83838367;
+                }
+
+                img {
+                    width: 80%;
+                    pointer-events: none;
+                }
+            }
+
+            .bold-btn,
+            .italic-btn,
+            .line-through-btn,
+            .quote-btn,
+            .link-btn {
+                padding: 3px;
+            }
+
+            .toolbar-separator {
+                display: block;
+                width: 3px;
+                height: 20px;
+                margin-top: 4px;
+                background-color: $blockquote-color;
+            }
+        }
+
+        .textarea-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+
+            .markdown-textarea {
+                font-family: 'Pretendard Variable', Pretendard, sans-serif;
+                width: 100%;
+                height: 100%;
+                border: none;
+                outline: none;
+                resize: none;
+                font-size: 16px;
+                line-height: 1.6;
+                padding: 10px 20px;
+                background: transparent;
+                box-sizing: border-box;
+                animation-name: post-editor-toolbar-slide-down;
+                animation-duration: 0.3s;
+                animation-timing-function: ease-out;
+
+                &.markdown-top-position {
+                    animation-name: post-editor-toolbar-slide-up;
+                }
+            }
+
+            .post-editor-modal {
+                position: absolute;
+                height: 80px;
+
+                color: #121212;
+                padding: 10px;
+                border-radius: 8px;
+                background-color: $background-color;
+                box-shadow: 0px 0px 5px #b9b9b9;
+                z-index: 1500;
+
+                > div {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    width: 250px;
+                    height: 100%;
+
+                    &.link-input-modal,
+                    &.image-src-modal {
+                        input {
+                            width: 180px;
+                            height: 30px;
+                        }
+                    }
+
+                    &.code-type-modal {
+                        width: 180px;
+                        select {
+                            width: 120px;
+                            height: 30px;
+                        }
+                    }
+                }
+
+                button {
+                    position: absolute;
+                    right: 10px;
+                    bottom: 10px;
+                    width: 50px;
+                    height: 30px;
+                    font-size: 16px;
+                    border: 1px solid $blockquote-border-color;
+                    border-radius: 4px;
+                    background-color: $background-color;
+                }
+            }
+
+            // VERY IMPORTANT!! getting position of cursor for modal
+            .mirror-div {
+                visibility: hidden;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                font-size: 16px;
+                line-height: 1.6;
+                padding: 10px 20px;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                overflow: visible;
+                pointer-events: none;
+                box-sizing: border-box;
+            }
+        }
+
+        .post-editor-btns {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 18px;
+            padding: 10px 20px;
+            border-top: 1px solid $blockquote-border-color;
+            background-color: #ffffff;
+
+            button {
+                width: 90px;
+                height: 40px;
+                font-size: 18px;
+                border-radius: 8px;
+            }
+
+            .post-save-btn {
+                color: #ffffff;
+                background-color: $secondary-color;
+            }
+
+            .post-cancel-btn {
+                border: 2px solid $blockquote-border-color;
+                background-color: $background-color;
+            }
+        }
+    }
+
+    // 오른쪽 미리보기 영역
+
+    .post-preview {
+        flex: 1;
+        height: 100%;
+        padding: 20px;
+        overflow-y: auto;
+        background-color: #ffffff;
+
+        .post-preview-title {
+            h1 {
+                font-size: 3em;
+                font-weight: 700;
+                margin-bottom: 32px;
+            }
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin-top: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        h1 {
+            font-size: 2.25em;
+        }
+
+        h2 {
+            font-size: 1.8em;
+        }
+
+        h3 {
+            font-size: 1.4em;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        a {
+            color: $primary-color;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 90%;
+            line-height: 1;
+            background-color: $code-bg-color;
+            border-radius: 3px;
+        }
+
+        pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1;
+            background-color: $pre-bg-color;
+            border-radius: 6px;
+            margin-bottom: 8px;
+
+            .code-block {
+                code {
+                    display: inline;
+                    padding: 0;
+                    margin: 0;
+                    overflow: visible;
+                    word-wrap: normal;
+                    background-color: transparent;
+                    border: 0;
+
+                    span {
+                        line-height: 1;
+                    }
+                }
+            }
+        }
+
+        ul,
+        ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        li {
+            list-style: inside;
+        }
+
+        blockquote {
+            color: $blockquote-color;
+            padding: 0 1em;
+            margin-left: 0;
+            border-left: 0.25em solid $blockquote-border-color;
+
+            p {
+                margin-bottom: 0;
+            }
+        }
+    }
+}

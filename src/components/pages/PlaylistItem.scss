@@ -14,23 +14,26 @@
         flex: 1;
         display: flex;
 
-        .playlistItemNumber {
+        .playlist-item-number {
             font-size: 1.2rem;
             color: #009900;
             font-weight: bold;
             margin-right: 12px;
         }
-        .playlistItemProfile {
+        .playlist-item-profile {
             width: 32px;
             height: 32px;
-            border-radius: 50%;
             background: #eee;
             margin-right: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+
+            img {
+                border-radius: 5px;
+            }
         }
-        .playlistItemTitle {
+        .playlist-item-title {
             flex: 1;
             font-size: 1.1rem;
             color: #222;
@@ -38,7 +41,7 @@
         }
     }
 
-    .playlistItemDrag {
+    .playlist-item-drag {
         margin-right: 12px;
         width: 24px;
         height: 24px;
@@ -47,27 +50,42 @@
         justify-content: center;
         cursor: grab;
     }
+    .playlist-item-controls {
+        display: flex;
+        gap: 6px;
+        width: 54px;
 
-    .playlistItemBtn {
-        width: 24px;
-
-        .playlistItemDelBtn {
+        .playlist-item-btn {
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #e53935; /* red */
             border: none;
             color: #fff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
             line-height: 1;
             cursor: pointer;
-            padding: 0;
+            padding-left: 0;
+        }
+
+        .playlist-item-del-btn {
+            background: #e53935; /* red */
 
             &:focus {
                 outline: 2px solid rgba(0, 0, 0, 0.15);
+                outline-offset: 2px;
+            }
+        }
+
+        .playlist-item-play-btn {
+            background: #1e88e5; /* blue */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            &:focus {
+                outline: 2px solid rgba(30, 136, 229, 0.25);
                 outline-offset: 2px;
             }
         }
