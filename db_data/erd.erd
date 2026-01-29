@@ -1,0 +1,148 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json",
+  "version": "3.0.0",
+  "settings": {
+    "width": 2000,
+    "height": 2000,
+    "scrollTop": 0,
+    "scrollLeft": 0,
+    "zoomLevel": 1,
+    "show": 431,
+    "database": 4,
+    "databaseName": "",
+    "canvasType": "ERD",
+    "language": 1,
+    "tableNameCase": 4,
+    "columnNameCase": 2,
+    "bracketType": 1,
+    "relationshipDataTypeSync": true,
+    "relationshipOptimization": false,
+    "columnOrder": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "maxWidthComment": -1,
+    "ignoreSaveSettings": 0
+  },
+  "doc": {
+    "tableIds": [
+      "gtar1sCLMMswBpQQRbkLK",
+      "99qLgRKdaEamwSvvkNeGd",
+      "614RiZj7G9yj2Zl76-Qft",
+      "ImVsgX_WdkX4yRBKNo7uO",
+      "VSEGeOBJ9pD4iHuI-gbu5"
+    ],
+    "relationshipIds": [],
+    "indexIds": [],
+    "memoIds": []
+  },
+  "collections": {
+    "tableEntities": {
+      "gtar1sCLMMswBpQQRbkLK": {
+        "id": "gtar1sCLMMswBpQQRbkLK",
+        "name": "sdfsdfs",
+        "comment": "ggggsdfasdfsdfasdf",
+        "columnIds": [],
+        "seqColumnIds": [],
+        "ui": {
+          "x": 200,
+          "y": 100,
+          "zIndex": 2,
+          "widthName": 60,
+          "widthComment": 116,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1769577235619,
+          "createAt": 1769577190968
+        }
+      },
+      "99qLgRKdaEamwSvvkNeGd": {
+        "id": "99qLgRKdaEamwSvvkNeGd",
+        "name": "dsfasdf",
+        "comment": "sdfsdfsdf",
+        "columnIds": [],
+        "seqColumnIds": [],
+        "ui": {
+          "x": 250,
+          "y": 150,
+          "zIndex": 14,
+          "widthName": 60,
+          "widthComment": 60,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1769577275715,
+          "createAt": 1769577272878
+        }
+      },
+      "614RiZj7G9yj2Zl76-Qft": {
+        "id": "614RiZj7G9yj2Zl76-Qft",
+        "name": "dsfasdf",
+        "comment": "asdfasdf",
+        "columnIds": [],
+        "seqColumnIds": [],
+        "ui": {
+          "x": 300,
+          "y": 200,
+          "zIndex": 20,
+          "widthName": 60,
+          "widthComment": 60,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1769577372204,
+          "createAt": 1769577369641
+        }
+      },
+      "ImVsgX_WdkX4yRBKNo7uO": {
+        "id": "ImVsgX_WdkX4yRBKNo7uO",
+        "name": "ffsfsfs",
+        "comment": "sdsesdfsef",
+        "columnIds": [],
+        "seqColumnIds": [],
+        "ui": {
+          "x": 350,
+          "y": 250,
+          "zIndex": 25,
+          "widthName": 60,
+          "widthComment": 64,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1769577382995,
+          "createAt": 1769577379395
+        }
+      },
+      "VSEGeOBJ9pD4iHuI-gbu5": {
+        "id": "VSEGeOBJ9pD4iHuI-gbu5",
+        "name": "sdfsdf",
+        "comment": "sdfasdfasf",
+        "columnIds": [],
+        "seqColumnIds": [],
+        "ui": {
+          "x": 535,
+          "y": 768,
+          "zIndex": 26,
+          "widthName": 60,
+          "widthComment": 62,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1769577415388,
+          "createAt": 1769577398052
+        }
+      }
+    },
+    "tableColumnEntities": {},
+    "relationshipEntities": {},
+    "indexEntities": {},
+    "indexColumnEntities": {},
+    "memoEntities": {}
+  }
+}
