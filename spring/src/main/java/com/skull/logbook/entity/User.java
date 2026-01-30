@@ -1,15 +1,15 @@
 package com.skull.logbook.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
-
-import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "users")
-public class Users extends BaseDeletedEntity {
+@Table(name = "user")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseDeletedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,4 +31,7 @@ public class Users extends BaseDeletedEntity {
 
     @Column(columnDefinition = "TEXT")
     private String introduction;
+
+    @OneToOne(mappedBy = "user")
+    private Blog blog;
 }

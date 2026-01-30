@@ -6,7 +6,7 @@ import lombok.Getter;
 @Entity
 @Getter
 @Table(name = "blog")
-public class BlogTempRename extends BaseDeletedEntity {
+public class Blog extends BaseDeletedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,6 +15,10 @@ public class BlogTempRename extends BaseDeletedEntity {
     private String layout;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
-    private Users user;
+    @JoinColumn(
+        name = "userId",
+        nullable = false,
+        unique = true
+    )
+    private User user;
 }
