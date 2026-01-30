@@ -5,8 +5,8 @@ import lombok.Getter;
 
 @Entity
 @Getter
-@Table(name = "posts")
-public class Posts extends BaseDeletedEntity {
+@Table(name = "post")
+public class Post extends BaseDeletedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
