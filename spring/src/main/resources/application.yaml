@@ -3,9 +3,9 @@ spring:
     name: logbook
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${db.host}:${db.port}/${db.name}?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
-    username: ${db.username}
-    password: ${db.password}
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: create
@@ -32,8 +32,8 @@ server:
 
 file:
   upload:
-    host: ${sftp.host}
-    port: ${sftp.port}
-    username: ${sftp.username}
-    password: ${sftp.password}
-    uploadPath: ${sftp.uploadPath}
+    host: ${SFTP_HOST}
+    port: ${SFTP_PORT}
+    username: ${SFTP_USERNAME}
+    password: ${SFTP_PASSWORD}
+    uploadPath: ${SFTP_UPLOADPATH}
