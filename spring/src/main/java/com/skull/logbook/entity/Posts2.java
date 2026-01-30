@@ -2,13 +2,11 @@ package com.skull.logbook.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "posts")
-public class posts extends BaseDeletedEntity {
+public class Posts2 extends BaseDeletedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
