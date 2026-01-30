@@ -4,13 +4,16 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity 
+@Entity
 @Getter
 @Setter
 @Table(name = "posts")
 public class posts extends BaseDeletedEntity {
     @Id
-    @GeneratedVau(strategy = GenerationTypeprivate Long id;    @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
     private Long userId;
 
     @Column(nullable = false)
