@@ -9,20 +9,29 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "posts")
-public class Posts {
+@Table(name = "users")
+public class Users {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long userId;
+    @Column(nullable = false, unique = true)
+    private String loginId;
 
     @Column(nullable = false)
-    private String title;
+    private String password;
+
+    @Column(nullable = false)
+    private String nickName;
+
+    @Column(nullable = false, unique = true)
+    private String userEmail;
+
+    private String profilePhoto;
 
     @Column(columnDefinition = "TEXT")
-    private String content;
+    private String introduction;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
