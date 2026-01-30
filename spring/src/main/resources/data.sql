@@ -1,5 +1,5 @@
--- posts
-INSERT IGNORE INTO posts (id, userId, title, content, createdAt, updatedAt, deletedAt) VALUES
+-- post
+INSERT IGNORE INTO post (id, userId, title, content, createdAt, updatedAt, deletedAt) VALUES
 (1, 2, '더 이상 혼자 고민하지 마세요! 2025년 개인 개발의 파트너 도구 모음', '## 더 이상 혼자 고민하지 마세요! 2025년 개인 개발의 파트너 도구 모음\n\n![포스트 썸네일](https://picsum.photos/seed/1/600/360)\n\n> **서론**\n>\n> 최근 개인 개발 프로젝트를 진행하면서 깊이 느낀 점이 있는데, "적절한 도구 선택"이 정말 중요하다는 것입니다. 특히 AI 시대인 지금, 도구 하나의 선택으로 개발 속도가 2배, 3배로 달라질 수 있습니다. 저 자신도 작년까지는 "코드만 작성할 수 있으면 OK"라고 생각했지만, 어느 날 선배 엔지니어에게 "이런 방식으로는 시간이 아깝다"라는 말을 듣고 눈을 떴습니다. 그래서 이번에는 제가 실제로 사용해보고 "이것은 정말 대단하다!"라고 느낀 2025년 버전의 개인 개발 도구를 엄선해서 소개해 드리겠습니다. 모두 실제 개발 현장에서 사용할 수 있는 것들이니 참고해 보세요.\n\n---\n\n### 1. 코드 작성\n\n- **VS Code**\n- **JetBrains IDEs**\n\n```javascript\n// 예시 코드 블록\nfunction sum(a, b) {\n  return a + b;\n}\n\nconsole.log(sum(1, 2)); // 3\n```\n\n---\n\n### 2. 버전 관리\n\n- **Git**\n- **GitHub**\n- **GitLab**\n\n---\n\n### 3. 프로젝트 관리\n\n- **Notion**\n- **Trello**\n\n---\n\n### 4. 배포\n\n- **Vercel**\n- **Netlify**\n\n---\n\n> **결론**\n>\n> 이 외에도 많은 훌륭한 도구들이 있지만, 저는 위 도구들을 통해 개인 개발 효율을 크게 높일 수 있었습니다. 이 글이 여러분의 개발 여정에도 도움이 되기를 바랍니다. 궁금한 점이 있다면 댓글로 남겨주세요!', '2025-08-01 12:00:00', '2025-08-01 12:00:00', NULL),
 (2, -1, '[ERROR CASE] 에러페이지 테스트', '클릭 시 에러가 발생합니다.', '2025-07-20 09:30:00', '2025-07-20 09:30:00', NULL),
 (3, 2, 'React 성능 최적화: 렌더링 병목 찾는 5가지 방법', 'React 앱의 성능 문제를 해결하려면 우선 병목을 정확히 측정해야 합니다. 프로파일링, 메모이제이션, 레이지 로딩, 리스트 가상화, 불필요한 상태 끌어올리기 등 실무에서 자주 쓰는 패턴을 실제 사례와 함께 정리했습니다.\n\n![React 성능 최적화 이미지](https://picsum.photos/seed/3/600/360)', '2025-06-15 15:45:00', '2025-06-16 08:00:00', NULL),
@@ -31,14 +31,45 @@ INSERT IGNORE INTO posts (id, userId, title, content, createdAt, updatedAt, dele
 (29, 0, '빠른 프로토타입을 위한 디자인 툴 비교', 'Figma, Sketch, Adobe XD 등 디자인 툴의 장단점과 빠른 프로토타입 제작 팁을 정리했습니다.\n\n![디자인 툴 비교 이미지](https://picsum.photos/seed/29/600/360)', '2023-07-10 12:00:00', '2023-07-10 12:00:00', NULL),
 (30, 2, '대규모 트래픽 대응을 위한 캐시 전략', 'CDN, 애플리케이션 레벨 캐시, DB 캐시 전략을 조합해 대규모 트래픽을 효율적으로 처리하는 방법을 설명합니다.\n\n![캐시 전략 이미지](https://picsum.photos/seed/30/600/360)', '2023-06-01 06:00:00', '2023-06-01 06:00:00', NULL);
 
--- users
-INSERT IGNORE INTO users (id, loginId, password, nickName, userEmail, profilePhoto, introduction, createdAt, updatedAt, deletedAt) VALUES
+-- user
+INSERT IGNORE INTO user (id, loginId, password, nickName, userEmail, profilePhoto, introduction, createdAt, updatedAt, deletedAt) VALUES
 (0, 'admin', '1234', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
 (1, 'musiclover', 'music123', '음악애호가', 'musiclover@example.com', NULL, '클래식과 재즈를 사랑하는 음악 애호가입니다.', '2024-12-01', '2024-12-15', NULL),
 (2, 'developer123', 'dev2024', '코딩하는개발자', 'developer@example.com', '/img/profile_dev.jpg', '풀스택 개발자로 새로운 기술에 관심이 많습니다.', '2024-11-15', '2024-12-20', NULL),
 (3, 'gameplayer', 'game456', '게임마스터', 'gamer@example.com', NULL, '게임과 음악을 결합한 OST를 좋아합니다.', '2024-10-20', '2024-12-18', NULL),
 (4, 'bookworm', 'book789', '독서광', 'bookworm@example.com', NULL, '책을 읽으며 듣는 배경음악을 찾고 있습니다.', '2024-09-10', '2024-12-22', NULL),
-(5, 'belldoor', 'wad', '종무니', 'bookworm@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
+(5, 'belldoor', 'wad', '종무니', 'belldoor@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
 (6, 'susybaka', '1234', 'CO_s_MOS', 'kumityou@example.com', '/img/b2.png', '$KULL조 조장', '2025-08-16', '2025-09-02', NULL),
 (7, 'devbhkim0707', '1234', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL),
 (8, 'ljh1234', '1234', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL);
+
+-- blog
+INSERT IGNORE INTO blog (userId, layout, createdAt, updatedAt, deletedAt) VALUES
+    (
+       2,
+       '{"layout":[{"w":5,"h":1,"x":0,"y":0,"i":"title-0","moved":false,"static":false},{"w":4,"h":4,"x":0,"y":1,"i":"image-1","moved":false,"static":false},{"w":1,"h":4,"x":4,"y":1,"i":"map-2","moved":false,"static":false},{"w":1,"h":3,"x":2,"y":6,"i":"link-3","moved":false,"static":false},{"w":1,"h":3,"x":0,"y":6,"i":"image-4","moved":false,"static":false},{"w":3,"h":1,"x":0,"y":5,"i":"title-5","moved":false,"static":false},{"w":2,"h":3,"x":3,"y":5,"i":"image-6","moved":false,"static":false},{"w":1,"h":2,"x":1,"y":6,"i":"post-7","moved":false,"static":false}],"elements":[{"i":"title-0","content":"코딩하는 개발자의 블로그"},{"i":"image-1","content":"https://img.freepik.com/free-photo/fuji-mountain-kawaguchiko-lake-morning-autumn-seasons-fuji-mountain-yamanachi-japan_335224-102.jpg?semt=ais_hybrid&w=740&q=80"},{"i":"map-2","content":null},{"i":"link-3","content":null},{"i":"image-4","content":"https://m.media-amazon.com/images/I/61YXNhfzlzL._UF894,1000_QL80_.jpg"},{"i":"title-5","content":"푸른눈의 백룡"},{"i":"image-6","content":"https://i.pinimg.com/1200x/a2/48/0a/a2480aceb3d0881e5aaa921209cf61c8.jpg"},{"i":"post-7","content":null}]}',
+       '2024-11-15',
+       '2025-09-01',
+       NULL
+    ),
+    (
+       7,
+       '{"layout":[{"w":5,"h":1,"x":0,"y":0,"i":"title-0","moved":false,"static":false},{"w":1,"h":1,"x":0,"y":2,"i":"image-3","moved":false,"static":false},{"w":1,"h":1,"x":0,"y":3,"i":"image-5","moved":false,"static":false},{"w":1,"h":1,"x":0,"y":4,"i":"image-6","moved":false,"static":false},{"w":1,"h":1,"x":0,"y":5,"i":"image-7","moved":false,"static":false},{"w":4,"h":5,"x":1,"y":1,"i":"image-8","moved":false,"static":false},{"w":1,"h":1,"x":0,"y":1,"i":"title-10","moved":false,"static":false},{"w":1,"h":2,"x":4,"y":6,"i":"link-11","moved":false,"static":false},{"w":2,"h":2,"x":2,"y":7,"i":"map-12","moved":false,"static":false},{"w":2,"h":3,"x":0,"y":7,"i":"image-13","moved":false,"static":false},{"w":4,"h":1,"x":0,"y":6,"i":"title-14","moved":false,"static":false},{"w":1,"h":2,"x":4,"y":8,"i":"post-15","moved":false,"static":false}],"elements":[{"i":"title-0","content":"김병학의 블로그입니다"},{"i":"post-2","content":null},{"i":"image-3","content":"https://poiemaweb.com/img/node-logo.png"},{"i":"image-5","content":"https://cdn.bap-software.net/2024/08/26213247/spring.jpg"},{"i":"image-6","content":"https://developer.okta.com/assets-jekyll/blog/tutorial-kotlin-beginners-guide/kotlin-logo-social-21c8518b19eb96d96f35e0057bb92b7e1281a24820e0fa09e39c42f184bd7faa.png"},{"i":"image-7","content":"https://images.seeklogo.com/logo-png/34/1/flutter-logo-png_seeklogo-349577.png"},{"i":"image-8","content":"https://img.freepik.com/free-photo/aerial-view-tokyo-cityscape-with-fuji-mountain-japan_335224-148.jpg?semt=ais_hybrid&w=740&q=80"},{"i":"title-10","content":"Tech Stack"},{"i":"link-11","content":null},{"i":"map-12","content":null},{"i":"image-13","content":"https://i.pinimg.com/originals/98/97/c6/9897c6fa02402824700a22919af7b7dd.gif"},{"i":"title-14","content":null},{"i":"post-15","content":null}]}',
+       '2025-09-02',
+       '2025-09-02',
+       NULL
+    ),
+    (
+       6,
+       '{"layout":[{"w":5,"h":1,"x":0,"y":0,"i":"title-0","moved":false,"static":false},{"w":2,"h":4,"x":0,"y":1,"i":"image-1","moved":false,"static":false},{"w":1,"h":2,"x":2,"y":1,"i":"image-2","moved":false,"static":false},{"w":2,"h":3,"x":3,"y":1,"i":"image-3","moved":false,"static":false},{"w":2,"h":3,"x":3,"y":4,"i":"image-4","moved":false,"static":false},{"w":1,"h":3,"x":2,"y":3,"i":"image-5","moved":false,"static":false},{"w":1,"h":2,"x":2,"y":6,"i":"image-6","moved":false,"static":false},{"w":2,"h":5,"x":0,"y":5,"i":"image-7","moved":false,"static":false},{"w":2,"h":4,"x":3,"y":7,"i":"image-8","moved":false,"static":false},{"w":1,"h":3,"x":2,"y":8,"i":"image-9","moved":false,"static":false}],"elements":[{"i":"title-0","content":"QCoCo의 블로그입니다."},{"i":"image-1","content":"https://media1.tenor.com/m/eNKiJcLInPkAAAAC/memes.gif"},{"i":"image-2","content":"https://media.tenor.com/dPrJ3dBh8OQAAAAi/man-face-roblox.gif"},{"i":"image-3","content":"https://media1.tenor.com/m/tfBBasw0w2QAAAAC/ablysah-%D8%A7%D8%A8%D9%84%D9%8A%D8%B3%D9%87.gif"},{"i":"image-4","content":"https://media1.tenor.com/m/oADavtbIeZkAAAAC/%D0%B4%D0%B6%D0%BE%D0%BA%D0%B5%D1%80-jonkler-jonkler.gif"},{"i":"image-5","content":"https://media1.tenor.com/m/LLvKaLs0YicAAAAC/black-man-crying-cry.gif"},{"i":"image-6","content":"https://media.tenor.com/-BjTGPdDJNAAAAAi/cpp-cplusplus.gif"},{"i":"image-7","content":"https://media1.tenor.com/m/qTeM434Ja3AAAAAC/giga-chad-chad.gif"},{"i":"image-8","content":"https://media1.tenor.com/m/cotOa0s4tYwAAAAC/before-after.gif"},{"i":"image-9","content":"https://media1.tenor.com/m/Yjv57Jsgyw8AAAAC/jonkler-joker.gif"}]}',
+       '2025-09-03',
+       '2025-09-03',
+       NULL
+    ),
+    (
+       5,
+       '{"layout":[{"w":5,"h":1,"x":0,"y":0,"i":"title-0","moved":false,"static":false},{"w":3,"h":8,"x":0,"y":1,"i":"image-1","moved":false,"static":false},{"w":2,"h":1,"x":3,"y":1,"i":"title-2","moved":false,"static":false},{"w":2,"h":3,"x":3,"y":2,"i":"image-3","moved":false,"static":false},{"w":2,"h":1,"x":3,"y":5,"i":"title-4","moved":false,"static":false}],"elements":[{"i":"title-0","content":"종무니의 블로그"},{"i":"image-1","content":"https://i.namu.wiki/i/9yE6vnup6KaeETKnXJwh6nADHYudFT5BnlO7UNhbOr1-tDSpzZYwD7MkwfSdKE8aW7hn4FAKrfmqlX-6_c-vnHOzy6NEhokT1YV2jlp2zpDNz5zakdE-vVxhqub5R1rsGUvWFh5Bsu3AARGRzA3rSg.webp"},{"i":"title-2","content":"최애의아이 아카네 이쁘다"},{"i":"image-3","content":"https://media1.tenor.com/m/4SHccGaC894AAAAC/imman-yeahimman.gif"},{"i":"title-4","content":"사랑이란 진정 무엇일까..."}]}',
+       '2025-09-05',
+       '2025-09-05',
+       NULL
+    );

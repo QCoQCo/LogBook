@@ -17,6 +17,7 @@ public class Blog extends BaseDeletedEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "userId",
+        referencedColumnName = "id",
         nullable = false,
         unique = true
     )
