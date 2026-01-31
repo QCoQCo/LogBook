@@ -27,20 +27,30 @@ const Blog = () => {
     const playListTabBtnRef = useRef(null);
 
     useEffect(() => {
-        setBlogOwnerData(userData.find((user) => user.userId === userId));
-    }, [userId, userData]);
+        const found = userData.find((user) => String(user.userId) === String(userId));
+        if (found) {
+            setBlogOwnerData(found);
+        } else if (isLogin && currentUser && String(currentUser.id) === String(userId)) {
+            // 백엔드 연동된 본인인 경우 (mock data에 없을 수 있음)
+            setBlogOwnerData({
+                userId: currentUser.id,
+                nickName: currentUser.nickName,
+                userEmail: currentUser.userEmail,
+                profilePhoto: currentUser.profilePhoto,
+                introduction: currentUser.introduction || ''
+            });
+        } else {
+            setBlogOwnerData(null);
+        }
+    }, [userId, userData, isLogin, currentUser]);
 
     useEffect(() => {
         if (isLogin && currentUser) {
-            if (currentUser.id === userId) {
-                setIsOwnBlog(true);
-            } else {
-                setIsOwnBlog(false);
-            }
+            setIsOwnBlog(String(currentUser.id) === String(userId));
         } else {
             setIsOwnBlog(false);
         }
-    }, [userId, currentUser]);
+    }, [userId, currentUser, isLogin]);
 
     useEffect(() => {
         if (isBlogEditting) {

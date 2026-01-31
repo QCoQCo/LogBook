@@ -61,3 +61,5 @@ bin/
 *.njsproj
 *.sln
 *.sw?
+
+*.py

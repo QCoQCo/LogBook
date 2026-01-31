@@ -6,9 +6,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class SignupRequestDto {
-    private String loginId;
-    private String password;
+    private String loginId; // 프론트의 id
+    private String password; // 프론트의 password
+    private String userEmail; // 프론트의 email
     private String nickName;
-    private String userEmail;
-    private String introduction; // 선택 사항
+    private String introduction;
 }

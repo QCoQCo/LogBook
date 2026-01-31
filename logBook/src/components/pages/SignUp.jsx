@@ -10,20 +10,20 @@ const SignUp = () => {
         password: '',
         passwordConfirm: '',
         email: '',
-        phone: '',
+        nickName: '',
     });
 
     const [errors, setErrors] = useState({});
     const [submitted, setSubmitted] = useState(false);
+    const [isNickNameChecked, setIsNickNameChecked] = useState(false);
 
     const idRef = useRef(null);
     const pwRef = useRef(null);
     const pwConfirmRef = useRef(null);
     const emailRef = useRef(null);
-    const phoneRef = useRef(null);
+    const nickNameRef = useRef(null);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[0-9+\-()\s]{6,20}$/;
     const passwordRegex = /^(?=.{8,20}$)(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])(?!.*\s).+$/;
 
     const validateField = (name, value) => {
@@ -45,8 +45,9 @@ const SignUp = () => {
             case 'email':
                 if (value && !emailRegex.test(value)) return '유효한 이메일을 입력하세요.';
                 return '';
-            case 'phone':
-                if (value && !phoneRegex.test(value)) return '유효한 전화번호를 입력하세요.';
+            case 'nickName':
+                if (!value.trim()) return '닉네임을 입력하세요.';
+                if (!isNickNameChecked) return '닉네임 중복 확인을 해주세요.';
                 return '';
             default:
                 return '';
@@ -64,6 +65,30 @@ const SignUp = () => {
                 ...prev,
                 passwordConfirm: validateField('passwordConfirm', values.passwordConfirm),
             }));
+        }
+    };
+
+    const handleCheckNickname = async () => {
+        if (!values.nickName.trim()) {
+            setErrors(prev => ({ ...prev, nickName: '닉네임을 입력하세요.' }));
+            return;
+        }
+        try {
+            const resp = await fetch('/api/auth/signup/check-nickname', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nickName: values.nickName })
+            });
+            const data = await resp.json();
+            if (data.exists) {
+                setErrors(prev => ({ ...prev, nickName: '이미 사용 중인 닉네임입니다.' }));
+                setIsNickNameChecked(false);
+            } else {
+                setIsNickNameChecked(true);
+                setErrors(prev => ({ ...prev, nickName: '' }));
+            }
+        } catch (e) {
+            setErrors(prev => ({ ...prev, nickName: '중복 체크 중 오류가 발생했습니다.' }));
         }
     };
 
@@ -105,7 +130,7 @@ const SignUp = () => {
             password: pwRef,
             passwordConfirm: pwConfirmRef,
             email: emailRef,
-            phone: phoneRef,
+            nickName: nickNameRef,
         };
 
         if (firstErrorKey && refsMap[firstErrorKey] && refsMap[firstErrorKey].current) {
@@ -116,26 +141,44 @@ const SignUp = () => {
             }
         }
 
-        const required = ['id', 'password', 'passwordConfirm', 'email'];
+        const required = ['id', 'password', 'passwordConfirm', 'email', 'nickName'];
         return required.every((r) => !next[r]) && allPasswordRulesOk;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateAll()) return;
-        try {
-            await signupClient(values.id, values.password, values.email, values.phone);
 
-            setValues({ id: '', password: '', passwordConfirm: '', email: '', phone: '' });
-            setErrors({});
-            setSubmitted(true);
+        if (!validateAll()) return;
+
+        try {
+            const response = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    loginId: values.id,
+                    password: values.password,
+                    userEmail: values.email,
+                    nickName: values.nickName,
+                    introduction: "" // 일단 빈값
+                })
+            });
+
+            if (response.ok) {
+                setValues({ id: '', password: '', passwordConfirm: '', email: '', nickName: '' });
+                setErrors({});
+                setSubmitted(true);
+            } else {
+                const errorData = await response.json();
+                setErrors((prev) => ({ ...prev, id: errorData.message || '회원가입에 실패했습니다.' }));
+            }
         } catch (err) {
-            setErrors((prev) => ({ ...prev, id: err.message || '회원가입에 실패했습니다.' }));
+            console.error(err);
+            setErrors((prev) => ({ ...prev, id: '서버와의 통신 중 오류가 발생했습니다.' }));
         }
     };
 
     const isFormValid = () => {
-        if (!values.id || !values.password || !values.passwordConfirm || !values.email) {
+        if (!values.id || !values.password || !values.passwordConfirm || !values.email || !values.nickName || !isNickNameChecked) {
             return false;
         }
 
@@ -144,6 +187,7 @@ const SignUp = () => {
             !errors.password &&
             !errors.passwordConfirm &&
             !errors.email &&
+            !errors.nickName &&
             allPasswordRulesOk
         );
     };
@@ -283,22 +327,40 @@ const SignUp = () => {
                             )}
                         </label>
 
-                        <label className='form-row' htmlFor='signup-phone'>
-                            <div className='label-text'>Phone</div>
-                            <input
-                                id='signup-phone'
-                                ref={phoneRef}
-                                className='input-field'
-                                type='tel'
-                                name='phone'
-                                value={values.phone}
-                                onChange={handleChange}
-                                aria-describedby={errors.phone ? 'signup-phone-error' : undefined}
-                                aria-invalid={!!errors.phone}
-                            />
-                            {(submitted || errors.phone) && errors.phone && (
-                                <div id='signup-phone-error' className='field-error' role='alert'>
-                                    {errors.phone}
+                        <label className='form-row' htmlFor='signup-nickName'>
+                            <div className='label-text'>
+                                닉네임 <span className='necessary'>*</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <input
+                                    id='signup-nickName'
+                                    ref={nickNameRef}
+                                    className='input-field'
+                                    type='text'
+                                    name='nickName'
+                                    value={values.nickName}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        setIsNickNameChecked(false); // 값이 바뀌면 다시 체크하도록 리셋
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleCheckNickname}
+                                    className="check-btn"
+                                    style={{ padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '4px', cursor: 'pointer' }}
+                                >
+                                    중복 확인
+                                </button>
+                            </div>
+                            {errors.nickName && (
+                                <div className='field-error' style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>
+                                    {errors.nickName}
+                                </div>
+                            )}
+                            {isNickNameChecked && !errors.nickName && (
+                                <div className='field-success' style={{ color: '#28a745', fontSize: '12px', marginTop: '4px', fontWeight: 'bold' }}>
+                                    ✓ 사용 가능한 닉네임입니다.
                                 </div>
                             )}
                         </label>

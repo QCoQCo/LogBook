@@ -5,7 +5,7 @@ import './Login.scss';
 import { loginClient } from '../../utils/auth';
 import { useAuth } from '../../context';
 
-const Login = ({ onClose = () => {} }) => {
+const Login = ({ onClose = () => { } }) => {
     const { login } = useAuth();
 
     useEffect(() => {
@@ -27,6 +27,7 @@ const Login = ({ onClose = () => {} }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
+    /*
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -107,6 +108,50 @@ const Login = ({ onClose = () => {} }) => {
         } catch (err) {
             // console.error('로그인 처리 오류', err);
             setError('로그인 중 오류가 발생했습니다. 콘솔을 확인하세요.');
+        }
+    };
+    */
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        // 유효성 검사
+        if (!userId.trim() || !password) {
+            setError('ID와 비밀번호를 입력해주세요.');
+            return;
+        }
+
+        try {
+            // [백엔드 API 호출]
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    loginId: userId,
+                    password: password
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const { token, user } = data; // 백엔드에서 보낸 token, user 받기
+
+                // Context에 저장할 데이터 구성
+                const payload = {
+                    ...user,
+                    token: token
+                };
+
+                // 로그인 처리 (Context + LocalStorage 저장)
+                login(payload, true);
+                onClose();
+                navigate(`/blog?userId=${user.id}`);
+            } else {
+                setError('아이디 또는 비밀번호가 일치하지 않습니다.');
+            }
+        } catch (err) {
+            console.error(err);
+            setError('로그인 중 문제가 발생했습니다.');
         }
     };
 

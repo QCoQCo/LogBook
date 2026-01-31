@@ -273,7 +273,7 @@ const Header = () => {
                                         )}
                                         <li role='menuitem'>
                                             <Link
-                                                to={`/blog?userId=${currentUserInfo.userId}`}
+                                                to={`/blog?userId=${currentUserInfo?.userId || currentUser?.loginId || currentUser?.id}`}
                                                 onClick={() => {
                                                     setShowMenu(false);
                                                 }}
