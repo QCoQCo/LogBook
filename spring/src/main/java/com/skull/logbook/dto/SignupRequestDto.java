@@ -5,7 +5,10 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class LoginRequestDto {
+public class SignupRequestDto {
     private String loginId;
     private String password;
+    private String nickName;
+    private String userEmail;
+    private String introduction; // 선택 사항
 }
