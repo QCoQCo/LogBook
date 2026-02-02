@@ -88,7 +88,7 @@ public class UserService {
                 .issuedAt(java.time.LocalDateTime.now())
                 .lastUserAt(java.time.LocalDateTime.now())
                 .idleExpiredAt(java.time.LocalDateTime.now().plusHours(3)) // 예: 3시간
-                .absoluteExpiresAt(java.time.LocalDateTime.now().plusDays(2)) // 예: 3일
+                .absoluteExpiresAt(java.time.LocalDateTime.now().plusDays(2)) // 예: 2일
                 .build();
 
         authSessionRepository.save(session);
