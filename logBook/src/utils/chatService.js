@@ -43,17 +43,19 @@ export const getChatRoomCollectionName = (roomName) => {
  * 특정 채팅방에 메시지 전송
  * @param {string} roomName - 채팅방 이름
  * @param {string} messageText - 메시지 내용
- * @param {string} userId - 사용자 ID
- * @param {string} userName - 사용자 이름
+ * @param {string|number} userId - 사용자 ID (백엔드 id, DB PK)
+ * @param {string} nickName - 사용자 닉네임 (백엔드 nickName과 동일)
  * @param {string} sessionId - 세션 ID (비로그인 사용자용, 선택사항)
+ * @param {string} loginId - 로그인 ID (백엔드 loginId, 프로필 조회용)
  * @returns {Promise<string>} - 생성된 메시지 ID
  */
 export const sendMessageToRoom = async (
     roomName,
     messageText,
     userId,
-    userName,
+    nickName,
     sessionId = null,
+    loginId = null
 ) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
@@ -61,10 +63,11 @@ export const sendMessageToRoom = async (
         const messageData = {
             text: messageText,
             userId: userId,
-            userName: userName,
+            nickName: nickName,
             roomName: roomName,
             sessionId: sessionId,
             timestamp: serverTimestamp(),
+            ...(loginId != null && loginId !== '' && { loginId }),
         };
 
         const docRef = await addDoc(collection(db, collectionName), messageData);
@@ -87,7 +90,7 @@ export const subscribeToRoomMessages = (
     roomName,
     onMessagesUpdate,
     onError,
-    messageLimit = 100,
+    messageLimit = 100
 ) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
@@ -95,7 +98,7 @@ export const subscribeToRoomMessages = (
         const messagesQuery = query(
             collection(db, collectionName),
             orderBy('timestamp', 'asc'),
-            limit(messageLimit),
+            limit(messageLimit)
         );
 
         const unsubscribe = onSnapshot(
@@ -124,7 +127,7 @@ export const subscribeToRoomMessages = (
                 }
 
                 if (onError) onError(error);
-            },
+            }
         );
 
         return unsubscribe;
@@ -176,7 +179,7 @@ export const subscribeToChatRooms = (onRoomsUpdate, onError) => {
             (error) => {
                 console.error('채팅방 목록 구독 오류:', error);
                 if (onError) onError(error);
-            },
+            }
         );
 
         return unsubscribe;
@@ -212,7 +215,7 @@ export const initializeDefaultChatRooms = async () => {
                     isSystem: true, // 🔑 시스템 채팅방 표시
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp(),
-                }),
+                })
             );
         }
 
@@ -389,7 +392,7 @@ export const deleteChatRoom = async (roomId) => {
         try {
             const presenceQuery = query(
                 collection(db, 'presence'),
-                where('roomName', '==', roomData.name),
+                where('roomName', '==', roomData.name)
             );
             const presenceSnapshot = await getDocs(presenceQuery);
             const presenceBatch = [];
@@ -404,7 +407,7 @@ export const deleteChatRoom = async (roomId) => {
         } catch (presenceError) {
             console.warn(
                 'Presence 데이터 삭제 중 오류 발생, 채팅방 삭제는 계속 진행:',
-                presenceError,
+                presenceError
             );
         }
 
@@ -425,12 +428,19 @@ export const deleteChatRoom = async (roomId) => {
 /**
  * 채팅방에 사용자 접속 등록 (더 강력한 presence 시스템)
  * @param {string} roomName - 채팅방 이름
- * @param {string} userId - 사용자 ID
- * @param {string} userName - 사용자 이름
+ * @param {string|number} userId - 사용자 ID (백엔드 id, DB PK)
+ * @param {string} nickName - 사용자 닉네임 (백엔드 nickName과 동일)
  * @param {string} sessionId - 세션 ID (비로그인 사용자용, 선택사항)
+ * @param {string} loginId - 로그인 ID (백엔드 loginId, 프로필 조회용)
  * @returns {Promise<void>}
  */
-export const joinChatRoom = async (roomName, userId, userName, sessionId = null) => {
+export const joinChatRoom = async (
+    roomName,
+    userId,
+    nickName,
+    sessionId = null,
+    loginId = null
+) => {
     try {
         const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
         const internalSessionId =
@@ -441,14 +451,15 @@ export const joinChatRoom = async (roomName, userId, userName, sessionId = null)
             {
                 roomName,
                 userId,
-                userName,
+                nickName,
                 sessionId: internalSessionId, // 세션 ID 저장
+                ...(loginId != null && loginId !== '' && { loginId }),
                 joinedAt: serverTimestamp(),
                 lastSeen: serverTimestamp(),
                 isOnline: true,
                 browserTab: document.visibilityState === 'visible',
             },
-            { merge: true },
+            { merge: true }
         ); // merge 옵션으로 기존 데이터 보존
     } catch (error) {
         console.error('채팅방 접속 등록 오류:', error);
@@ -552,14 +563,16 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                     const timeDiff = now - lastSeen;
                     const isRecentlyActive = timeDiff < 2 * 60 * 1000; // 2분 이내 활동
 
-                    // 게스트 사용자(비로그인 사용자) 제외 - userId가 'guest_'로 시작하는 경우
-                    const isGuestUser = userData.userId && userData.userId.startsWith('guest_');
+                    // 게스트 사용자(비로그인 사용자) 제외 - userId가 'guest_'로 시작하는 경우 (userId는 숫자 또는 문자열일 수 있음)
+                    const userIdStr = userData.userId != null ? String(userData.userId) : '';
+                    const isGuestUser = userIdStr.startsWith('guest_');
 
                     // isOnline 상태와 최근 활동 시간 둘 다 확인하고, 게스트 사용자는 제외
                     if (userData.isOnline === true && isRecentlyActive && !isGuestUser) {
                         activeUsers.push({
                             id: userData.userId,
-                            name: userData.userName,
+                            nickName: userData.nickName ?? userData.userName ?? '',
+                            loginId: userData.loginId ?? null,
                             sessionId: userData.sessionId,
                             joinedAt: userData.joinedAt,
                             lastSeen: userData.lastSeen,
@@ -572,7 +585,7 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
             (error) => {
                 console.error(`채팅방 ${roomName} 유저 구독 오류:`, error);
                 if (onError) onError(error);
-            },
+            }
         );
 
         return unsubscribe;
@@ -692,7 +705,7 @@ export const cleanupOfflinePresenceForRoom = async (roomName, expireMinutes = 5)
         const roomOfflineQuery = query(
             collection(db, 'presence'),
             where('roomName', '==', roomName),
-            where('isOnline', '==', false),
+            where('isOnline', '==', false)
         );
 
         const snapshot = await getDocs(roomOfflineQuery);
