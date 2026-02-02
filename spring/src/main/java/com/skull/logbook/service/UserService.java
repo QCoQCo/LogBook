@@ -87,8 +87,8 @@ public class UserService {
                 .refreshTokenHash(refreshTokenHash)
                 .issuedAt(java.time.LocalDateTime.now())
                 .lastUserAt(java.time.LocalDateTime.now())
-                .idleExpiredAt(java.time.LocalDateTime.now().plusDays(1)) // 예: 1일
-                .absoluteExpiresAt(java.time.LocalDateTime.now().plusDays(7)) // 예: 7일
+                .idleExpiredAt(java.time.LocalDateTime.now().plusHours(3)) // 예: 3시간
+                .absoluteExpiresAt(java.time.LocalDateTime.now().plusDays(2)) // 예: 3일
                 .build();
 
         authSessionRepository.save(session);

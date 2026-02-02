@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
 
     private final Key key;
-    // 토큰 유효시간: 24시간
-    private final long tokenValidityInMilliseconds = 1000L * 60 * 60 * 24;
+    // 토큰 유효시간: 15분
+    private final long tokenValidityInMilliseconds = 1000L * 60 * 15;
 
     // application.properties에 jwt.secret 값이 없으면 기본값 사용
     public JwtTokenProvider(
