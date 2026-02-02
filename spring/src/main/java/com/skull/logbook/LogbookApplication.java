@@ -1,11 +1,11 @@
 package com.skull.logbook;
 
-import io.github.cdimascio.dotenv.Dotenv;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.nio.file.Paths;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
@@ -33,16 +33,23 @@ public class LogbookApplication {
 				.ignoreIfMissing()
 				.load();
 
-		setIfAbsent("DB_HOST", dotenv.get("DB_HOST"));
-		setIfAbsent("DB_PORT", dotenv.get("DB_PORT"));
-		setIfAbsent("DB_NAME", dotenv.get("DB_NAME"));
-		setIfAbsent("DB_USERNAME", dotenv.get("DB_USERNAME"));
-		setIfAbsent("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-		setIfAbsent("SFTP_HOST", dotenv.get("SFTP_HOST"));
-		setIfAbsent("SFTP_PORT", dotenv.get("SFTP_PORT"));
-		setIfAbsent("SFTP_USERNAME", dotenv.get("SFTP_USERNAME"));
-		setIfAbsent("SFTP_PASSWORD", dotenv.get("SFTP_PASSWORD"));
-		setIfAbsent("SFTP_UPLOADPATH", dotenv.get("SFTP_UPLOAD_PATH"));
+		// .env 파일의 키가 소문자인 경우(db.host)와 대문자인 경우(DB_HOST) 모두 대응
+		setIfAbsent("DB_HOST", getEnvOr(dotenv, "DB_HOST", "db.host"));
+		setIfAbsent("DB_PORT", getEnvOr(dotenv, "DB_PORT", "db.port"));
+		setIfAbsent("DB_NAME", getEnvOr(dotenv, "DB_NAME", "db.name"));
+		setIfAbsent("DB_USERNAME", getEnvOr(dotenv, "DB_USERNAME", "db.username"));
+		setIfAbsent("DB_PASSWORD", getEnvOr(dotenv, "DB_PASSWORD", "db.password"));
+
+		setIfAbsent("SFTP_HOST", getEnvOr(dotenv, "SFTP_HOST", "sftp.host"));
+		setIfAbsent("SFTP_PORT", getEnvOr(dotenv, "SFTP_PORT", "sftp.port"));
+		setIfAbsent("SFTP_USERNAME", getEnvOr(dotenv, "SFTP_USERNAME", "sftp.username"));
+		setIfAbsent("SFTP_PASSWORD", getEnvOr(dotenv, "SFTP_PASSWORD", "sftp.password"));
+		setIfAbsent("SFTP_UPLOADPATH", getEnvOr(dotenv, "SFTP_UPLOADPATH", "sftp.uploadPath"));
+	}
+
+	private static String getEnvOr(Dotenv dotenv, String key1, String key2) {
+		String val = dotenv.get(key1);
+		return (val != null) ? val : dotenv.get(key2);
 	}
 
 	private static void setIfAbsent(String key, String value) {
