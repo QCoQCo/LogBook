@@ -55,6 +55,16 @@
                 }
             }
 
+            .lb-error {
+                color: #e74c3c;
+                font-size: 0.85rem;
+                text-align: center;
+                background-color: #fdf2f2;
+                padding: 8px;
+                border-radius: 6px;
+                margin-top: 4px;
+            }
+
             .lb-submit {
                 margin-top: 0.25rem;
                 padding: 0.625rem 0.75rem;

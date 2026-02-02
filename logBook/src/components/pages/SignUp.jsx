@@ -15,6 +15,7 @@ const SignUp = () => {
 
     const [errors, setErrors] = useState({});
     const [submitted, setSubmitted] = useState(false);
+    const [isIdChecked, setIsIdChecked] = useState(false);
     const [isNickNameChecked, setIsNickNameChecked] = useState(false);
 
     const idRef = useRef(null);
@@ -30,8 +31,8 @@ const SignUp = () => {
         switch (name) {
             case 'id':
                 if (!value.trim()) return 'ID를 입력하세요.';
-                if (!/^[a-z0-9]{6,15}$/.test(value))
-                    return 'ID는 6~15자, 소문자와 숫자만 사용할 수 있습니다.';
+                if (!/^[a-z0-9]{6,15}$/.test(value)) return '...';
+                if (!isIdChecked) return 'ID 중복 확인을 해주세요.';
                 return '';
             case 'password':
                 if (!value) return '비밀번호를 입력하세요.';
@@ -59,12 +60,49 @@ const SignUp = () => {
         const newValue = name === 'id' ? value.toLowerCase() : value;
         setValues((s) => ({ ...s, [name]: newValue }));
         setErrors((prev) => ({ ...prev, [name]: validateField(name, newValue) }));
+
+        if (name === 'id') {
+            setIsIdChecked(false);
+        }
         // if password changed, re-validate confirm
         if (name === 'password' && values.passwordConfirm) {
             setErrors((prev) => ({
                 ...prev,
                 passwordConfirm: validateField('passwordConfirm', values.passwordConfirm),
             }));
+        }
+        if (name === 'nickName') {
+            setIsNickNameChecked(false);
+        }
+    };
+
+    const handleCheckId = async () => {
+        if (!values.id.trim()) {
+            setErrors(prev => ({ ...prev, id: 'ID를 입력하세요.' }));
+            return;
+        }
+        // ID 유효성 검사 (길이, 문자 등)
+        if (!/^[a-z0-9]{6,15}$/.test(values.id)) {
+            setErrors(prev => ({ ...prev, id: 'ID는 6~15자, 소문자와 숫자만 가능합니다.' }));
+            return;
+        }
+
+        try {
+            const resp = await fetch('/api/auth/signup/check-loginId', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ loginId: values.id })
+            });
+            const data = await resp.json();
+            if (data.exists) {
+                setErrors(prev => ({ ...prev, id: '이미 사용 중인 ID입니다.' }));
+                setIsIdChecked(false);
+            } else {
+                setIsIdChecked(true);
+                setErrors(prev => ({ ...prev, id: '' }));
+            }
+        } catch (e) {
+            setErrors(prev => ({ ...prev, id: '중복 체크 중 오류가 발생했습니다.' }));
         }
     };
 
@@ -178,7 +216,7 @@ const SignUp = () => {
     };
 
     const isFormValid = () => {
-        if (!values.id || !values.password || !values.passwordConfirm || !values.email || !values.nickName || !isNickNameChecked) {
+        if (!values.id || !values.password || !values.passwordConfirm || !values.email || !values.nickName || !isIdChecked || !isNickNameChecked) {
             return false;
         }
 
@@ -209,22 +247,40 @@ const SignUp = () => {
                             <div className='label-text'>
                                 ID <span className='necessary'>*</span>
                             </div>
-                            <input
-                                id='signup-id'
-                                ref={idRef}
-                                className='input-field'
-                                type='text'
-                                name='id'
-                                value={values.id}
-                                onChange={handleChange}
-                                aria-describedby={errors.id ? 'signup-id-error' : undefined}
-                                aria-invalid={!!errors.id}
-                            />
-                            {(submitted || errors.id) && errors.id && (
-                                <div id='signup-id-error' className='field-error' role='alert'>
-                                    {errors.id}
-                                </div>
-                            )}
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <input
+                                    id='signup-id'
+                                    ref={idRef}
+                                    className='input-field'
+                                    type='text'
+                                    name='id'
+                                    value={values.id}
+                                    onChange={handleChange}
+                                    aria-describedby={errors.id ? 'signup-id-error' : undefined}
+                                    aria-invalid={!!errors.id}
+                                />
+                                <button
+                                    type='button'
+                                    onClick={handleCheckId}
+                                    disabled={!values.id || !/^[a-z0-9]{6,15}$/.test(values.id)}
+                                    className='check-button'
+                                >
+                                    중복 확인
+                                </button>
+                            </div>
+                            <div>
+                                {isIdChecked && !errors.id && (
+                                    <div className='field-success' style={{ color: '#28a745', fontSize: '12px', marginTop: '4px', fontWeight: 'bold' }}>
+                                        ✓ 사용 가능한 ID입니다.
+                                    </div>
+                                )}
+                                {(submitted || errors.id) && errors.id && (
+                                    <div id='signup-id-error' className='field-error' role='alert'>
+                                        {errors.id}
+                                    </div>
+                                )}
+                            </div>
+
                         </label>
 
                         <label className='form-row' htmlFor='signup-password'>
@@ -347,8 +403,8 @@ const SignUp = () => {
                                 <button
                                     type="button"
                                     onClick={handleCheckNickname}
-                                    className="check-btn"
-                                    style={{ padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '4px', cursor: 'pointer' }}
+                                    className="check-button"
+                                    disabled={!values.nickName}
                                 >
                                     중복 확인
                                 </button>

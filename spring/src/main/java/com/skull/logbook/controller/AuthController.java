@@ -67,6 +67,13 @@ public class AuthController {
                         "user", userMap));
     }
 
+    @PostMapping("/signup/check-loginId")
+    public ResponseEntity<?> checkLoginId(@RequestBody Map<String, String> request) {
+        String loginId = request.get("loginId");
+        boolean exists = userRepository.existsByLoginId(loginId);
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
     @PostMapping("/signup/check-nickname") // 또는 GET 방식도 가능
     public ResponseEntity<?> checkNickname(@RequestBody Map<String, String> request) {
         String nickName = request.get("nickName");
