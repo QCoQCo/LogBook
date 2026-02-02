@@ -36,6 +36,10 @@ public class User extends BaseDeletedEntity {
     @Column(columnDefinition = "TEXT")
     private String introduction;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(
+        mappedBy = "user",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
     private Blog blog;
 }
