@@ -1,16 +1,16 @@
 // Blog.jsx
-import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useBlog, useAuth, useUserData } from '../../context';
-import { BlogFloatingUi, BlogGridLayout, BlogUserInfo, BlogPosts, BlogPlaylist } from '../blog';
-import BlogElementModal from '../blog/BlogElementModal';
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useBlog, useAuth, useUserData } from "../../context";
+import { BlogFloatingUi, BlogGridLayout, BlogUserInfo, BlogPosts, BlogPlaylist } from "../blog";
+import BlogElementModal from "../blog/BlogElementModal";
 
-import './Blog.scss';
+import "./Blog.scss";
 
 const Blog = () => {
     // 블로그 페이지의 userId 파라미터
     const [searchParam] = useSearchParams();
-    const userId = searchParam.get('userId');
+    const userId = searchParam.get("userId");
 
     // Blog, UserData Context 사용
     const { clickedItem, isBlogEditting, setIsBlogEditting, activeTab, setActiveTab } = useBlog();
@@ -37,7 +37,7 @@ const Blog = () => {
                 nickName: currentUser.nickName,
                 userEmail: currentUser.userEmail,
                 profilePhoto: currentUser.profilePhoto,
-                introduction: currentUser.introduction || ''
+                introduction: currentUser.introduction || "",
             });
         } else {
             setBlogOwnerData(null);
@@ -76,54 +76,54 @@ const Blog = () => {
     };
 
     return (
-        <div id='Blog'>
-            <div className='blog-wrapper'>
+        <div id="Blog">
+            <div className="blog-wrapper">
                 <BlogUserInfo userId={userId} isOwnBlog={isOwnBlog} blogOwnerData={blogOwnerData} />
-                <div className='blog-wrapper-area'>
-                    <div className='blog-wrapper-tab'>
+                <div className="blog-wrapper-area">
+                    <div className="blog-wrapper-tab">
                         <button
-                            type='button'
-                            className={activeTab === 1 ? 'home active' : 'home'}
+                            type="button"
+                            className={activeTab === 1 ? "home active" : "home"}
                             onClick={() => handleActiveTab(1)}
-                            aria-label='home'
-                            title='home'
+                            aria-label="home"
+                            title="home"
                         >
                             <img
-                                src='/img/icon-home.svg'
-                                alt='home'
-                                style={{ width: 30, height: 30, display: 'block', color: 'black' }}
+                                src="/img/icon-home.svg"
+                                alt="home"
+                                style={{ width: 30, height: 30, display: "block", color: "black" }}
                             />
                         </button>
                         <button
-                            type='button'
+                            type="button"
                             ref={postsTabBtnRef}
-                            className={activeTab === 2 ? 'article active' : 'article'}
+                            className={activeTab === 2 ? "article active" : "article"}
                             onClick={() => handleActiveTab(2)}
-                            aria-label='posts'
-                            title='posts'
+                            aria-label="posts"
+                            title="posts"
                         >
                             <img
-                                src='/img/icon-edit.svg'
-                                alt='posts'
-                                style={{ width: 30, height: 30, display: 'block' }}
+                                src="/img/icon-edit.svg"
+                                alt="posts"
+                                style={{ width: 30, height: 30, display: "block" }}
                             />
                         </button>
                         <button
-                            type='button'
+                            type="button"
                             ref={playListTabBtnRef}
-                            className={activeTab === 3 ? 'playlist active' : 'playlist'}
+                            className={activeTab === 3 ? "playlist active" : "playlist"}
                             onClick={() => handleActiveTab(3)}
-                            aria-label='playlist'
-                            title='playlist'
+                            aria-label="playlist"
+                            title="playlist"
                         >
                             <img
-                                src='/img/icon-playlist.svg'
-                                alt='playlist'
-                                style={{ width: 30, height: 30, display: 'block' }}
+                                src="/img/icon-playlist.svg"
+                                alt="playlist"
+                                style={{ width: 30, height: 30, display: "block" }}
                             />
                         </button>
                     </div>
-                    <div className='blog-wrapper-contents'>
+                    <div className="blog-wrapper-contents">
                         {activeTab === 1 && (
                             <BlogGridLayout userId={userId} enableModal={enableModal} />
                         )}
@@ -133,7 +133,7 @@ const Blog = () => {
                 </div>
             </div>
             {isModalOpen && (
-                <div className='modal-overlay' onClick={releaseModal}>
+                <div className="modal-overlay" onClick={releaseModal}>
                     <BlogElementModal
                         item={clickedItem}
                         isBlogEditting={isBlogEditting}

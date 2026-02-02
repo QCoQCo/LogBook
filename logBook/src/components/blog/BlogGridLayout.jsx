@@ -1,8 +1,9 @@
-import axios from 'axios';
-import ReactGridLayout from 'react-grid-layout';
-import { useEffect, useState } from 'react';
-import { useBlog } from '../../context';
-import BlogLayoutItem from './BlogLayoutItem';
+import axios from "axios";
+import ReactGridLayout from "react-grid-layout";
+import { useEffect, useState } from "react";
+import { useBlog } from "../../context";
+import BlogLayoutItem from "./BlogLayoutItem";
+import apiClient from "../../utils/apiClient";
 
 const BlogGridLayout = ({ userId, enableModal }) => {
     const [newItemCounter, setNewItemCounter] = useState(0);
@@ -14,26 +15,31 @@ const BlogGridLayout = ({ userId, enableModal }) => {
 
     const getUserBlogData = async () => {
         try {
-            const response = await axios.get('/data/blogData.json');
-            const blogData = response.data.blogData;
+            const response = await axios.get(`/api/blogs/${userId}`);
+            const blogData = response.data;
 
-            if (blogData.find((data) => data.userId === userId) !== undefined) {
-                const layoutByUserId = blogData.find((data) => data.userId === userId).layout;
-                const elementByUserId = blogData.find((data) => data.userId === userId).elements;
-                const numbersFromLayoutId = layoutByUserId.map((item) =>
-                    parseInt(item.i.split('-')[1])
-                );
-
-                setLayout([...layoutByUserId]);
-                setElements([...elementByUserId]);
-                setNewItemCounter(Math.max(...numbersFromLayoutId) + 1);
-            } else {
+            if (!blogData || !blogData.layout) {
                 setLayout([]);
                 setElements([]);
                 setNewItemCounter(0);
+                return;
             }
+
+            const layoutData = blogData.layout;
+            const elementData = blogData.elements;
+
+            const numbersFromLayoutId = layoutData.map((item) => parseInt(item.i.split("-")[1]));
+
+            setLayout(layoutData);
+            setElements(elementData);
+            setNewItemCounter(
+                numbersFromLayoutId.length > 0 ? Math.max(...numbersFromLayoutId) + 1 : 0,
+            );
+            setNewItemCounter(0);
         } catch (e) {
-            console.error('블로그 데이터 로딩 실패: ', e);
+            console.error("블로그 데이터 로딩 실패: ", e);
+            setLayout([]);
+            setElements([]);
         }
     };
 
@@ -54,7 +60,8 @@ const BlogGridLayout = ({ userId, enableModal }) => {
         const h = draggingItem.h;
 
         const isOverlap = layout.some(
-            (item) => item.x < x + w && item.x + item.w > x && item.y < y + h && item.y + item.h > y
+            (item) =>
+                item.x < x + w && item.x + item.w > x && item.y < y + h && item.y + item.h > y,
         );
 
         const newItem = {
@@ -88,7 +95,7 @@ const BlogGridLayout = ({ userId, enableModal }) => {
 
     const renderGridItems = () => {
         return layout.map((item) => {
-            if (item.i !== '__dropping-elem__') {
+            if (item.i !== "__dropping-elem__") {
                 return (
                     <div key={item.i}>
                         <BlogLayoutItem
@@ -103,7 +110,7 @@ const BlogGridLayout = ({ userId, enableModal }) => {
     };
 
     return (
-        <div className='blog-area'>
+        <div className="blog-area">
             <ReactGridLayout
                 key={userId}
                 layout={layout}
@@ -114,13 +121,13 @@ const BlogGridLayout = ({ userId, enableModal }) => {
                 isDroppable={isBlogEditting}
                 isDraggable={isBlogEditting}
                 isResizable={isBlogEditting}
-                draggableHandle='.grid-item-text'
+                draggableHandle=".grid-item-text"
                 droppingItem={{
-                    i: '__dropping-elem__',
+                    i: "__dropping-elem__",
                     w: draggingItem ? draggingItem.w : 1,
                     h: draggingItem ? draggingItem.h : 1,
                 }}
-                compactType={'vertical'}
+                compactType={"vertical"}
                 onLayoutChange={onLayoutChange}
             >
                 {renderGridItems()}
