@@ -5,7 +5,7 @@ import './Login.scss';
 import { loginClient } from '../../utils/auth';
 import { useAuth } from '../../context';
 
-const Login = ({ onClose = () => { } }) => {
+const Login = ({ onClose = () => {} }) => {
     const { login } = useAuth();
 
     useEffect(() => {
@@ -128,8 +128,8 @@ const Login = ({ onClose = () => { } }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     loginId: userId,
-                    password: password
-                })
+                    password: password,
+                }),
             });
 
             if (response.ok) {
@@ -139,7 +139,7 @@ const Login = ({ onClose = () => { } }) => {
                 // Context에 저장할 데이터 구성
                 const payload = {
                     ...user,
-                    token: token
+                    token: token,
                 };
 
                 // 로그인 처리 (Context + LocalStorage 저장)
