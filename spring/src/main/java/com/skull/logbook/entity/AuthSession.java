@@ -43,6 +43,12 @@ public class AuthSession extends BaseUpdatedEntity {
 
     private Long replacedBySessionId;
 
+    // 비즈니스 로직: 세션 연장 (마지막 사용 시간 & Idle 만료 시간 갱신)
+    public void extendSession(long idleDurationHours) {
+        this.lastUserAt = LocalDateTime.now();
+        this.idleExpiredAt = LocalDateTime.now().plusHours(idleDurationHours);
+    }
+
     // 비즈니스 로직: 세션 만료 여부 확인
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(absoluteExpiresAt) || LocalDateTime.now().isAfter(idleExpiredAt);
