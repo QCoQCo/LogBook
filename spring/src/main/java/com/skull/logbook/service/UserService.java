@@ -87,8 +87,8 @@ public class UserService {
                 .refreshTokenHash(refreshTokenHash)
                 .issuedAt(java.time.LocalDateTime.now())
                 .lastUserAt(java.time.LocalDateTime.now())
-                .idleExpiredAt(java.time.LocalDateTime.now().plusHours(3)) // 예: 3시간
-                .absoluteExpiresAt(java.time.LocalDateTime.now().plusDays(2)) // 예: 2일
+                .idleExpiredAt(java.time.LocalDateTime.now().plusHours(6)) // 6시간
+                .absoluteExpiresAt(java.time.LocalDateTime.now().plusDays(2)) // 2일
                 .build();
 
         authSessionRepository.save(session);
@@ -143,6 +143,10 @@ public class UserService {
         if (session.getRevokedAt() != null) {
             throw new IllegalArgumentException("폐기된 세션입니다.");
         }
+
+        // [추가] 세션 연장 (활동 했으므로 6시간 더 늘려줌)
+        session.extendSession(6);
+
         // 세션 정보로 유저를 찾고 -> 새 Access Token 발급
         User user = userRepository.findById(session.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));

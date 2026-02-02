@@ -31,7 +31,9 @@ const SignUp = () => {
         switch (name) {
             case 'id':
                 if (!value.trim()) return 'ID를 입력하세요.';
-                if (!/^[a-z0-9]{6,15}$/.test(value)) return '...';
+                // 명확한 규칙으로 변경
+                if (!/^[a-z0-9]{6,15}$/.test(value))
+                    return '6~15자의 영문 소문자와 숫자만 사용 가능합니다.';
                 if (!isIdChecked) return 'ID 중복 확인을 해주세요.';
                 return '';
             case 'password':
@@ -46,8 +48,9 @@ const SignUp = () => {
             case 'email':
                 if (value && !emailRegex.test(value)) return '유효한 이메일을 입력하세요.';
                 return '';
-            case 'nickName':
+            case 'nickName': // 닉네임 케이스도 확인
                 if (!value.trim()) return '닉네임을 입력하세요.';
+                if (value.length < 2) return '닉네임은 2글자 이상이어야 합니다.';
                 if (!isNickNameChecked) return '닉네임 중복 확인을 해주세요.';
                 return '';
             default:
