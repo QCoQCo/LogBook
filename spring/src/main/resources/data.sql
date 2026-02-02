@@ -32,27 +32,27 @@ INSERT IGNORE INTO post (id, userId, title, content, createdAt, updatedAt, delet
 (30, 2, '대규모 트래픽 대응을 위한 캐시 전략', 'CDN, 애플리케이션 레벨 캐시, DB 캐시 전략을 조합해 대규모 트래픽을 효율적으로 처리하는 방법을 설명합니다.\n\n![캐시 전략 이미지](https://picsum.photos/seed/30/600/360)', '2023-06-01 06:00:00', '2023-06-01 06:00:00', NULL);
 
 -- user
-INSERT IGNORE INTO user (id, loginId, password, nickName, userEmail, profilePhoto, introduction, createdAt, updatedAt, deletedAt) VALUES
-(0, 'admin', '1234', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
-(1, 'musiclover', 'music123', '음악애호가', 'musiclover@example.com', NULL, '클래식과 재즈를 사랑하는 음악 애호가입니다.', '2024-12-01', '2024-12-15', NULL),
-(2, 'developer123', 'dev2024', '코딩하는개발자', 'developer@example.com', '/img/profile_dev.jpg', '풀스택 개발자로 새로운 기술에 관심이 많습니다.', '2024-11-15', '2024-12-20', NULL),
-(3, 'gameplayer', 'game456', '게임마스터', 'gamer@example.com', NULL, '게임과 음악을 결합한 OST를 좋아합니다.', '2024-10-20', '2024-12-18', NULL),
-(4, 'bookworm', 'book789', '독서광', 'bookworm@example.com', NULL, '책을 읽으며 듣는 배경음악을 찾고 있습니다.', '2024-09-10', '2024-12-22', NULL),
-(5, 'belldoor', 'wad', '종무니', 'belldoor@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
-(6, 'susybaka', '1234', 'CO_s_MOS', 'kumityou@example.com', '/img/b2.png', '$KULL조 조장', '2025-08-16', '2025-09-02', NULL),
-(7, 'devbhkim0707', '1234', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL),
-(8, 'ljh1234', '1234', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL);
+INSERT IGNORE INTO user (loginId, password, nickName, userEmail, profilePhoto, introduction, createdAt, updatedAt, deletedAt) VALUES
+('admin', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
+('musiclover', '$2b$12$cCJWK5/TKQrMu2pDUyqyXO3U2.//My7ZPVmZBQIYXpEk84CD9esGa', '음악애호가', 'musiclover@example.com', NULL, '클래식과 재즈를 사랑하는 음악 애호가입니다.', '2024-12-01', '2024-12-15', NULL),
+('developer123', '$2b$12$tB0JnIrmdj6mZiLZ1wWWhOi8Kaeb2iER2xND325aNYqbWXW1OyV3K', '코딩하는개발자', 'developer@example.com', '/img/profile_dev.jpg', '풀스택 개발자로 새로운 기술에 관심이 많습니다.', '2024-11-15', '2024-12-20', NULL),
+('gameplayer', '$2b$12$a2/sIohD6nMG/7qXGGAfgO1qIPudi6mZ8HXz02li1IsgQzjK.NRRa', '게임마스터', 'gamer@example.com', NULL, '게임과 음악을 결합한 OST를 좋아합니다.', '2024-10-20', '2024-12-18', NULL),
+('bookworm', '$2b$12$AcjDcLPKaMXeRBtpg3No3eboEuzmfAcq2EIcvata4.wXxLZOae1pu', '독서광', 'bookworm@example.com', NULL, '책을 읽으며 듣는 배경음악을 찾고 있습니다.', '2024-09-10', '2024-12-22', NULL),
+('belldoor', '$2b$12$kIekt/RKF2NMRcyXrJiN/OdSrhNBci.0OROEYP0kyuNVXo.lIvLqC', '종무니', 'belldoor@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
+('susybaka', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'CO_s_MOS', 'kumityou@example.com', '/img/b2.png', '$KULL조 조장', '2025-08-16', '2025-09-02', NULL),
+('devbhkim0707', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL),
+('ljh1234', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL);
 
 /*
-(0, 'admin', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
-(1, 'musiclover', '$2b$12$cCJWK5/TKQrMu2pDUyqyXO3U2.//My7ZPVmZBQIYXpEk84CD9esGa', '음악애호가', 'musiclover@example.com', NULL, '클래식과 재즈를 사랑하는 음악 애호가입니다.', '2024-12-01', '2024-12-15', NULL),
-(2, 'developer123', '$2b$12$tB0JnIrmdj6mZiLZ1wWWhOi8Kaeb2iER2xND325aNYqbWXW1OyV3K', '코딩하는개발자', 'developer@example.com', '/img/profile_dev.jpg', '풀스택 개발자로 새로운 기술에 관심이 많습니다.', '2024-11-15', '2024-12-20', NULL),
-(3, 'gameplayer', '$2b$12$a2/sIohD6nMG/7qXGGAfgO1qIPudi6mZ8HXz02li1IsgQzjK.NRRa', '게임마스터', 'gamer@example.com', NULL, '게임과 음악을 결합한 OST를 좋아합니다.', '2024-10-20', '2024-12-18', NULL),
-(4, 'bookworm', '$2b$12$AcjDcLPKaMXeRBtpg3No3eboEuzmfAcq2EIcvata4.wXxLZOae1pu', '독서광', 'bookworm@example.com', NULL, '책을 읽으며 듣는 배경음악을 찾고 있습니다.', '2024-09-10', '2024-12-22', NULL),
-(5, 'belldoor', '$2b$12$kIekt/RKF2NMRcyXrJiN/OdSrhNBci.0OROEYP0kyuNVXo.lIvLqC', '종무니', 'belldoor@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
-(6, 'susybaka', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'CO_s_MOS', 'kumityou@example.com', '/img/b2.png', '$KULL조 조장', '2025-08-16', '2025-09-02', NULL),
-(7, 'devbhkim0707', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL),
-(8, 'ljh1234', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL);
+('admin', '1234', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
+('musiclover', 'music123', '음악애호가', 'musiclover@example.com', NULL, '클래식과 재즈를 사랑하는 음악 애호가입니다.', '2024-12-01', '2024-12-15', NULL),
+('developer123', 'dev2024', '코딩하는개발자', 'developer@example.com', '/img/profile_dev.jpg', '풀스택 개발자로 새로운 기술에 관심이 많습니다.', '2024-11-15', '2024-12-20', NULL),
+('gameplayer', 'game456', '게임마스터', 'gamer@example.com', NULL, '게임과 음악을 결합한 OST를 좋아합니다.', '2024-10-20', '2024-12-18', NULL),
+('bookworm', 'book789', '독서광', 'bookworm@example.com', NULL, '책을 읽으며 듣는 배경음악을 찾고 있습니다.', '2024-09-10', '2024-12-22', NULL),
+('belldoor', 'wad', '종무니', 'belldoor@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
+('susybaka', '1234', 'CO_s_MOS', 'kumityou@example.com', '/img/b2.png', '$KULL조 조장', '2025-08-16', '2025-09-02', NULL),
+('devbhkim0707', '1234', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL),
+('ljh1234', '1234', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL);
 */
 -- Playlist Data
 INSERT IGNORE INTO playlist (id, userId, title, createdAt, updatedAt, deletedAt) VALUES
