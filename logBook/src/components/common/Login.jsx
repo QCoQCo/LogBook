@@ -5,7 +5,7 @@ import './Login.scss';
 import { loginClient } from '../../utils/auth';
 import { useAuth } from '../../context';
 
-const Login = ({ onClose = () => {} }) => {
+const Login = ({ onClose = () => { } }) => {
     const { login } = useAuth();
 
     useEffect(() => {
@@ -145,7 +145,7 @@ const Login = ({ onClose = () => {} }) => {
                 // 로그인 처리 (Context + LocalStorage 저장)
                 login(payload, true);
                 onClose();
-                navigate(`/blog?userId=${user.id}`);
+                navigate(`/blog?userId=${user.loginId}`);
             } else {
                 setError('아이디 또는 비밀번호가 일치하지 않습니다.');
             }
