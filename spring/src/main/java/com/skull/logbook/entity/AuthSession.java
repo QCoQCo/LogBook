@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "auth_sessions")
+@Table(name = "authSessions")
 @EntityListeners(AuditingEntityListener.class)
 public class AuthSession extends BaseUpdatedEntity {
 
