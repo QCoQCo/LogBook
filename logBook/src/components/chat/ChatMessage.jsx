@@ -70,10 +70,10 @@ const ChatMessage = ({
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // 프로필 클릭 핸들러 메모이제이션
+    // 프로필 클릭 핸들러 메모이제이션 (백엔드와 동일하게 userId, nickName 사용)
     const handleProfileClick = useCallback(
-        (userId, userName) => {
-            const userInfo = getUserInfo(userId, userName);
+        (userId, nickName) => {
+            const userInfo = getUserInfo(userId, nickName);
             if (userInfo) {
                 setSelectedUser(userInfo);
                 setIsModalOpen(true);
@@ -114,7 +114,10 @@ const ChatMessage = ({
             // 로그인한 사용자만 메시지 소유권 확인 (sessionId 로직 제거)
             const isOwnMessage = currentUser.id && message.userId === currentUser.id;
 
-            const profilePhoto = !isOwnMessage ? getUserProfilePhoto(message.userId) : null;
+            const displayNickName = message.nickName ?? message.userName;
+            const profilePhoto = !isOwnMessage
+                ? getUserProfilePhoto(message.userId, displayNickName)
+                : null;
 
             // 음악 공유 메시지 파싱
             let musicData = null;
@@ -136,6 +139,7 @@ const ChatMessage = ({
                 ...message,
                 isOwnMessage,
                 profilePhoto,
+                displayNickName,
                 isMusicShare,
                 musicData,
                 displayText,
@@ -159,21 +163,26 @@ const ChatMessage = ({
                             <div className='profile-photo-container'>
                                 <img
                                     src={message.profilePhoto || '/img/userProfile-ex.png'}
-                                    alt={`${message.userName}의 프로필`}
+                                    alt={`${message.displayNickName}의 프로필`}
                                     className='profile-photo clickable'
                                     onClick={() =>
-                                        handleProfileClick(message.userId, message.userName)
+                                        handleProfileClick(
+                                            message.userId,
+                                            message.nickName ?? message.userName
+                                        )
                                     }
                                     onError={(e) => {
                                         e.target.style.display = 'none';
                                     }}
-                                    title={`${message.userName}의 프로필 보기`}
+                                    title={`${message.displayNickName}의 프로필 보기`}
                                 />
                             </div>
                         )}
                         <div className='message-content-wrapper'>
                             <div className='message-header'>
-                                <span className='user-name'>{message.userName}</span>
+                                <span className='user-name'>
+                                    {message.displayNickName ?? message.userName}
+                                </span>
                                 <span className='timestamp'>
                                     {formatMessageTimestamp(message.timestamp)}
                                 </span>

@@ -50,31 +50,31 @@ export const UserDataProvider = ({ children }) => {
         return map;
     }, [userData]);
 
-    // userId 또는 userName으로 사용자 프로필 사진 가져오기 (성능 최적화)
+    // userId 또는 nickName으로 사용자 프로필 사진 가져오기 (백엔드 nickName과 동일)
     const getUserProfilePhoto = useCallback(
-        (userId, userName) => {
+        (userId, nickName) => {
             // 게스트 사용자인 경우 null 반환
             if (isGuestUser(userId)) {
                 return null;
             }
 
             // Map을 사용하여 O(1) 검색
-            const user = userDataMap.get(userId) || userDataMap.get(userName);
+            const user = userDataMap.get(userId) || userDataMap.get(nickName);
             return user?.profilePhoto || null;
         },
         [userDataMap]
     );
 
-    // 사용자 정보 전체 가져오기 (성능 최적화)
+    // 사용자 정보 전체 가져오기 (백엔드 nickName과 동일)
     const getUserInfo = useCallback(
-        (userId, userName) => {
+        (userId, nickName) => {
             // 게스트 사용자인 경우 null 반환
             if (isGuestUser(userId)) {
                 return null;
             }
 
             // Map을 사용하여 O(1) 검색
-            return userDataMap.get(userId) || userDataMap.get(userName) || null;
+            return userDataMap.get(userId) || userDataMap.get(nickName) || null;
         },
         [userDataMap]
     );
