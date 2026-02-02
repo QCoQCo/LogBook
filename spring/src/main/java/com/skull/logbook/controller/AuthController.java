@@ -105,10 +105,11 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("message", "리프레시 토큰이 없습니다."));
         }
         try {
-            String newAccessToken = userService.refreshToken(refreshToken);
+            // [변경] JwtTokenProvider의 refreshToken을 직접 호출하거나 UserService를 거침
+            String newAccessToken = userService.refreshAccessToken(refreshToken);
             return ResponseEntity.ok(Map.of("token", newAccessToken));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("message", "토큰 갱신 실패: " + e.getMessage()));
         }
     }
 }

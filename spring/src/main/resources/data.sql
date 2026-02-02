@@ -32,16 +32,16 @@ INSERT IGNORE INTO post (id, userId, title, content, createdAt, updatedAt, delet
 (30, 2, '대규모 트래픽 대응을 위한 캐시 전략', 'CDN, 애플리케이션 레벨 캐시, DB 캐시 전략을 조합해 대규모 트래픽을 효율적으로 처리하는 방법을 설명합니다.\n\n![캐시 전략 이미지](https://picsum.photos/seed/30/600/360)', '2023-06-01 06:00:00', '2023-06-01 06:00:00', NULL);
 
 -- user
-INSERT IGNORE INTO user (loginId, password, nickName, userEmail, profilePhoto, introduction, createdAt, updatedAt, deletedAt) VALUES
-('admin', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
-('musiclover', '$2b$12$cCJWK5/TKQrMu2pDUyqyXO3U2.//My7ZPVmZBQIYXpEk84CD9esGa', '음악애호가', 'musiclover@example.com', NULL, '클래식과 재즈를 사랑하는 음악 애호가입니다.', '2024-12-01', '2024-12-15', NULL),
-('developer123', '$2b$12$tB0JnIrmdj6mZiLZ1wWWhOi8Kaeb2iER2xND325aNYqbWXW1OyV3K', '코딩하는개발자', 'developer@example.com', '/img/profile_dev.jpg', '풀스택 개발자로 새로운 기술에 관심이 많습니다.', '2024-11-15', '2024-12-20', NULL),
-('gameplayer', '$2b$12$a2/sIohD6nMG/7qXGGAfgO1qIPudi6mZ8HXz02li1IsgQzjK.NRRa', '게임마스터', 'gamer@example.com', NULL, '게임과 음악을 결합한 OST를 좋아합니다.', '2024-10-20', '2024-12-18', NULL),
-('bookworm', '$2b$12$AcjDcLPKaMXeRBtpg3No3eboEuzmfAcq2EIcvata4.wXxLZOae1pu', '독서광', 'bookworm@example.com', NULL, '책을 읽으며 듣는 배경음악을 찾고 있습니다.', '2024-09-10', '2024-12-22', NULL),
-('belldoor', '$2b$12$kIekt/RKF2NMRcyXrJiN/OdSrhNBci.0OROEYP0kyuNVXo.lIvLqC', '종무니', 'belldoor@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
-('susybaka', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'CO_s_MOS', 'kumityou@example.com', '/img/b2.png', '$KULL조 조장', '2025-08-16', '2025-09-02', NULL),
-('devbhkim0707', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL),
-('ljh1234', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL);
+INSERT IGNORE INTO user (id, loginId, password, nickName, userEmail, profilePhoto, introduction, createdAt, updatedAt, deletedAt) VALUES
+(1, 'admin', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
+(2, 'musiclover', '$2b$12$cCJWK5/TKQrMu2pDUyqyXO3U2.//My7ZPVmZBQIYXpEk84CD9esGa', '음악애호가', 'musiclover@example.com', NULL, '클래식과 재즈를 사랑하는 음악 애호가입니다.', '2024-12-01', '2024-12-15', NULL),
+(3, 'developer123', '$2b$12$tB0JnIrmdj6mZiLZ1wWWhOi8Kaeb2iER2xND325aNYqbWXW1OyV3K', '코딩하는개발자', 'developer@example.com', '/img/profile_dev.jpg', '풀스택 개발자로 새로운 기술에 관심이 많습니다.', '2024-11-15', '2024-12-20', NULL),
+(4, 'gameplayer', '$2b$12$a2/sIohD6nMG/7qXGGAfgO1qIPudi6mZ8HXz02li1IsgQzjK.NRRa', '게임마스터', 'gamer@example.com', NULL, '게임과 음악을 결합한 OST를 좋아합니다.', '2024-10-20', '2024-12-18', NULL),
+(5, 'bookworm', '$2b$12$AcjDcLPKaMXeRBtpg3No3eboEuzmfAcq2EIcvata4.wXxLZOae1pu', '독서광', 'bookworm@example.com', NULL, '책을 읽으며 듣는 배경음악을 찾고 있습니다.', '2024-09-10', '2024-12-22', NULL),
+(6, 'belldoor', '$2b$12$kIekt/RKF2NMRcyXrJiN/OdSrhNBci.0OROEYP0kyuNVXo.lIvLqC', '종무니', 'belldoor@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
+(7, 'susybaka', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'CO_s_MOS', 'kumityou@example.com', '/img/b2.png', '$KULL조 조장', '2025-08-16', '2025-09-02', NULL),
+(8, 'devbhkim0707', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL),
+(9, 'ljh1234', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL);
 
 /*
 ('admin', '1234', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
@@ -56,75 +56,75 @@ INSERT IGNORE INTO user (loginId, password, nickName, userEmail, profilePhoto, i
 */
 -- Playlist Data
 INSERT IGNORE INTO playlist (id, userId, title, createdAt, updatedAt, deletedAt) VALUES
-(1, 1, 'My Favorite Songs', NOW(), NOW(), NULL),
-(2, 1, 'My Favorite Songs2', NOW(), NOW(), NULL),
-(3, 0, 'My Favorite Songs', NOW(), NOW(), NULL),
-(4, 6, 'My Favorite Songs1', NOW(), NOW(), NULL),
-(5, 6, 'My Favorite Songs2', NOW(), NOW(), NULL),
-(6, 2, '힙한척 할때 듣는 플리', NOW(), NOW(), NULL),
-(7, 2, '십덕 플리', NOW(), NOW(), NULL);
+(1, 2, 'My Favorite Songs', NOW(), NOW(), NULL),
+(2, 2, 'My Favorite Songs2', NOW(), NOW(), NULL),
+(3, 1, 'My Favorite Songs', NOW(), NOW(), NULL),
+(4, 7, 'My Favorite Songs1', NOW(), NOW(), NULL),
+(5, 7, 'My Favorite Songs2', NOW(), NOW(), NULL),
+(6, 3, '힙한척 할때 듣는 플리', NOW(), NOW(), NULL),
+(7, 3, '십덕 플리', NOW(), NOW(), NULL);
 
 -- Playlist Item Data
 -- Playlist 1 (musiclover: My Favorite Songs)
-INSERT IGNORE INTO playlistItem (playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
-(1, 'Official髭男dism - イエスタデイ［Official Video］', 'https://www.youtube.com/watch?v=DuMqFknYHBs&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=3', 'https://i.ytimg.com/vi/DuMqFknYHBs/hqdefault.jpg', 1, '2023-10-01 12:00:00', NOW(), NULL),
-(1, '春を告げる', 'https://www.youtube.com/watch?v=EwpKUV0ECvQ&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=1', 'https://i.ytimg.com/vi/EwpKUV0ECvQ/hqdefault.jpg', 2, '2023-10-02 12:00:00', NOW(), NULL),
-(1, 'yama『us』Music Video', 'https://www.youtube.com/watch?v=f8dw0JS3Yrg&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=2', 'https://i.ytimg.com/vi/f8dw0JS3Yrg/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
-(1, 'Ao To Natsu', 'https://www.youtube.com/watch?v=-QxMzUEJH4Q&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=4', 'https://i.ytimg.com/vi/-QxMzUEJH4Q/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
-(1, 'Mrs. GREEN APPLE「ライラック」Official Music Video', 'https://www.youtube.com/watch?v=QjrkrVmC-8M&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=5', 'https://i.ytimg.com/vi/QjrkrVmC-8M/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL),
-(1, 'Sukidakara', 'https://www.youtube.com/watch?v=SVkGRoLicuA&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=6', 'https://i.ytimg.com/vi/SVkGRoLicuA/hqdefault.jpg', 6, '2023-10-02 12:00:00', NOW(), NULL);
+INSERT IGNORE INTO playlistItem (id, playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
+(1, 1, 'Official髭男dism - イエスタデイ［Official Video］', 'https://www.youtube.com/watch?v=DuMqFknYHBs&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=3', 'https://i.ytimg.com/vi/DuMqFknYHBs/hqdefault.jpg', 1, '2023-10-01 12:00:00', NOW(), NULL),
+(2, 1, '春を告げる', 'https://www.youtube.com/watch?v=EwpKUV0ECvQ&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=1', 'https://i.ytimg.com/vi/EwpKUV0ECvQ/hqdefault.jpg', 2, '2023-10-02 12:00:00', NOW(), NULL),
+(3, 1, 'yama『us』Music Video', 'https://www.youtube.com/watch?v=f8dw0JS3Yrg&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=2', 'https://i.ytimg.com/vi/f8dw0JS3Yrg/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
+(4, 1, 'Ao To Natsu', 'https://www.youtube.com/watch?v=-QxMzUEJH4Q&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=4', 'https://i.ytimg.com/vi/-QxMzUEJH4Q/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
+(5, 1, 'Mrs. GREEN APPLE「ライラック」Official Music Video', 'https://www.youtube.com/watch?v=QjrkrVmC-8M&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=5', 'https://i.ytimg.com/vi/QjrkrVmC-8M/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL),
+(6, 1, 'Sukidakara', 'https://www.youtube.com/watch?v=SVkGRoLicuA&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=6', 'https://i.ytimg.com/vi/SVkGRoLicuA/hqdefault.jpg', 6, '2023-10-02 12:00:00', NOW(), NULL);
 
 -- Playlist 2 (musiclover: My Favorite Songs2)
-INSERT IGNORE INTO playlistItem (playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
-(2, 'Official髭男dism - イエスタデイ［Official Video］', 'https://www.youtube.com/watch?v=DuMqFknYHBs&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=3', 'https://i.ytimg.com/vi/DuMqFknYHBs/hqdefault.jpg', 1, '2023-10-01 12:00:00', NOW(), NULL),
-(2, '春を告げる', 'https://www.youtube.com/watch?v=EwpKUV0ECvQ&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=1', 'https://i.ytimg.com/vi/EwpKUV0ECvQ/hqdefault.jpg', 2, '2023-10-02 12:00:00', NOW(), NULL),
-(2, 'yama『us』Music Video', 'https://www.youtube.com/watch?v=f8dw0JS3Yrg&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=2', 'https://i.ytimg.com/vi/f8dw0JS3Yrg/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
-(2, 'Ao To Natsu', 'https://www.youtube.com/watch?v=-QxMzUEJH4Q&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=4', 'https://i.ytimg.com/vi/-QxMzUEJH4Q/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
-(2, 'Mrs. GREEN APPLE「ライラック」Official Music Video', 'https://www.youtube.com/watch?v=QjrkrVmC-8M&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=5', 'https://i.ytimg.com/vi/QjrkrVmC-8M/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL);
+INSERT IGNORE INTO playlistItem (id, playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
+(7, 2, 'Official髭男dism - イエスタデイ［Official Video］', 'https://www.youtube.com/watch?v=DuMqFknYHBs&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=3', 'https://i.ytimg.com/vi/DuMqFknYHBs/hqdefault.jpg', 1, '2023-10-01 12:00:00', NOW(), NULL),
+(8, 2, '春を告げる', 'https://www.youtube.com/watch?v=EwpKUV0ECvQ&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=1', 'https://i.ytimg.com/vi/EwpKUV0ECvQ/hqdefault.jpg', 2, '2023-10-02 12:00:00', NOW(), NULL),
+(9, 2, 'yama『us』Music Video', 'https://www.youtube.com/watch?v=f8dw0JS3Yrg&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=2', 'https://i.ytimg.com/vi/f8dw0JS3Yrg/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
+(10, 2, 'Ao To Natsu', 'https://www.youtube.com/watch?v=-QxMzUEJH4Q&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=4', 'https://i.ytimg.com/vi/-QxMzUEJH4Q/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
+(11, 2, 'Mrs. GREEN APPLE「ライラック」Official Music Video', 'https://www.youtube.com/watch?v=QjrkrVmC-8M&list=RDEMOUUs13oBBDlU6w0K1oDe6g&index=5', 'https://i.ytimg.com/vi/QjrkrVmC-8M/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL);
 
 -- Playlist 3 (admin: My Favorite Songs)
-INSERT IGNORE INTO playlistItem (playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
-(3, 'Wrong Right Now', 'https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ', 'https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg', 1, '2023-10-01 12:00:00', NOW(), NULL),
-(3, 'Honky Tonk World', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 2, '2023-10-02 12:00:00', NOW(), NULL),
-(3, 'Someday', 'https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
-(3, 'Hips Don''t Lie', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
-(3, 'Take Me Home Country Roads', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL);
+INSERT IGNORE INTO playlistItem (id, playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
+(12, 3, 'Wrong Right Now', 'https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ', 'https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg', 1, '2023-10-01 12:00:00', NOW(), NULL),
+(13, 3, 'Honky Tonk World', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 2, '2023-10-02 12:00:00', NOW(), NULL),
+(14, 3, 'Someday', 'https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
+(15, 3, 'Hips Don''t Lie', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL),
+(16, 3, 'Take Me Home Country Roads', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 6, '2023-10-02 12:00:00', NOW(), NULL);
 
 -- Playlist 4 (susybaka: My Favorite Songs1)
-INSERT IGNORE INTO playlistItem (playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
-(4, 'Back Porch', 'https://youtu.be/4VeeXAVQe-8?list=PLcb9huQ-qWFjDcdQ_K_9708MZcocmHJOY', 'https://i.ytimg.com/vi/4VeeXAVQe-8/hqdefault.jpg', 1, '2023-10-02 12:00:00', NOW(), NULL),
-(4, 'Wrong Right Now', 'https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ', 'https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg', 2, '2023-10-01 12:00:00', NOW(), NULL),
-(4, 'Honky Tonk World', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
-(4, 'Someday', 'https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
-(4, 'Hips Don''t Lie', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL),
-(4, 'Take Me Home Country Roads', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 6, '2023-10-02 12:00:00', NOW(), NULL);
+INSERT IGNORE INTO playlistItem (id, playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
+(17, 4, 'Back Porch', 'https://youtu.be/4VeeXAVQe-8?list=PLcb9huQ-qWFjDcdQ_K_9708MZcocmHJOY', 'https://i.ytimg.com/vi/4VeeXAVQe-8/hqdefault.jpg', 1, '2023-10-02 12:00:00', NOW(), NULL),
+(18, 4, 'Wrong Right Now', 'https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ', 'https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg', 2, '2023-10-01 12:00:00', NOW(), NULL),
+(19, 4, 'Honky Tonk World', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
+(20, 4, 'Someday', 'https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
+(21, 4, 'Hips Don''t Lie', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL),
+(22, 4, 'Take Me Home Country Roads', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 6, '2023-10-02 12:00:00', NOW(), NULL);
 
 -- Playlist 5 (susybaka: My Favorite Songs2)
-INSERT IGNORE INTO playlistItem (playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
-(5, 'Wrong Right Now', 'https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ', 'https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg', 1, '2023-10-01 12:00:00', NOW(), NULL),
-(5, 'Honky Tonk World', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 2, '2023-10-02 12:00:00', NOW(), NULL),
-(5, 'Someday', 'https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
-(5, 'Hips Don''t Lie', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
-(5, 'Take Me Home Country Roads', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL);
+INSERT IGNORE INTO playlistItem (id, playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
+(23, 5, 'Wrong Right Now', 'https://youtu.be/4ejsUl4XBDI?list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ', 'https://i.ytimg.com/vi/4ejsUl4XBDI/hqdefault.jpg', 1, '2023-10-01 12:00:00', NOW(), NULL),
+(24, 5, 'Honky Tonk World', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 2, '2023-10-02 12:00:00', NOW(), NULL),
+(25, 5, 'Someday', 'https://www.youtube.com/watch?v=5VJtCd0UT80&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=22&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 3, '2023-10-02 12:00:00', NOW(), NULL),
+(26, 5, 'Hips Don''t Lie', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 4, '2023-10-02 12:00:00', NOW(), NULL),
+(27, 5, 'Take Me Home Country Roads', 'https://www.youtube.com/watch?v=IBwY7utufQM&list=PLKyEJ1E1QXRg2xNOGj9IntUtdxPsb6OtJ&index=18&pp=gAQBiAQB', 'https://i.ytimg.com/vi/IBwY7utufQM/hqdefault.jpg', 5, '2023-10-02 12:00:00', NOW(), NULL);
 
 -- Playlist 6 (developer123: 힙한척 할때 듣는 플리)
-INSERT IGNORE INTO playlistItem (playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
-(6, 'Red Hot Chili Peppers - Dark Necessities [OFFICIAL AUDIO]', 'https://www.youtube.com/watch?v=qJ_Tw0w3lLA&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0', 'https://i.ytimg.com/vi/qJ_Tw0w3lLA/hqdefault.jpg', 1, '2025-09-13 14:15:08', NOW(), NULL),
-(6, 'Break', 'https://www.youtube.com/watch?v=sE0tKkHrwJo&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=10', 'https://i.ytimg.com/vi/sE0tKkHrwJo/hqdefault.jpg', 2, '2025-09-13 14:18:24', NOW(), NULL),
-(6, 'The Sun', 'https://www.youtube.com/watch?v=cnXVKlebQqc&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=39', 'https://i.ytimg.com/vi/cnXVKlebQqc/hqdefault.jpg', 3, '2025-09-13 14:18:38', NOW(), NULL),
-(6, '[M/V] 술탄 오브 더 디스코 - 사라지는 꿈', 'https://www.youtube.com/watch?v=7fsavq0mU2k&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=63', 'https://i.ytimg.com/vi/7fsavq0mU2k/hqdefault.jpg', 4, '2025-09-13 14:18:50', NOW(), NULL),
-(6, '[DADA/ARTIST] 아시안체어샷 (Asian Chairshot) - 꽃 (Flower)', 'https://www.youtube.com/watch?v=WP_tXVGufVw&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=123', 'https://i.ytimg.com/vi/WP_tXVGufVw/hqdefault.jpg', 5, '2025-09-13 14:19:13', NOW(), NULL);
+INSERT IGNORE INTO playlistItem (id, playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
+(28, 6, 'Red Hot Chili Peppers - Dark Necessities [OFFICIAL AUDIO]', 'https://www.youtube.com/watch?v=qJ_Tw0w3lLA&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0', 'https://i.ytimg.com/vi/qJ_Tw0w3lLA/hqdefault.jpg', 1, '2025-09-13 14:15:08', NOW(), NULL),
+(29, 6, 'Break', 'https://www.youtube.com/watch?v=sE0tKkHrwJo&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=10', 'https://i.ytimg.com/vi/sE0tKkHrwJo/hqdefault.jpg', 2, '2025-09-13 14:18:24', NOW(), NULL),
+(30, 6, 'The Sun', 'https://www.youtube.com/watch?v=cnXVKlebQqc&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=39', 'https://i.ytimg.com/vi/cnXVKlebQqc/hqdefault.jpg', 3, '2025-09-13 14:18:38', NOW(), NULL),
+(31, 6, '[M/V] 술탄 오브 더 디스코 - 사라지는 꿈', 'https://www.youtube.com/watch?v=7fsavq0mU2k&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=63', 'https://i.ytimg.com/vi/7fsavq0mU2k/hqdefault.jpg', 4, '2025-09-13 14:18:50', NOW(), NULL),
+(32, 6, '[DADA/ARTIST] 아시안체어샷 (Asian Chairshot) - 꽃 (Flower)', 'https://www.youtube.com/watch?v=WP_tXVGufVw&list=PLG74aF8jwoCNhOYZY3N7uwG2MuT41zOV0&index=123', 'https://i.ytimg.com/vi/WP_tXVGufVw/hqdefault.jpg', 5, '2025-09-13 14:19:13', NOW(), NULL);
 
 -- Playlist 7 (developer123: 십덕 플리)
-INSERT IGNORE INTO playlistItem (playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
-(7, 'うまぴょい伝説', 'https://www.youtube.com/watch?v=VFOg6mHtZcA&list=RDVFOg6mHtZcA&start_radio=1', 'https://i.ytimg.com/vi/VFOg6mHtZcA/hqdefault.jpg', 1, '2025-09-13 14:31:15', NOW(), NULL),
-(7, 'テトリス / 重音テトSV', 'https://www.youtube.com/watch?v=Soy4jGPHr3g&list=RDSoy4jGPHr3g&start_radio=1', 'https://i.ytimg.com/vi/Soy4jGPHr3g/hqdefault.jpg', 2, '2025-09-13 14:37:34', NOW(), NULL),
-(7, 'お願いマッスル', 'https://youtu.be/-Jget2NBi30?si=X_EQZIJmWW-r3ZIp', 'https://i.ytimg.com/vi/-Jget2NBi30/hqdefault.jpg', 3, '2025-09-13 14:33:03', NOW(), NULL),
-(7, 'DECO*27 - モニタリング (Best Friend Remix) feat. 初音ミク', 'https://www.youtube.com/watch?v=C-CYwNz3z8w&list=RDC-CYwNz3z8w&start_radio=1', 'https://i.ytimg.com/vi/C-CYwNz3z8w/hqdefault.jpg', 4, '2025-09-13 14:35:23', NOW(), NULL),
-(7, 'YOASOBI「アイドル」 Official Music Video', 'https://youtu.be/ZRtdQ81jPUQ?si=hezJb08AVq0OSewW', 'https://i.ytimg.com/vi/ZRtdQ81jPUQ/hqdefault.jpg', 5, '2025-09-13 14:31:42', NOW(), NULL),
-(7, 'fripSide - only my railgun (Audio)', 'https://youtu.be/ZhIxg6_Femo?si=aROnU-w6iiEf8PYw', 'https://i.ytimg.com/vi/ZhIxg6_Femo/hqdefault.jpg', 6, '2025-09-13 14:32:29', NOW(), NULL),
-(7, 'Koihakaosunoshimobenari', 'https://www.youtube.com/watch?v=Lcb7Za77lfw&list=PLoe0-nEh-V8f2Adl6S5sJYvBxRoqd589w', 'https://i.ytimg.com/vi/Lcb7Za77lfw/hqdefault.jpg', 7, '2025-09-13 14:34:26', NOW(), NULL),
-(7, 'TVアニメ『ダンダダン』HAYASii「Hunting Soul」【lyric video】', 'https://www.youtube.com/watch?v=XoodunTw0kw&list=RDXoodunTw0kw&start_radio=1', 'https://i.ytimg.com/vi/XoodunTw0kw/hqdefault.jpg', 8, '2025-09-13 14:36:46', NOW(), NULL);
+INSERT IGNORE INTO playlistItem (id, playId, title, link, thumbnail, seq, createdAt, updatedAt, deletedAt) VALUES
+(33, 7, 'うまぴょい伝説', 'https://www.youtube.com/watch?v=VFOg6mHtZcA&list=RDVFOg6mHtZcA&start_radio=1', 'https://i.ytimg.com/vi/VFOg6mHtZcA/hqdefault.jpg', 1, '2025-09-13 14:31:15', NOW(), NULL),
+(34, 7, 'テトリス / 重音テトSV', 'https://www.youtube.com/watch?v=Soy4jGPHr3g&list=RDSoy4jGPHr3g&start_radio=1', 'https://i.ytimg.com/vi/Soy4jGPHr3g/hqdefault.jpg', 2, '2025-09-13 14:37:34', NOW(), NULL),
+(35, 7, 'お願いマッスル', 'https://youtu.be/-Jget2NBi30?si=X_EQZIJmWW-r3ZIp', 'https://i.ytimg.com/vi/-Jget2NBi30/hqdefault.jpg', 3, '2025-09-13 14:33:03', NOW(), NULL),
+(36, 7, 'DECO*27 - モニタリング (Best Friend Remix) feat. 初音ミク', 'https://www.youtube.com/watch?v=C-CYwNz3z8w&list=RDC-CYwNz3z8w&start_radio=1', 'https://i.ytimg.com/vi/C-CYwNz3z8w/hqdefault.jpg', 4, '2025-09-13 14:35:23', NOW(), NULL),
+(37, 7, 'YOASOBI「アイドル」 Official Music Video', 'https://youtu.be/ZRtdQ81jPUQ?si=hezJb08AVq0OSewW', 'https://i.ytimg.com/vi/ZRtdQ81jPUQ/hqdefault.jpg', 5, '2025-09-13 14:31:42', NOW(), NULL),
+(38, 7, 'fripSide - only my railgun (Audio)', 'https://youtu.be/ZhIxg6_Femo?si=aROnU-w6iiEf8PYw', 'https://i.ytimg.com/vi/ZhIxg6_Femo/hqdefault.jpg', 6, '2025-09-13 14:32:29', NOW(), NULL),
+(39, 7, 'Koihakaosunoshimobenari', 'https://www.youtube.com/watch?v=Lcb7Za77lfw&list=PLoe0-nEh-V8f2Adl6S5sJYvBxRoqd589w', 'https://i.ytimg.com/vi/Lcb7Za77lfw/hqdefault.jpg', 7, '2025-09-13 14:34:26', NOW(), NULL),
+(40, 7, 'TVアニメ『ダンダダン』HAYASii「Hunting Soul」【lyric video】', 'https://www.youtube.com/watch?v=XoodunTw0kw&list=RDXoodunTw0kw&start_radio=1', 'https://i.ytimg.com/vi/XoodunTw0kw/hqdefault.jpg', 8, '2025-09-13 14:36:46', NOW(), NULL);
 -- blog
 INSERT IGNORE INTO blog (userId, layout, createdAt, updatedAt, deletedAt) VALUES
     (
