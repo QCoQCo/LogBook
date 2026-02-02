@@ -24,7 +24,9 @@ const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
                 const sortedUsers = activeUsers.sort((a, b) => {
                     if (a.id === currentUser?.id) return -1;
                     if (b.id === currentUser?.id) return 1;
-                    return a.name.localeCompare(b.name);
+                    const aName = a.nickName ?? a.name ?? '';
+                    const bName = b.nickName ?? b.name ?? '';
+                    return aName.localeCompare(bName);
                 });
 
                 setUsers(sortedUsers);
@@ -52,7 +54,7 @@ const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
     };
 
     const UserProfilePhoto = (user) => {
-        return getUserProfilePhoto(user.id, user.name);
+        return getUserProfilePhoto(user.id, user.nickName ?? user.name);
     };
 
     // ESC 키로 모달 닫기
@@ -159,7 +161,7 @@ const ChatRoomUsersModal = ({ isOpen, onClose, roomName, currentUser }) => {
 
                                             <div className='user-info'>
                                                 <div className='user-name'>
-                                                    {user.name}
+                                                    {user.nickName ?? user.name}
                                                     {user.id === currentUser?.id && (
                                                         <span className='current-user-badge'>
                                                             (나)
