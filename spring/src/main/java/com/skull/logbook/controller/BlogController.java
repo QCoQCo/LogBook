@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/blog")
+@RequestMapping("/blogs")
 @RequiredArgsConstructor
 public class BlogController {
     private final BlogService blogService;
 
-    @GetMapping("/{userId}")
+    @GetMapping("/{loginId}")
     public ResponseEntity getBlog(
-            @PathVariable Long userId
+            @PathVariable String loginId
     ) {
-        BlogLayoutDto blogLayout = blogService.getBlogData(userId);
+        BlogLayoutDto blogLayout = blogService.getBlogData(loginId);
 
         return ResponseEntity.ok(blogLayout);
     }
