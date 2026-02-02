@@ -5,7 +5,7 @@ const UserDataContext = createContext();
 
 // 공통 유틸리티 함수들
 const isGuestUser = (userId) => {
-    return !userId || userId.startsWith('guest_');
+    return !userId || (typeof userId === 'string' && userId.startsWith('guest_'));
 };
 
 export const UserDataProvider = ({ children }) => {

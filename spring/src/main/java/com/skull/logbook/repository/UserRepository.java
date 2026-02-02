@@ -5,11 +5,13 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.skull.logbook.entity.Users;
+import com.skull.logbook.entity.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<Users, Long> {
-    Optional<Users> findByLoginId(String loginId);
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByLoginId(String loginId);
 
-    Optional<Users> findByEmail(String email);
+    Optional<User> findByUserEmail(String userEmail);
+
+    boolean existsByNickName(String nickName);
 }
