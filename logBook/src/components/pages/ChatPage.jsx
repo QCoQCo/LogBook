@@ -42,6 +42,7 @@ const ChatPage = () => {
         messageInput: '',
         currentUser: {
             id: null,
+            loginId: null,
             nickName: null,
             sessionId: null,
         },
@@ -60,6 +61,7 @@ const ChatPage = () => {
             // 로그인한 사용자만 정보 설정
             const newUserData = {
                 id: authUser.id,
+                loginId: authUser.loginId ?? null,
                 nickName: authUser.nickName,
                 sessionId: null,
             };
@@ -78,6 +80,7 @@ const ChatPage = () => {
                 ...prev,
                 currentUser: {
                     id: null,
+                    loginId: null,
                     nickName: null,
                     sessionId: null,
                 },
@@ -176,7 +179,7 @@ const ChatPage = () => {
 
         // 현재 채팅방 입장 처리
         const handleCurrentRoomJoin = () => {
-            joinRoom(currentChatRoom.name, user.id, user.nickName, user.sessionId);
+            joinRoom(currentChatRoom.name, user.id, user.nickName, user.sessionId, user.loginId);
             setupPresenceHeartbeat(currentChatRoom.name, user.id);
         };
 
@@ -274,7 +277,8 @@ const ChatPage = () => {
                 messageInput,
                 currentUser.id,
                 currentUser.nickName,
-                currentUser.sessionId
+                currentUser.sessionId,
+                currentUser.loginId
             );
 
             setChatState((prev) => ({ ...prev, messageInput: '' }));

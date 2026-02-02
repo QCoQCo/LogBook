@@ -70,10 +70,10 @@ const ChatMessage = ({
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // 프로필 클릭 핸들러 메모이제이션 (백엔드와 동일하게 userId, nickName 사용)
+    // 프로필 클릭 핸들러 - loginId(문자열)로 UserDataContext 조회 (DB id가 아닌 loginId 사용)
     const handleProfileClick = useCallback(
-        (userId, nickName) => {
-            const userInfo = getUserInfo(userId, nickName);
+        (loginIdOrUserId, nickName) => {
+            const userInfo = getUserInfo(loginIdOrUserId, nickName);
             if (userInfo) {
                 setSelectedUser(userInfo);
                 setIsModalOpen(true);
@@ -115,8 +115,9 @@ const ChatMessage = ({
             const isOwnMessage = currentUser.id && message.userId === currentUser.id;
 
             const displayNickName = message.nickName ?? message.userName;
+            const loginIdForLookup = message.loginId ?? message.userId;
             const profilePhoto = !isOwnMessage
-                ? getUserProfilePhoto(message.userId, displayNickName)
+                ? getUserProfilePhoto(loginIdForLookup, displayNickName)
                 : null;
 
             // 음악 공유 메시지 파싱
@@ -167,7 +168,7 @@ const ChatMessage = ({
                                     className='profile-photo clickable'
                                     onClick={() =>
                                         handleProfileClick(
-                                            message.userId,
+                                            message.loginId ?? message.userId,
                                             message.nickName ?? message.userName
                                         )
                                     }

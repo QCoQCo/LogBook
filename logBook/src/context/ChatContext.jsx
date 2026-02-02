@@ -142,16 +142,24 @@ export const ChatProvider = ({ children }) => {
         [currentChatRoom, messagesUnsubscribe, usersUnsubscribe, currentUserId]
     );
 
-    // 메시지 전송 함수 (채팅방별) - 백엔드와 동일하게 userId, nickName 사용
+    // 메시지 전송 함수 (채팅방별) - userId=DB id, nickName, loginId=프로필 조회용
     const sendMessage = useCallback(
-        async (messageText, userId, nickName, port = null) => {
+        async (messageText, userId, nickName, port = null, loginId = null) => {
             if (!currentChatRoom) {
                 setError('채팅방이 선택되지 않았습니다.');
                 return;
             }
 
             await handleAsyncOperation(
-                () => sendMessageToRoom(currentChatRoom.name, messageText, userId, nickName, port),
+                () =>
+                    sendMessageToRoom(
+                        currentChatRoom.name,
+                        messageText,
+                        userId,
+                        nickName,
+                        port,
+                        loginId
+                    ),
                 setLoading,
                 setError,
                 '메시지 전송에 실패했습니다.'
@@ -259,10 +267,10 @@ export const ChatProvider = ({ children }) => {
         [currentChatRoom, chatRoomList]
     );
 
-    // 실시간 접속 유저 관리 함수들 - 백엔드와 동일하게 userId, nickName 사용
-    const joinRoom = useCallback(async (roomName, userId, nickName, port) => {
+    // 실시간 접속 유저 관리 함수들 - userId=DB id, nickName, loginId=프로필 조회용
+    const joinRoom = useCallback(async (roomName, userId, nickName, port, loginId = null) => {
         try {
-            await joinChatRoom(roomName, userId, nickName, port);
+            await joinChatRoom(roomName, userId, nickName, port, loginId);
             setCurrentUserId(userId);
         } catch (error) {
             console.error('채팅방 입장 오류:', error);

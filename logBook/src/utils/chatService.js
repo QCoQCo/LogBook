@@ -43,9 +43,10 @@ export const getChatRoomCollectionName = (roomName) => {
  * 특정 채팅방에 메시지 전송
  * @param {string} roomName - 채팅방 이름
  * @param {string} messageText - 메시지 내용
- * @param {string} userId - 사용자 ID (백엔드 id와 동일)
+ * @param {string|number} userId - 사용자 ID (백엔드 id, DB PK)
  * @param {string} nickName - 사용자 닉네임 (백엔드 nickName과 동일)
  * @param {string} sessionId - 세션 ID (비로그인 사용자용, 선택사항)
+ * @param {string} loginId - 로그인 ID (백엔드 loginId, 프로필 조회용)
  * @returns {Promise<string>} - 생성된 메시지 ID
  */
 export const sendMessageToRoom = async (
@@ -53,7 +54,8 @@ export const sendMessageToRoom = async (
     messageText,
     userId,
     nickName,
-    sessionId = null
+    sessionId = null,
+    loginId = null
 ) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
@@ -65,6 +67,7 @@ export const sendMessageToRoom = async (
             roomName: roomName,
             sessionId: sessionId,
             timestamp: serverTimestamp(),
+            ...(loginId != null && loginId !== '' && { loginId }),
         };
 
         const docRef = await addDoc(collection(db, collectionName), messageData);
@@ -425,12 +428,19 @@ export const deleteChatRoom = async (roomId) => {
 /**
  * 채팅방에 사용자 접속 등록 (더 강력한 presence 시스템)
  * @param {string} roomName - 채팅방 이름
- * @param {string} userId - 사용자 ID (백엔드 id와 동일)
+ * @param {string|number} userId - 사용자 ID (백엔드 id, DB PK)
  * @param {string} nickName - 사용자 닉네임 (백엔드 nickName과 동일)
  * @param {string} sessionId - 세션 ID (비로그인 사용자용, 선택사항)
+ * @param {string} loginId - 로그인 ID (백엔드 loginId, 프로필 조회용)
  * @returns {Promise<void>}
  */
-export const joinChatRoom = async (roomName, userId, nickName, sessionId = null) => {
+export const joinChatRoom = async (
+    roomName,
+    userId,
+    nickName,
+    sessionId = null,
+    loginId = null
+) => {
     try {
         const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
         const internalSessionId =
@@ -443,6 +453,7 @@ export const joinChatRoom = async (roomName, userId, nickName, sessionId = null)
                 userId,
                 nickName,
                 sessionId: internalSessionId, // 세션 ID 저장
+                ...(loginId != null && loginId !== '' && { loginId }),
                 joinedAt: serverTimestamp(),
                 lastSeen: serverTimestamp(),
                 isOnline: true,
@@ -561,6 +572,7 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                         activeUsers.push({
                             id: userData.userId,
                             nickName: userData.nickName ?? userData.userName ?? '',
+                            loginId: userData.loginId ?? null,
                             sessionId: userData.sessionId,
                             joinedAt: userData.joinedAt,
                             lastSeen: userData.lastSeen,

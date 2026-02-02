@@ -172,7 +172,9 @@ const UserPlaylist = ({ openYTPopup, playTrackInPopup, currentTrack, isPopupOpen
                     currentChatRoom.name,
                     JSON.stringify(shareMessage),
                     currentUser.id,
-                    currentUser.nickName
+                    currentUser.nickName,
+                    currentUser.sessionId ?? null,
+                    currentUser.loginId ?? null
                 );
 
                 // console.log('음악 공유 완료:', song.title);
