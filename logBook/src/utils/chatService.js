@@ -552,8 +552,9 @@ export const subscribeToRoomUsers = (roomName, onUsersUpdate, onError) => {
                     const timeDiff = now - lastSeen;
                     const isRecentlyActive = timeDiff < 2 * 60 * 1000; // 2분 이내 활동
 
-                    // 게스트 사용자(비로그인 사용자) 제외 - userId가 'guest_'로 시작하는 경우
-                    const isGuestUser = userData.userId && userData.userId.startsWith('guest_');
+                    // 게스트 사용자(비로그인 사용자) 제외 - userId가 'guest_'로 시작하는 경우 (userId는 숫자 또는 문자열일 수 있음)
+                    const userIdStr = userData.userId != null ? String(userData.userId) : '';
+                    const isGuestUser = userIdStr.startsWith('guest_');
 
                     // isOnline 상태와 최근 활동 시간 둘 다 확인하고, 게스트 사용자는 제외
                     if (userData.isOnline === true && isRecentlyActive && !isGuestUser) {
