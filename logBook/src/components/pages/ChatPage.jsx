@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useChat, useAuth, useYTPopup, useUserData, useUI } from '../../context';
-import { validateRoomPassword } from '../../utils/chatService';
+import { validateRoomPasswordViaApi } from '../../utils/chatService';
 import * as Chat from '../chat';
 
 import './ChatPage.scss';
@@ -465,17 +465,25 @@ const ChatPage = () => {
                     error: '',
                 });
             },
-            submit: () => {
+            submit: async () => {
                 const { selectedRoom, input } = passwordState;
                 if (!selectedRoom) return;
 
-                if (validateRoomPassword(selectedRoom, input)) {
-                    switchChatRoom(selectedRoom);
-                    passwordModalHandlers.close();
-                } else {
+                try {
+                    const valid = await validateRoomPasswordViaApi(selectedRoom.id, input);
+                    if (valid) {
+                        switchChatRoom(selectedRoom);
+                        passwordModalHandlers.close();
+                    } else {
+                        setPasswordState((prev) => ({
+                            ...prev,
+                            error: '비밀번호가 틀렸습니다.',
+                        }));
+                    }
+                } catch (err) {
                     setPasswordState((prev) => ({
                         ...prev,
-                        error: '비밀번호가 틀렸습니다.',
+                        error: '비밀번호 확인에 실패했습니다.',
                     }));
                 }
             },
