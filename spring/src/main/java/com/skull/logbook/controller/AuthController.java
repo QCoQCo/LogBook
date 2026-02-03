@@ -101,14 +101,18 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+        System.out.println(
+                "[AuthController] Refresh requested. Cookie: " + (refreshToken != null ? "Present" : "Missing"));
         if (refreshToken == null) {
             return ResponseEntity.status(401).body(Map.of("message", "리프레시 토큰이 없습니다."));
         }
         try {
-            // [변경] JwtTokenProvider의 refreshToken을 직접 호출하거나 UserService를 거침
-            String newAccessToken = userService.refreshAccessToken(refreshToken);
+            // [수정] UUID 기반 세션을 처리하는 refreshToken 메서드를 호출하도록 변경
+            String newAccessToken = userService.refreshToken(refreshToken);
+            System.out.println("[AuthController] Refresh Success");
             return ResponseEntity.ok(Map.of("token", newAccessToken));
         } catch (Exception e) {
+            System.out.println("[AuthController] Refresh Failed: " + e.getMessage());
             return ResponseEntity.status(401).body(Map.of("message", "토큰 갱신 실패: " + e.getMessage()));
         }
     }

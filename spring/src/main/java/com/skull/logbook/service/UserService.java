@@ -163,12 +163,4 @@ public class UserService {
                 principal.getAuthorities());
         return jwtTokenProvider.createToken(authentication);
     }
-
-    public String refreshAccessToken(String refreshToken) {
-        // 리프레시 토큰 검증 및 새 엑세스 토큰 발급 로직
-        if (jwtTokenProvider.validateToken(refreshToken)) {
-            return jwtTokenProvider.refreshToken(refreshToken);
-        }
-        throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
-    }
 }

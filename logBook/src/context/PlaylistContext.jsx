@@ -6,11 +6,17 @@ const PlaylistContext = createContext();
 export const PlaylistProvider = ({ children }) => {
     const [playlistsByUser, setPlaylistsByUser] = useState({});
 
-    // 0. 유저 ID 찾기
+    // 0. 유저 ID 찾기 (안정화: 숫자 ID 우선 검색하여 루프 방지)
     const findUserIdByPlayId = useCallback((playId) => {
         if (!playId) return null;
-        for (const [uid, lists] of Object.entries(playlistsByUser)) {
-            if (lists.some(pl => String(pl.playId) === String(playId))) return uid;
+        const entries = Object.entries(playlistsByUser);
+        // 1순위: 숫자(PK) 키에서 먼저 찾음
+        for (const [uid, lists] of entries) {
+            if (!isNaN(uid) && lists.some(pl => String(pl.playId) === String(playId))) return uid;
+        }
+        // 2순위: 그 외(아이디 등)에서 찾음
+        for (const [uid, lists] of entries) {
+            if (isNaN(uid) && lists.some(pl => String(pl.playId) === String(playId))) return uid;
         }
         return null;
     }, [playlistsByUser]);
@@ -59,7 +65,7 @@ export const PlaylistProvider = ({ children }) => {
             const mapped = {
                 playId: pl.id.toString(),
                 userId: pl.userId,
-                ownerLoginId: pl.ownerLoginId, // [추가]
+                ownerLoginId: pl.ownerLoginId,
                 title: pl.title,
                 songs: (pl.items || []).map((item) => ({
                     contentId: item.id.toString(),
@@ -69,13 +75,26 @@ export const PlaylistProvider = ({ children }) => {
                     SEQ: item.seq,
                 })),
             };
+
             setPlaylistsByUser((prev) => {
-                const uid = pl.userId;
-                const existing = prev[uid] || [];
-                const idx = existing.findIndex((p) => String(p.playId) === String(pl.id));
-                let newList = idx >= 0 ? [...existing] : [...existing, mapped];
-                if (idx >= 0) newList[idx] = mapped;
-                return { ...prev, [uid]: newList };
+                const newState = { ...prev };
+                const numericUid = pl.userId;
+                const loginUid = pl.ownerLoginId;
+
+                // 해당 유저의 모든 리스트에서 현재 항목 갱신
+                const updateList = (uid) => {
+                    if (!uid) return;
+                    const existing = newState[uid] || [];
+                    const idx = existing.findIndex((p) => String(p.playId) === String(pl.id));
+                    let newList = idx >= 0 ? [...existing] : [...existing, mapped];
+                    if (idx >= 0) newList[idx] = mapped;
+                    newState[uid] = newList;
+                };
+
+                updateList(numericUid);
+                updateList(loginUid);
+
+                return newState;
             });
             return mapped;
         } catch (err) {
@@ -155,26 +174,43 @@ export const PlaylistProvider = ({ children }) => {
     }, [fetchPlaylists, fetchPlaylistDetail, findUserIdByPlayId]);
 
     // 8. 플레이리스트 아이템(노래) 정보 일체 업데이트 (순서 변경 및 개별 수정 대응)
+    let isUpdatingOrder = false;
     const updatePlaylistSongs = useCallback(async (userId, playId, newSongs) => {
+        if (isUpdatingOrder) return;
+        isUpdatingOrder = true;
+
+        // [낙관적 업데이트] 메모리 상태 즉시 반영
+        setPlaylistsByUser((prev) => {
+            const uid = userId || findUserIdByPlayId(playId);
+            if (!uid) return prev;
+            const existing = prev[uid] || [];
+            const newList = existing.map(pl =>
+                String(pl.playId) === String(playId) ? { ...pl, songs: newSongs } : pl
+            );
+            return { ...prev, [uid]: newList };
+        });
+
         try {
-            // 순서(seq)나 제목 등이 변경된 것들을 하나씩 PATCH 호출 (백엔드 효율을 고려해 루프)
-            // 실제 프로젝트에서는 덤프를 한 번에 보내는 로직이 좋으나, 현재 백엔드 구조(개별 수정)에 맞춤
-            const promises = newSongs.map((song, index) => {
+            // [수정] 병렬(Promise.all) 대신 순차적 처리로 서버 부하 및 꼬임 방지
+            for (let i = 0; i < newSongs.length; i++) {
+                const song = newSongs[i];
                 const itemData = {
                     title: song.title,
                     link: song.link,
                     thumbnail: song.thumbnail,
-                    seq: index // SEQ 대신 index를 순서로 사용
+                    seq: i
                 };
-                return playlistService.updatePlaylistItem(song.contentId, itemData);
-            });
-            await Promise.all(promises);
+                await playlistService.updatePlaylistItem(song.contentId, itemData);
+            }
+            // 최종 정합성을 위해 백그라운드에서 리프레시
             await fetchPlaylists(userId);
             await fetchPlaylistDetail(playId);
         } catch (e) {
             console.error('updatePlaylistSongs error', e);
+        } finally {
+            isUpdatingOrder = false;
         }
-    }, [fetchPlaylists, fetchPlaylistDetail]);
+    }, [fetchPlaylists, fetchPlaylistDetail, findUserIdByPlayId]);
 
 
 

@@ -13,27 +13,55 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
 
+    const isTokenExpired = useCallback((token) => {
+        try {
+            if (!token) return true;
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(atob(base64));
+            const now = Math.floor(Date.now() / 1000);
+            return payload.exp ? payload.exp < now : true;
+        } catch (e) {
+            return true;
+        }
+    }, []);
+
     useEffect(() => {
         try {
             initAuthChannel();
-        } catch (e) {}
+        } catch (e) { }
         try {
             migrateLocalToSession();
-        } catch (e) {}
+        } catch (e) { }
 
-        try {
-            const raw =
-                sessionStorage.getItem('logbook_current_user') ||
-                localStorage.getItem('logbook_current_user');
-            setCurrentUser(raw ? JSON.parse(raw) : null);
-        } catch (e) {
-            setCurrentUser(null);
-        }
+        const initializeUser = () => {
+            try {
+                const raw =
+                    sessionStorage.getItem('logbook_current_user') ||
+                    localStorage.getItem('logbook_current_user');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.token && isTokenExpired(parsed.token)) {
+                        // 만료된 토큰 발견 시 즉시 정리
+                        sessionStorage.removeItem('logbook_current_user');
+                        localStorage.removeItem('logbook_current_user');
+                        setCurrentUser(null);
+                    } else {
+                        setCurrentUser(parsed);
+                    }
+                } else {
+                    setCurrentUser(null);
+                }
+            } catch (e) {
+                setCurrentUser(null);
+            }
+        };
+
+        initializeUser();
 
         const unsub = addAuthListener((data) => {
             if (!data || !data.type) return;
             if (data.type === 'request') {
-                // respond with login payload if available
                 try {
                     const raw =
                         sessionStorage.getItem('logbook_current_user') ||
@@ -42,35 +70,25 @@ export const AuthProvider = ({ children }) => {
                         const payload = JSON.parse(raw);
                         sendAuthEvent('login', payload);
                     }
-                } catch (e) {
-                    // ignore
-                }
+                } catch (e) { }
                 return;
             }
             if (data.type === 'login') {
                 try {
                     if (data.payload) {
-                        try {
-                            sessionStorage.setItem(
-                                'logbook_current_user',
-                                JSON.stringify(data.payload)
-                            );
-                        } catch (e) {}
+                        sessionStorage.setItem(
+                            'logbook_current_user',
+                            JSON.stringify(data.payload)
+                        );
                         setCurrentUser(data.payload);
-                    } else {
-                        const raw =
-                            sessionStorage.getItem('logbook_current_user') ||
-                            localStorage.getItem('logbook_current_user');
-                        setCurrentUser(raw ? JSON.parse(raw) : null);
                     }
-                } catch (e) {
-                    // ignore
-                }
+                } catch (e) { }
             }
             if (data.type === 'logout') {
                 try {
                     sessionStorage.removeItem('logbook_current_user');
-                } catch (e) {}
+                    localStorage.removeItem('logbook_current_user'); // 동기화 보장
+                } catch (e) { }
                 setCurrentUser(null);
             }
         });
@@ -78,9 +96,9 @@ export const AuthProvider = ({ children }) => {
         return () => {
             try {
                 unsub && unsub();
-            } catch (e) {}
+            } catch (e) { }
         };
-    }, []);
+    }, [isTokenExpired]);
 
     const login = useCallback((payload, persist = false) => {
         try {
@@ -89,17 +107,14 @@ export const AuthProvider = ({ children }) => {
             setCurrentUser(payload);
             sendAuthEvent('login', payload);
         } catch (e) {
-            // 로그인 실패 시에도 사용자 상태는 설정
             setCurrentUser(payload);
         }
     }, []);
 
     const logout = useCallback(async () => {
         try {
-            // 현재 사용자가 채팅방에 접속 중인 경우 퇴장 처리
             if (currentUser?.id) {
                 await forceRemoveUserFromAllRooms(currentUser.id);
-                // console.log('로그아웃 시 모든 채팅방에서 퇴장 처리 완료');
             }
         } catch (error) {
             console.error('로그아웃 시 채팅방 퇴장 처리 오류:', error);
@@ -111,7 +126,6 @@ export const AuthProvider = ({ children }) => {
             setCurrentUser(null);
             sendAuthEvent('logout');
         } catch (e) {
-            // 로그아웃 실패 시에도 사용자 상태는 초기화
             setCurrentUser(null);
         }
     }, [currentUser?.id]);
