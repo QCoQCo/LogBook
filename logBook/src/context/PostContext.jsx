@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { useEffect } from 'react';
+import apiClient from '../utils/apiClient';
 
 // PostContext 생성
 const PostContext = createContext();
@@ -10,10 +11,13 @@ export const PostProvider = ({ children }) => {
 
     useEffect(() => {
         let mounted = true;
-        fetch('/data/initData.json')
-            .then((r) => r.json())
-            .then((data) => {
+        apiClient.get('/feed')
+            .then((response) => {
                 if (!mounted) return;
+                const data = response.data;
+
+                console.log(data);
+
                 setPosts(Array.isArray(data) ? data : []);
             })
             .catch(() => {
