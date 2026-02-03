@@ -8,17 +8,23 @@ const PostContext = createContext();
 export const PostProvider = ({ children }) => {
     // Post Detail 관련 상태
     const [posts, setPosts] = useState([]);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [isMoreLoading, setIsMoreLoading] = useState(false);
 
     useEffect(() => {
         let mounted = true;
-        apiClient.get('/feed')
+        // page=0 (초기 100개) 로드
+        apiClient.get('/feed?page=0')
             .then((response) => {
                 if (!mounted) return;
                 const data = response.data;
-
-                console.log(data);
-
-                setPosts(Array.isArray(data) ? data : []);
+                const initialPosts = Array.isArray(data) ? data : [];
+                setPosts(initialPosts);
+                // 만약 처음부터 20개 미만이면 더 볼 것도 없음
+                if (initialPosts.length < 20) {
+                    setHasMore(false);
+                }
             })
             .catch(() => {
                 if (!mounted) return;
@@ -26,6 +32,34 @@ export const PostProvider = ({ children }) => {
             });
         return () => (mounted = false);
     }, []);
+
+    // 추가 로드 함수 (무한 스크롤용)
+    const loadMorePosts = useCallback(async () => {
+        if (isMoreLoading || !hasMore) return;
+
+        setIsMoreLoading(true);
+        try {
+            const nextPage = page + 1;
+            const response = await apiClient.get(`/feed?page=${nextPage}`);
+            const newPosts = response.data;
+
+            if (Array.isArray(newPosts) && newPosts.length > 0) {
+                setPosts((prev) => [...prev, ...newPosts]); // 기존 목록 뒤에 붙이기
+                setPage(nextPage); // 페이지 번호 증가 (기억)
+
+                // 가져온 게 20개 미만이면 이제 끝난 것임
+                if (newPosts.length < 20) {
+                    setHasMore(false);
+                }
+            } else {
+                setHasMore(false);
+            }
+        } catch (err) {
+            console.error("Failed to load more posts:", err);
+        } finally {
+            setIsMoreLoading(false);
+        }
+    }, [page, hasMore, isMoreLoading]);
 
     // Post Editor 관련 상태
     const [markdown, setMarkdown] = useState('');
@@ -37,8 +71,11 @@ export const PostProvider = ({ children }) => {
         () => ({
             posts,
             setPosts,
+            loadMorePosts,
+            hasMore,
+            isMoreLoading
         }),
-        [posts, setPosts]
+        [posts, setPosts, loadMorePosts, hasMore, isMoreLoading]
     );
 
     // Post Editor 관련 값들
