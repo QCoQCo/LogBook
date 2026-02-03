@@ -96,4 +96,10 @@ public class JwtTokenProvider {
             return e.getClaims();
         }
     }
+
+    // 4. 토큰 연장 (활동 중인 사용자의 새 토큰 발행)
+    public String refreshToken(String token) {
+        Authentication authentication = getAuthentication(token);
+        return createToken(authentication);
+    }
 }

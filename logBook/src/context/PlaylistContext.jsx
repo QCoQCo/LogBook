@@ -1,256 +1,238 @@
 import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import * as playlistService from '../utils/playlistService';
 
-// PlaylistContext 생성
 const PlaylistContext = createContext();
 
 export const PlaylistProvider = ({ children }) => {
-    // 플레이리스트 캐시 (userId => playlist array)
     const [playlistsByUser, setPlaylistsByUser] = useState({});
 
-    const STORAGE_KEY_PREFIX = 'playlists_'; // 일관된 키 사용
+    // 0. 유저 ID 찾기 (안정화: 숫자 ID 우선 검색하여 루프 방지)
+    const findUserIdByPlayId = useCallback((playId) => {
+        if (!playId) return null;
+        const entries = Object.entries(playlistsByUser);
+        // 1순위: 숫자(PK) 키에서 먼저 찾음
+        for (const [uid, lists] of entries) {
+            if (!isNaN(uid) && lists.some(pl => String(pl.playId) === String(playId))) return uid;
+        }
+        // 2순위: 그 외(아이디 등)에서 찾음
+        for (const [uid, lists] of entries) {
+            if (isNaN(uid) && lists.some(pl => String(pl.playId) === String(playId))) return uid;
+        }
+        return null;
+    }, [playlistsByUser]);
 
+    // 1. 목록 조회
     const fetchPlaylists = useCallback(async (userId) => {
         if (!userId) return [];
         try {
-            const key = `${STORAGE_KEY_PREFIX}${userId}`;
-            const raw = localStorage.getItem(key);
-            let localLists = [];
-            if (raw) {
-                try {
-                    localLists = JSON.parse(raw) || [];
-                } catch (e) {
-                    console.warn('invalid local playlist JSON, clearing', key);
-                    localLists = [];
+            const serverLists = await playlistService.getMyPlaylists(userId);
+            const mappedLists = serverLists.map(pl => ({
+                playId: pl.id.toString(),
+                userId: pl.userId,
+                ownerLoginId: pl.ownerLoginId, // [추가]
+                title: pl.title,
+                songs: (pl.items || []).map(item => ({
+                    contentId: item.id.toString(),
+                    title: item.title,
+                    link: item.link,
+                    thumbnail: item.thumbnail,
+                    SEQ: item.seq
+                }))
+            }));
+            setPlaylistsByUser((prev) => {
+                const newState = { ...prev, [userId]: mappedLists };
+                // 만약 userId가 문자열(loginId)이고, 조회된 목록에 숫자 ID(PK)가 있다면 해당 PK 키로도 캐시를 갱신
+                if (mappedLists.length > 0) {
+                    const numericId = mappedLists[0].userId;
+                    if (numericId && String(numericId) !== String(userId)) {
+                        newState[numericId] = mappedLists;
+                    }
                 }
-            }
-
-            // 서버에서 가져온 데이터 (public/data)
-            let serverLists = [];
-            try {
-                const res = await fetch('/data/playlistData.json');
-                if (res.ok) {
-                    const all = await res.json();
-                    serverLists = Array.isArray(all) ? all.filter((p) => p.userId === userId) : [];
-                }
-            } catch (e) {
-                console.warn('failed to fetch server playlists', e);
-            }
-
-            // 병합: 같은 playId가 있으면 서버 항목을 기본으로 사용하되,
-            // songs는 contentId 기준으로 dedupe (로컬 변경 반영하려면 로직 확장)
-            const byId = {};
-            serverLists.forEach((pl) => {
-                byId[pl.playId] = { ...pl };
+                return newState;
             });
-            localLists.forEach((pl) => {
-                if (!byId[pl.playId]) {
-                    byId[pl.playId] = { ...pl };
-                } else {
-                    // merge songs dedupe by contentId, 서버항목 앞에 로컬 항목 추가하고 중복 제거
-                    const mergedSongs = [...(pl.songs || []), ...(byId[pl.playId].songs || [])];
-                    const seen = new Set();
-                    byId[pl.playId].songs = mergedSongs.filter((s) => {
-                        const id = s.contentId || `${s.link}:${s.SEQ}`;
-                        if (seen.has(id)) return false;
-                        seen.add(id);
-                        return true;
-                    });
-                }
-            });
-
-            const merged = Object.values(byId);
-            setPlaylistsByUser((prev) => ({ ...prev, [userId]: merged }));
-            // persist unified result back to localStorage
-            try {
-                localStorage.setItem(key, JSON.stringify(merged));
-            } catch (e) {}
-
-            return merged;
+            return mappedLists;
         } catch (err) {
-            console.error('fetchPlaylists(context) error', err);
+            console.error('fetchPlaylists API error', err);
             return [];
         }
     }, []);
 
-    const getPlaylists = useCallback(
-        (userId) => {
-            return playlistsByUser[userId] || [];
-        },
-        [playlistsByUser]
-    );
-
-    const persistUserPlaylists = useCallback((userId, lists) => {
+    // 2. 단건 상세 조회
+    const fetchPlaylistDetail = useCallback(async (playId) => {
+        if (!playId) return null;
         try {
-            const key = `playlists_${userId}`;
-            localStorage.setItem(key, JSON.stringify(lists));
-        } catch (e) {
-            console.error('persistUserPlaylists error', e);
+            const pl = await playlistService.getPlaylistDetail(playId);
+            const mapped = {
+                playId: pl.id.toString(),
+                userId: pl.userId,
+                ownerLoginId: pl.ownerLoginId,
+                title: pl.title,
+                songs: (pl.items || []).map((item) => ({
+                    contentId: item.id.toString(),
+                    title: item.title,
+                    link: item.link,
+                    thumbnail: item.thumbnail,
+                    SEQ: item.seq,
+                })),
+            };
+
+            setPlaylistsByUser((prev) => {
+                const newState = { ...prev };
+                const numericUid = pl.userId;
+                const loginUid = pl.ownerLoginId;
+
+                // 해당 유저의 모든 리스트에서 현재 항목 갱신
+                const updateList = (uid) => {
+                    if (!uid) return;
+                    const existing = newState[uid] || [];
+                    const idx = existing.findIndex((p) => String(p.playId) === String(pl.id));
+                    let newList = idx >= 0 ? [...existing] : [...existing, mapped];
+                    if (idx >= 0) newList[idx] = mapped;
+                    newState[uid] = newList;
+                };
+
+                updateList(numericUid);
+                updateList(loginUid);
+
+                return newState;
+            });
+            return mapped;
+        } catch (err) {
+            console.error('fetchPlaylistDetail error', err);
+            return null;
         }
     }, []);
 
-    const savePlaylists = useCallback(
-        (userId, lists) => {
+    const getPlaylists = useCallback((userId) => playlistsByUser[userId] || [], [playlistsByUser]);
+
+    // 3. 노래 추가
+    const addSong = useCallback(async (userId, playId, song) => {
+        try {
+            await playlistService.addPlaylistItem(playId, {
+                title: song.title,
+                link: song.link,
+                thumbnail: song.thumbnail,
+                seq: 999
+            });
+            await fetchPlaylists(userId);
+        } catch (e) {
+            console.error('addSong error', e);
+        }
+    }, [fetchPlaylists]);
+
+    // 4. 노래 삭제
+    const deleteSong = useCallback(async (userId, playId, contentId) => {
+        try {
+            await playlistService.deletePlaylistItem(contentId);
+            await fetchPlaylists(userId);
+        } catch (e) {
+            console.error('deleteSong error', e);
+        }
+    }, [fetchPlaylists]);
+
+    // 5. 플레이리스트 추가
+    const addPlaylist = useCallback(async (userId, playlistObj) => {
+        try {
+            await playlistService.createPlaylist(playlistObj.title);
+            await fetchPlaylists(userId);
+        } catch (e) {
+            console.error('addPlaylist error', e);
+        }
+    }, [fetchPlaylists]);
+
+    // 6. 플레이리스트 삭제
+    const deletePlaylist = useCallback(async (userId, playId) => {
+        try {
+            await playlistService.deletePlaylist(playId);
+            await fetchPlaylists(userId);
+        } catch (e) {
+            console.error('deletePlaylist error', e);
+        }
+    }, [fetchPlaylists]);
+
+    // 7. 플레이리스트 제목 수정
+    const updatePlaylistTitle = useCallback(async (userId, playId, newTitle) => {
+        try {
+            // [낙관적 업데이트] 메모리 상태 즉시 반영
             setPlaylistsByUser((prev) => {
-                const next = { ...prev, [userId]: lists };
-                return next;
+                const uid = userId || findUserIdByPlayId(playId);
+                if (!uid) return prev;
+                const existing = prev[uid] || [];
+                const newList = existing.map(pl =>
+                    String(pl.playId) === String(playId) ? { ...pl, title: newTitle } : pl
+                );
+                return { ...prev, [uid]: newList };
             });
-            persistUserPlaylists(userId, lists);
-        },
-        [persistUserPlaylists]
-    );
 
-    const addSong = useCallback(
-        (userId, playId, song) => {
-            const lists = playlistsByUser[userId] || [];
-            const next = lists.map((pl) =>
-                pl.playId === playId ? { ...pl, songs: [...(pl.songs || []), song] } : pl
+            await playlistService.updatePlaylistTitle(playId, newTitle);
+            await fetchPlaylists(userId);
+            // 단건 상세 정보 캐시도 갱신
+            await fetchPlaylistDetail(playId);
+        } catch (e) {
+            console.error('updatePlaylistTitle error', e);
+        }
+    }, [fetchPlaylists, fetchPlaylistDetail, findUserIdByPlayId]);
+
+    // 8. 플레이리스트 아이템(노래) 정보 일체 업데이트 (순서 변경 및 개별 수정 대응)
+    let isUpdatingOrder = false;
+    const updatePlaylistSongs = useCallback(async (userId, playId, newSongs) => {
+        if (isUpdatingOrder) return;
+        isUpdatingOrder = true;
+
+        // [낙관적 업데이트] 메모리 상태 즉시 반영
+        setPlaylistsByUser((prev) => {
+            const uid = userId || findUserIdByPlayId(playId);
+            if (!uid) return prev;
+            const existing = prev[uid] || [];
+            const newList = existing.map(pl =>
+                String(pl.playId) === String(playId) ? { ...pl, songs: newSongs } : pl
             );
-            savePlaylists(userId, next);
-            return next;
-        },
-        [playlistsByUser, savePlaylists]
-    );
-
-    const updatePlaylistSongs = useCallback(
-        (userId, playId, songs) => {
-            const lists = playlistsByUser[userId] || [];
-            const next = lists.map((pl) => (pl.playId === playId ? { ...pl, songs } : pl));
-            savePlaylists(userId, next);
-            return next;
-        },
-        [playlistsByUser, savePlaylists]
-    );
-
-    const deleteSong = useCallback(
-        (userId, playId, contentId) => {
-            const lists = playlistsByUser[userId] || [];
-            const next = lists.map((pl) =>
-                pl.playId === playId
-                    ? { ...pl, songs: (pl.songs || []).filter((s) => s.contentId !== contentId) }
-                    : pl
-            );
-            savePlaylists(userId, next);
-            return next;
-        },
-        [playlistsByUser, savePlaylists]
-    );
-
-    const addPlaylist = useCallback(
-        (userId, playlistObj) => {
-            const lists = playlistsByUser[userId] || [];
-            const next = [...lists, playlistObj];
-            savePlaylists(userId, next);
-            return next;
-        },
-        [playlistsByUser, savePlaylists]
-    );
-
-    const deletePlaylist = useCallback(
-        (userId, playId) => {
-            if (!userId || !playId) return [];
-            const lists = playlistsByUser[userId] || [];
-            const next = (lists || []).filter((pl) => String(pl.playId) !== String(playId));
-            savePlaylists(userId, next);
-            return next;
-        },
-        [playlistsByUser, savePlaylists]
-    );
-
-    const updatePlaylistTitle = useCallback(
-        (userId, playId, title) => {
-            const lists = playlistsByUser[userId] || [];
-            const next = lists.map((pl) => (pl.playId === playId ? { ...pl, title } : pl));
-            savePlaylists(userId, next);
-            return next;
-        },
-        [playlistsByUser, savePlaylists]
-    );
-
-    const findUserIdByPlayId = useCallback(
-        (playId) => {
-            if (!playId) return null;
-            // 1) 먼저 메모리 캐시 확인
-            const entries = Object.entries(playlistsByUser || {});
-            for (const [uid, lists] of entries) {
-                if (!Array.isArray(lists)) continue;
-                if (lists.some((pl) => String(pl.playId) === String(playId))) return uid;
-            }
-
-            // 2) 캐시에 없으면 로컬스토리지에서 찾아보기 (STORAGE_KEY_PREFIX 사용)
-            try {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (!key || !key.startsWith(STORAGE_KEY_PREFIX)) continue;
-                    const uid = key.slice(STORAGE_KEY_PREFIX.length);
-                    const raw = localStorage.getItem(key);
-                    if (!raw) continue;
-                    const lists = JSON.parse(raw);
-                    if (
-                        Array.isArray(lists) &&
-                        lists.some((pl) => String(pl.playId) === String(playId))
-                    ) {
-                        // 발견되면 메모리 캐시에도 넣어두기
-                        setPlaylistsByUser((prev) => ({ ...(prev || {}), [uid]: lists }));
-                        return uid;
-                    }
-                }
-            } catch (e) {
-                // parsing 문제나 접근 오류 무시
-            }
-
-            return null;
-        },
-        [playlistsByUser, setPlaylistsByUser]
-    );
-
-    // 빠른 조회용 인덱 생성 함수 (여러번 조회할 때 사용)
-    const buildPlayIdIndex = useCallback(() => {
-        const idx = new Map();
-        Object.entries(playlistsByUser || {}).forEach(([uid, lists]) => {
-            (lists || []).forEach((pl) => {
-                if (pl && pl.playId) idx.set(String(pl.playId), uid);
-            });
+            return { ...prev, [uid]: newList };
         });
-        return idx;
-    }, [playlistsByUser]);
 
-    // 플레이리스트 관련 값들
-    const playlistValues = useMemo(
-        () => ({
-            fetchPlaylists,
-            getPlaylists,
-            playlistsByUser,
-            addSong,
-            updatePlaylistSongs,
-            deleteSong,
-            addPlaylist,
-            deletePlaylist,
-            updatePlaylistTitle,
-            findUserIdByPlayId,
-            buildPlayIdIndex,
-        }),
-        [
-            fetchPlaylists,
-            getPlaylists,
-            playlistsByUser,
-            addSong,
-            updatePlaylistSongs,
-            deleteSong,
-            addPlaylist,
-            deletePlaylist,
-            updatePlaylistTitle,
-            findUserIdByPlayId,
-            buildPlayIdIndex,
-        ]
-    );
+        try {
+            // [수정] 병렬(Promise.all) 대신 순차적 처리로 서버 부하 및 꼬임 방지
+            for (let i = 0; i < newSongs.length; i++) {
+                const song = newSongs[i];
+                const itemData = {
+                    title: song.title,
+                    link: song.link,
+                    thumbnail: song.thumbnail,
+                    seq: i
+                };
+                await playlistService.updatePlaylistItem(song.contentId, itemData);
+            }
+            // 최종 정합성을 위해 백그라운드에서 리프레시
+            await fetchPlaylists(userId);
+            await fetchPlaylistDetail(playId);
+        } catch (e) {
+            console.error('updatePlaylistSongs error', e);
+        } finally {
+            isUpdatingOrder = false;
+        }
+    }, [fetchPlaylists, fetchPlaylistDetail, findUserIdByPlayId]);
+
+
+
+    const playlistValues = useMemo(() => ({
+        fetchPlaylists,
+        getPlaylists,
+        playlistsByUser,
+        addSong,
+        deleteSong,
+        addPlaylist,
+        deletePlaylist,
+        updatePlaylistSongs,
+        updatePlaylistTitle,
+        findUserIdByPlayId,
+        fetchPlaylistDetail
+    }), [fetchPlaylists, getPlaylists, playlistsByUser, addSong, deleteSong, addPlaylist, deletePlaylist, updatePlaylistSongs, updatePlaylistTitle, findUserIdByPlayId, fetchPlaylistDetail]);
 
     return <PlaylistContext.Provider value={playlistValues}>{children}</PlaylistContext.Provider>;
 };
 
 export const usePlaylist = () => {
     const context = useContext(PlaylistContext);
-    if (!context) {
-        throw new Error('usePlaylist must be used within a PlaylistProvider');
-    }
+    if (!context) throw new Error('usePlaylist must be used within a PlaylistProvider');
     return context;
 };

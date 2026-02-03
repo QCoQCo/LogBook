@@ -38,7 +38,8 @@ public class SecurityConfig {
                         // 로그인, 회원가입은 누구나 접근 가능
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blogs/**").permitAll() // 블로그 정보 get method는 token 필요없음
-                        .requestMatchers("/error").permitAll() // [추가] 에러 메시지 확인을 위해 허용
+                        .requestMatchers(HttpMethod.GET, "/playlist/**").permitAll() // 플레이리스트 조회는 누구나 가능
+                        .requestMatchers("/error").permitAll() // 에러 메시지 확인을 위해 허용
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated())
                 // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 앞단에)
@@ -60,7 +61,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // 허용할 도메인 (개발 중이니 모두 허용하거나 프론트 포트만 지정)
         configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // 쿠키/토큰 허용
 
