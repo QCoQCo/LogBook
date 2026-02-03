@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blogs/**").permitAll() // 블로그 정보 get method는 token 필요없음
                         .requestMatchers(HttpMethod.GET, "/playlist/**").permitAll() // 플레이리스트 조회는 누구나 가능
+                        .requestMatchers(HttpMethod.GET, "/feed/**").permitAll() // 피드 조회는 누구나 가능
                         .requestMatchers("/error").permitAll() // 에러 메시지 확인을 위해 허용
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated())
