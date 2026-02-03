@@ -16,7 +16,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleException(Exception e) {
-        e.printStackTrace(); // 서버 로그에 스택 트레이스 출력
-        return ResponseEntity.internalServerError().body(Map.of("message", "서버 내부 오류가 발생했습니다: " + e.getMessage()));
+        e.printStackTrace();
+        String msg = e.getMessage() != null ? e.getMessage() : "";
+        // chat_room 스키마 이전 버전(userId varchar 등)이면 안내 메시지
+        if (msg.contains("chat_room") || msg.contains("userId") || msg.contains("isSystem")
+                || msg.contains("could not execute") || msg.contains("SQLException")) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "message",
+                    "채팅방 테이블 스키마가 맞지 않을 수 있습니다. MySQL에서 다음을 실행한 뒤 앱을 재시작하세요: DROP TABLE IF EXISTS chat_room;",
+                    "detail", msg));
+        }
+        return ResponseEntity.internalServerError().body(Map.of("message", "서버 내부 오류: " + msg));
     }
 }

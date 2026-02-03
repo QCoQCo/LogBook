@@ -46,7 +46,7 @@ const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
                 return;
             }
 
-            if (!isLogin || room.userId !== currentUser?.id) {
+            if (!isLogin || room.loginId !== currentUser?.loginId) {
                 alert('본인이 생성한 채팅방만 삭제할 수 있습니다.');
                 return;
             }
@@ -138,7 +138,7 @@ const ChatRoomList = ({ onCreateRoom, onPasswordModal }) => {
                             <div className='room-admin'>관리자: {room.admin}</div>
 
                             {/* 🔑 시스템 채팅방이 아닌 경우에만 삭제 버튼 표시 */}
-                            {isLogin && !room.isSystem && room.userId === currentUser?.id && (
+                            {isLogin && !room.isSystem && room.loginId === currentUser?.loginId && (
                                 <button
                                     className='delete-room-btn'
                                     onClick={(e) => handleDeleteRoom(room, e)}

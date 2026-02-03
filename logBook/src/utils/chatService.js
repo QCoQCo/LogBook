@@ -15,6 +15,7 @@ import {
     getDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import apiClient from './apiClient';
 
 /**
  * 채팅방 이름을 sanitize하여 collection 이름으로 사용 가능하게 변환
@@ -155,93 +156,49 @@ export const deleteMessageFromRoom = async (roomName, messageId) => {
 };
 
 /**
- * Firebase에서 채팅방 목록 실시간 구독
- * @param {function} onRoomsUpdate - 채팅방 목록 업데이트 콜백
- * @param {function} onError - 에러 처리 콜백
- * @returns {function} - 구독 해제 함수
- */
-export const subscribeToChatRooms = (onRoomsUpdate, onError) => {
-    try {
-        const roomsQuery = query(collection(db, 'chatRooms'), orderBy('createdAt', 'asc'));
-
-        const unsubscribe = onSnapshot(
-            roomsQuery,
-            (snapshot) => {
-                const roomList = [];
-                snapshot.forEach((doc) => {
-                    roomList.push({
-                        id: doc.id,
-                        ...doc.data(),
-                    });
-                });
-                onRoomsUpdate(roomList);
-            },
-            (error) => {
-                console.error('채팅방 목록 구독 오류:', error);
-                if (onError) onError(error);
-            }
-        );
-
-        return unsubscribe;
-    } catch (error) {
-        console.error('채팅방 목록 구독 설정 오류:', error);
-        if (onError) onError(error);
-        return null;
-    }
-};
-
-/**
- * 기본 채팅방들을 Firebase에 초기화 (최초 1회만 실행)
- */
-export const initializeDefaultChatRooms = async () => {
-    try {
-        // 기존 채팅방이 있는지 확인
-        const roomsSnapshot = await getDocs(collection(db, 'chatRooms'));
-        if (!roomsSnapshot.empty) {
-            return;
-        }
-
-        // chatRoomData.json에서 기본 채팅방 데이터 가져오기
-        const response = await fetch('/data/chatRoomData.json');
-        const data = await response.json();
-
-        // 기본 채팅방들을 Firebase에 추가
-        const batch = [];
-        for (const room of data.chatRooms) {
-            const roomRef = doc(db, 'chatRooms', `system_room_${room.id}`);
-            batch.push(
-                setDoc(roomRef, {
-                    ...room,
-                    isSystem: true, // 🔑 시스템 채팅방 표시
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
-                })
-            );
-        }
-
-        await Promise.all(batch);
-    } catch (error) {
-        console.error('기본 채팅방 초기화 오류:', error);
-        throw error;
-    }
-};
-
-/**
- * 채팅방 목록을 chatRoomData.json에서 가져오기 (백업용 - 더 이상 사용하지 않음)
+ * 채팅방 목록 조회 (MySQL API). 채팅방 관리는 백엔드, 메시지는 Firebase.
  * @returns {Promise<Array>} - 채팅방 목록
  */
-export const getChatRoomList = async () => {
-    try {
-        const response = await fetch('/data/chatRoomData.json');
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const data = await response.json();
-        return data.chatRooms || [];
-    } catch (error) {
-        console.error('채팅방 목록 로딩 오류:', error);
-        return [];
-    }
+export const fetchChatRoomList = async () => {
+    const { data } = await apiClient.get('/chat/chat-rooms');
+    return data.chatRooms || [];
+};
+
+/**
+ * 채팅방 생성 (MySQL API). 인증 필요.
+ * @param {Object} roomData - { name, description?, capacity?, isPrivate?, password? }
+ * @returns {Promise<Object>} - 생성된 채팅방 (id, name, admin, userId, ...)
+ */
+export const createChatRoomViaApi = async (roomData) => {
+    const { data } = await apiClient.post('/chat/chat-rooms', {
+        name: roomData.name?.trim() || '',
+        description: roomData.description || '',
+        capacity: roomData.capacity ?? 50,
+        isPrivate: roomData.isPrivate || false,
+        password: roomData.isPrivate ? roomData.password || '' : undefined,
+    });
+    return data;
+};
+
+/**
+ * 채팅방 삭제 (MySQL API). 생성자만 가능.
+ * @param {number} roomId - 삭제할 채팅방 ID
+ */
+export const deleteChatRoomViaApi = async (roomId) => {
+    await apiClient.delete(`/chat/chat-rooms/${roomId}`);
+};
+
+/**
+ * 비공개방 비밀번호 검증 (MySQL API).
+ * @param {number} roomId - 채팅방 ID
+ * @param {string} password - 입력 비밀번호
+ * @returns {Promise<boolean>} - 일치 여부
+ */
+export const validateRoomPasswordViaApi = async (roomId, password) => {
+    const { data } = await apiClient.post(`/chat/chat-rooms/${roomId}/validate-password`, {
+        password: password || '',
+    });
+    return data.valid === true;
 };
 
 /**
@@ -360,64 +317,16 @@ export const deleteAllMessagesFromRoom = async (roomName) => {
 };
 
 /**
- * 채팅방 삭제 (시스템 채팅방은 삭제 불가)
- * @param {string} roomId - 삭제할 채팅방 ID
- * @returns {Promise<void>}
+ * 특정 채팅방의 Firebase presence 데이터 정리 (MySQL에서 방 삭제 후 호출용)
+ * @param {string} roomName - 채팅방 이름
  */
-export const deleteChatRoom = async (roomId) => {
+export const cleanupPresenceForRoom = async (roomName) => {
     try {
-        // 채팅방 정보 먼저 확인
-        const roomRef = doc(db, 'chatRooms', roomId);
-        const roomDoc = await getDoc(roomRef);
-
-        if (!roomDoc.exists()) {
-            throw new Error('채팅방을 찾을 수 없습니다.');
-        }
-
-        const roomData = roomDoc.data();
-
-        // 🔑 시스템 채팅방인지 확인
-        if (roomData.isSystem) {
-            throw new Error('기본 채팅방은 삭제할 수 없습니다.');
-        }
-
-        // 1. 먼저 해당 채팅방의 모든 메시지 삭제
-        try {
-            await deleteAllMessagesFromRoom(roomData.name);
-        } catch (messageError) {
-            console.warn('메시지 삭제 중 오류 발생, 채팅방 삭제는 계속 진행:', messageError);
-        }
-
-        // 2. 해당 채팅방의 presence 데이터 삭제 (접속 유저 정보)
-        try {
-            const presenceQuery = query(
-                collection(db, 'presence'),
-                where('roomName', '==', roomData.name)
-            );
-            const presenceSnapshot = await getDocs(presenceQuery);
-            const presenceBatch = [];
-
-            presenceSnapshot.forEach((doc) => {
-                presenceBatch.push(deleteDoc(doc.ref));
-            });
-
-            if (presenceBatch.length > 0) {
-                await Promise.all(presenceBatch);
-            }
-        } catch (presenceError) {
-            console.warn(
-                'Presence 데이터 삭제 중 오류 발생, 채팅방 삭제는 계속 진행:',
-                presenceError
-            );
-        }
-
-        // 3. 마지막으로 채팅방 자체 삭제
-        await deleteDoc(roomRef);
-
-        // console.log(`채팅방 "${roomData.name}"이 성공적으로 삭제되었습니다.`);
-    } catch (error) {
-        console.error('채팅방 삭제 오류:', error);
-        throw error;
+        const presenceQuery = query(collection(db, 'presence'), where('roomName', '==', roomName));
+        const snapshot = await getDocs(presenceQuery);
+        await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
+    } catch (err) {
+        console.warn('Presence 정리 오류:', err);
     }
 };
 

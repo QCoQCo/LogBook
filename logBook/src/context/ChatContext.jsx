@@ -3,18 +3,16 @@ import {
     sendMessageToRoom,
     subscribeToRoomMessages,
     deleteMessageFromRoom,
-    getChatRoomList,
-    initializeChatRoom,
-    createChatRoom as createChatRoomService,
-    deleteChatRoom as deleteChatRoomService,
+    fetchChatRoomList,
+    createChatRoomViaApi,
+    deleteChatRoomViaApi,
     deleteAllMessagesFromRoom,
+    cleanupPresenceForRoom,
     joinChatRoom,
     leaveChatRoom,
     updateUserPresence,
     updateUserOnlineStatus,
     subscribeToRoomUsers,
-    subscribeToChatRooms,
-    initializeDefaultChatRooms,
     cleanupExpiredPresence,
     cleanupOfflinePresence,
     cleanupOfflinePresenceForRoom,
@@ -65,50 +63,31 @@ export const ChatProvider = ({ children }) => {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [presenceHeartbeat, setPresenceHeartbeat] = useState(null);
 
-    // 채팅방 목록 실시간 구독
-    const [chatRoomsUnsubscribe, setChatRoomsUnsubscribe] = useState(null);
-
-    // 구독 해제 통합 함수
+    // 구독 해제 통합 함수 (메시지/유저만. 채팅방 목록은 API 폴링)
     const cleanupSubscriptions = useCallback(() => {
         safeUnsubscribe(messagesUnsubscribe, '메시지 구독 해제 오류:');
         safeUnsubscribe(usersUnsubscribe, '유저 구독 해제 오류:');
-        safeUnsubscribe(chatRoomsUnsubscribe, '채팅방 목록 구독 해제 오류:');
 
         setMessagesUnsubscribe(null);
         setUsersUnsubscribe(null);
-        setChatRoomsUnsubscribe(null);
-    }, [messagesUnsubscribe, usersUnsubscribe, chatRoomsUnsubscribe]);
+    }, [messagesUnsubscribe, usersUnsubscribe]);
 
-    // 채팅방 목록 실시간 구독 설정
+    // 채팅방 목록 로드 (MySQL API). 필요 시 폴링으로 갱신 가능
     const loadChatRoomList = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
 
-            // 🔑 기본 채팅방 초기화 (최초 1회)
-            await initializeDefaultChatRooms();
+            const roomList = await fetchChatRoomList();
+            setChatRoomList(roomList);
 
-            // 실시간 채팅방 목록 구독
-            const unsubscribe = subscribeToChatRooms(
-                (roomList) => {
-                    setChatRoomList(roomList);
-
-                    // 현재 채팅방이 없으면 첫 번째 채팅방으로 설정
-                    if (!currentChatRoom && roomList.length > 0) {
-                        const defaultRoom =
-                            roomList.find((room) => room.name === '일반 채팅방') || roomList[0];
-                        setCurrentChatRoom(defaultRoom);
-                    }
-                },
-                (error) => {
-                    setError('채팅방 목록 로딩에 실패했습니다.');
-                    console.error('채팅방 목록 구독 오류:', error);
-                }
-            );
-
-            setChatRoomsUnsubscribe(() => unsubscribe);
+            if (!currentChatRoom && roomList.length > 0) {
+                const defaultRoom =
+                    roomList.find((room) => room.name === '일반 채팅방') || roomList[0];
+                setCurrentChatRoom(defaultRoom);
+            }
         } catch (error) {
-            setError('채팅방 목록 초기화에 실패했습니다.');
+            setError('채팅방 목록 로딩에 실패했습니다.');
             console.error('채팅방 목록 로딩 오류:', error);
         } finally {
             setLoading(false);
@@ -226,42 +205,56 @@ export const ChatProvider = ({ children }) => {
         setOnlineUsers(users);
     }, []);
 
-    // 채팅방 생성 함수
+    // 채팅방 생성 (MySQL API)
     const createChatRoom = useCallback(async (roomData) => {
         try {
-            return await handleAsyncOperation(
-                () => createChatRoomService(roomData),
+            const created = await handleAsyncOperation(
+                () => createChatRoomViaApi(roomData),
                 setLoading,
                 setError,
                 '채팅방 생성에 실패했습니다.'
             );
+            if (created && created.id) {
+                setChatRoomList((prev) => [...prev, created]);
+            }
+            return created;
         } catch (err) {
-            throw new Error('채팅방 생성에 실패했습니다.');
+            throw new Error(err.response?.data?.message || '채팅방 생성에 실패했습니다.');
         }
     }, []);
 
-    // 채팅방 삭제 함수
+    // 채팅방 삭제 (MySQL API + Firebase 메시지/presence 정리)
     const deleteChatRoom = useCallback(
         async (roomId) => {
+            const room = chatRoomList.find((r) => r.id === roomId);
             try {
                 await handleAsyncOperation(
-                    () => deleteChatRoomService(roomId),
+                    () => deleteChatRoomViaApi(roomId),
                     setLoading,
                     setError,
                     '채팅방 삭제에 실패했습니다.'
                 );
 
-                // 삭제된 채팅방이 현재 선택된 채팅방인 경우 다른 채팅방으로 변경
-                if (currentChatRoom?.id === roomId) {
-                    const remainingRooms = chatRoomList.filter((room) => room.id !== roomId);
-                    if (remainingRooms.length > 0) {
-                        setCurrentChatRoom(remainingRooms[0]);
-                    } else {
-                        setCurrentChatRoom(null);
+                if (room?.name) {
+                    try {
+                        await deleteAllMessagesFromRoom(room.name);
+                    } catch (e) {
+                        console.warn('Firebase 메시지 정리 오류:', e);
+                    }
+                    try {
+                        await cleanupPresenceForRoom(room.name);
+                    } catch (e) {
+                        console.warn('Firebase presence 정리 오류:', e);
                     }
                 }
+
+                const remaining = chatRoomList.filter((r) => r.id !== roomId);
+                setChatRoomList(remaining);
+                if (currentChatRoom?.id === roomId) {
+                    setCurrentChatRoom(remaining.length > 0 ? remaining[0] : null);
+                }
             } catch (err) {
-                throw new Error('채팅방 삭제에 실패했습니다.');
+                throw new Error(err.response?.data?.message || '채팅방 삭제에 실패했습니다.');
             }
         },
         [currentChatRoom, chatRoomList]
@@ -355,6 +348,22 @@ export const ChatProvider = ({ children }) => {
         loadChatRoomList();
     }, [loadChatRoomList]);
 
+    // 채팅방 목록 주기적 갱신 (MySQL이므로 폴링)
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            try {
+                const roomList = await fetchChatRoomList();
+                setChatRoomList(roomList);
+                if (currentChatRoom && !roomList.some((r) => r.id === currentChatRoom.id)) {
+                    setCurrentChatRoom(roomList.length > 0 ? roomList[0] : null);
+                }
+            } catch (e) {
+                console.warn('채팅방 목록 갱신 오류:', e);
+            }
+        }, 15000);
+        return () => clearInterval(interval);
+    }, [currentChatRoom?.id]);
+
     // 현재 채팅방 변경 시 메시지 및 유저 구독
     useEffect(() => {
         let messageUnsubscribe = null;
@@ -383,13 +392,6 @@ export const ChatProvider = ({ children }) => {
             safeUnsubscribe(userUnsubscribe, '유저 구독 정리 오류:');
         };
     }, [currentChatRoom]); // subscribeToCurrentRoomMessages, subscribeToCurrentRoomUsers 의존성 제거
-
-    // 컴포넌트 언마운트 시 채팅방 목록 구독 해제
-    useEffect(() => {
-        return () => {
-            safeUnsubscribe(chatRoomsUnsubscribe, '채팅방 목록 구독 해제 오류:');
-        };
-    }, [chatRoomsUnsubscribe]);
 
     // 주기적 정리 작업 시스템
     useEffect(() => {
