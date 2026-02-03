@@ -6,8 +6,16 @@ const ReactGridLayout = WidthProvider(RGL);
 import './FeedPage.scss';
 
 const FeedPage = () => {
-    const { posts } = usePost();
+    const { posts, loadMorePosts, hasMore, isMoreLoading } = usePost();
     const skipRebuildRef = useRef(false);
+
+    // [New] 새로고침 시 스크롤 최상단 강제 이동
+    useLayoutEffect(() => {
+        if ('scrollRestoration' in window.history) {
+            window.history.scrollRestoration = 'manual';
+        }
+        window.scrollTo(0, 0);
+    }, []);
     const PAGE_SIZE = 20;
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
     const loadMoreRef = useRef(null);
@@ -93,8 +101,8 @@ const FeedPage = () => {
         const current = Array.isArray(currentLayout)
             ? currentLayout
             : Array.isArray(gridLayoutRef.current)
-            ? gridLayoutRef.current
-            : [];
+                ? gridLayoutRef.current
+                : [];
         try {
             // console.info(
             //     'rebuildPostsIntoGrid called, current.length=',
@@ -105,7 +113,7 @@ const FeedPage = () => {
             //     cols
             // );
             // console.info('rebuildPostsIntoGrid current sample:', current.slice(0, 6));
-        } catch (err) {}
+        } catch (err) { }
 
         const existingPostMap = new Map();
         current.forEach((it) => {
@@ -205,7 +213,7 @@ const FeedPage = () => {
             //     postEntries.length
             // );
             // console.info('rebuildPostsIntoGrid final sample:', final.slice(0, 8));
-        } catch (err) {}
+        } catch (err) { }
         return final;
     };
 
@@ -296,14 +304,14 @@ const FeedPage = () => {
                 window.__gridLayout = gridLayoutRef;
                 window.__compareLayoutToDom = compareLayoutToDom;
             }
-        } catch (err) {}
+        } catch (err) { }
         return () => {
             try {
                 if (typeof window !== 'undefined') {
                     delete window.__gridLayout;
                     delete window.__compareLayoutToDom;
                 }
-            } catch (err) {}
+            } catch (err) { }
         };
     }, []);
 
@@ -314,7 +322,17 @@ const FeedPage = () => {
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
-                        setVisibleCount((prev) => Math.min(posts.length, prev + PAGE_SIZE));
+                        // 1. 로컬에 더 보여줄게 남았으면 -> visibleCount 증가
+                        if (visibleCount < posts.length) {
+                            setVisibleCount((prev) => Math.min(posts.length, prev + PAGE_SIZE));
+                        }
+                        // 2. 로컬은 다 보여줬는데 서버에 더 있으면 -> fetch
+                        else if (hasMore && !isMoreLoading) {
+                            loadMorePosts();
+                            // (선택사항) fetch 직후 visibleCount를 늘려주면 자연스러움
+                            // setVisibleCount(prev => prev + PAGE_SIZE); 
+                            // -> posts가 업데이트되면 이 effect가 다시 돌면서 1번 분기를 탈 것이므로 생략 가능
+                        }
                     }
                 });
             },
@@ -322,7 +340,7 @@ const FeedPage = () => {
         );
         obs.observe(el);
         return () => obs.disconnect();
-    }, [posts.length]);
+    }, [posts.length, visibleCount, hasMore, isMoreLoading, loadMorePosts]);
 
     // side panel / snippets state
     const [droppedSnippets, setDroppedSnippets] = useState([]);

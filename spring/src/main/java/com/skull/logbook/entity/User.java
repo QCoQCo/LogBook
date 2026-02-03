@@ -38,6 +38,7 @@ public class User extends BaseDeletedEntity {
 
     @OneToOne(
         mappedBy = "user",
+        fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )

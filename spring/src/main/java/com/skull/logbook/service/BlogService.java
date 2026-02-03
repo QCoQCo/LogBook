@@ -57,4 +57,5 @@ public class BlogService {
             throw new RuntimeException("블로그 JSON 파싱 실패", e);
         }
     }
+
 }
