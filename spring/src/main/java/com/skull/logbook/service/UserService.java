@@ -1,6 +1,7 @@
 package com.skull.logbook.service;
 
 import com.skull.logbook.dto.SignupRequestDto;
+import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.AuthSession;
 import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.UserRepository;
@@ -118,6 +119,19 @@ public class UserService {
     public User getUserByLoginId(String loginId) {
         return userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    }
+
+    public UserResponseDto getBlogOwner(String loginId) {
+        User user = getUserByLoginId(loginId);
+
+        return new UserResponseDto(
+                user.getId(),
+                user.getLoginId(),
+                user.getNickName(),
+                user.getUserEmail(),
+                user.getProfilePhoto(),
+                user.getIntroduction()
+        );
     }
 
     private String hashToken(String token) {

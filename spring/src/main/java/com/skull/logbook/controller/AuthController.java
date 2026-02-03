@@ -1,16 +1,14 @@
 package com.skull.logbook.controller;
 
 import com.skull.logbook.dto.SignupRequestDto;
+import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.UserRepository;
+import com.skull.logbook.service.BlogService;
 import com.skull.logbook.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +20,7 @@ public class AuthController {
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private final BlogService blogService;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto requestDto) {
@@ -65,6 +64,13 @@ public class AuthController {
                 .body(Map.of(
                         "token", accessToken, // 프론트엔드 호환성을 위해 키 유지
                         "user", userMap));
+    }
+
+    @GetMapping("/{loginId}")
+    public ResponseEntity<?> getUser(@PathVariable String loginId) {
+        UserResponseDto user = userService.getBlogOwner(loginId);
+
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/signup/check-loginId")
