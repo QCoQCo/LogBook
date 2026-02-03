@@ -1,4 +1,5 @@
 // Blog.jsx
+import axios from "axios";
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useBlog, useAuth, useUserData } from "../../context";
@@ -27,26 +28,27 @@ const Blog = () => {
     const playListTabBtnRef = useRef(null);
 
     useEffect(() => {
-        const found = userData.find((user) => String(user.userId) === String(userId));
-        if (found) {
-            setBlogOwnerData(found);
-        } else if (isLogin && currentUser && String(currentUser.id) === String(userId)) {
-            // 백엔드 연동된 본인인 경우 (mock data에 없을 수 있음)
-            setBlogOwnerData({
-                userId: currentUser.id,
-                nickName: currentUser.nickName,
-                userEmail: currentUser.userEmail,
-                profilePhoto: currentUser.profilePhoto,
-                introduction: currentUser.introduction || "",
-            });
-        } else {
-            setBlogOwnerData(null);
+        const fetchBlogOwner = async () => {
+            try {
+                const response = await axios.get(`/api/auth/${userId}`);
+                console.log("bbb" + response.data);
+                setBlogOwnerData(response.data);
+            } catch (error) {
+                // 404 등 에러가 나면 여기로 옴
+                setBlogOwnerData(null);
+            }
+        };
+
+        console.log("aaa" + userId);
+
+        if (userId) {
+            fetchBlogOwner();
         }
-    }, [userId, userData, isLogin, currentUser]);
+    }, [userId]);
 
     useEffect(() => {
         if (isLogin && currentUser) {
-            setIsOwnBlog(String(currentUser.id) === String(userId));
+            setIsOwnBlog(String(currentUser.loginId) === String(userId));
         } else {
             setIsOwnBlog(false);
         }
