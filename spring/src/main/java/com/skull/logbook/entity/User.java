@@ -36,11 +36,18 @@ public class User extends BaseDeletedEntity {
     @Column(columnDefinition = "TEXT")
     private String introduction;
 
-    @OneToOne(
-        mappedBy = "user",
-        fetch = FetchType.LAZY,
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Blog blog;
+
+    public void updateProfile(String introduction, String profilePhoto, String nickName) {
+        if (introduction != null) {
+            this.introduction = introduction;
+        }
+        if (profilePhoto != null) {
+            this.profilePhoto = profilePhoto;
+        }
+        if (nickName != null) {
+            this.nickName = nickName;
+        }
+    }
 }
