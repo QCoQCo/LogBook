@@ -9,6 +9,7 @@ import {
     PlaylistProvider,
     YTPopupProvider,
     UserDataProvider,
+    useUserData,
     UIProvider,
 } from './context';
 import { PostRoutes } from './routes';
@@ -16,9 +17,20 @@ import { PostRoutes } from './routes';
 import './App.css';
 import './utils/animations.css';
 import { PostProvider } from './context/PostContext';
+import { useEffect, useRef } from 'react';
 
 const Layout = () => {
     const { isLogin } = useAuth();
+    const { refetchUserData } = useUserData();
+    const prevLoginRef = useRef(false);
+
+    // 로그인 시 사용자 목록(프로필) API 재요청
+    useEffect(() => {
+        if (isLogin && !prevLoginRef.current) {
+            refetchUserData();
+        }
+        prevLoginRef.current = isLogin;
+    }, [isLogin, refetchUserData]);
 
     return (
         // 체팅페이지 다크모드 판별

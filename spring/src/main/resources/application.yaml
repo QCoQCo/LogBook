@@ -1,42 +1,46 @@
 spring:
-  application:
-    name: logbook
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: update
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect		#방언 설정
-    defer-datasource-initialization: true
-  sql:
-    init:
-      mode: always
+    application:
+        name: logbook
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 10MB
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
+    jpa:
+        hibernate:
+            ddl-auto: update
+            naming:
+                physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+                implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+        show-sql: true
+        properties:
+            hibernate:
+                format_sql: true
+                dialect: org.hibernate.dialect.MySQLDialect #방언 설정
+        defer-datasource-initialization: true
+    sql:
+        init:
+            mode: always
 
 logging:
-  level:
-    org.hibernate.SQL: debug              # 실행 SQL 로그 레벨
-    org.hibernate.orm.jdbc.bind: trace    # SQL에 담긴 실제 파라미터(값) 확인
-    org.springframework.web.servlet.resource.ResourceHttpRequestHandler: ERROR # 리소스 미발견 로그 숨김
+    level:
+        org.hibernate.SQL: debug # 실행 SQL 로그 레벨
+        org.hibernate.orm.jdbc.bind: trace # SQL에 담긴 실제 파라미터(값) 확인
+        org.springframework.web.servlet.resource.ResourceHttpRequestHandler: ERROR # 리소스 미발견 로그 숨김
 
 server:
-  port: 8080
-  servlet:
-    context-path: /api
+    port: 8080
+    servlet:
+        context-path: /api
 
 file:
-  upload:
-    host: ${SFTP_HOST}
-    port: ${SFTP_PORT}
-    username: ${SFTP_USERNAME}
-    password: ${SFTP_PASSWORD}
-    uploadPath: ${SFTP_UPLOADPATH}
+    upload:
+        host: ${SFTP_HOST}
+        port: ${SFTP_PORT}
+        username: ${SFTP_USERNAME}
+        password: ${SFTP_PASSWORD}
+        uploadPath: ${SFTP_UPLOADPATH}
