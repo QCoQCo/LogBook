@@ -11,11 +11,14 @@ import com.skull.logbook.repository.AuthSessionRepository;
 import com.skull.logbook.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Base64;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -36,6 +39,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final SftpService sftpService;
 
     private static final String DEFAULT_LAYOUT = """
         {
@@ -147,8 +151,7 @@ public class UserService {
                 user.getNickName(),
                 user.getUserEmail(),
                 user.getProfilePhoto(),
-                user.getIntroduction()
-        );
+                user.getIntroduction());
     }
 
     private String hashToken(String token) {
@@ -159,6 +162,30 @@ public class UserService {
         } catch (java.security.NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not found", e);
         }
+    }
+
+    @Transactional
+    public User updateUserProfile(Long userId, MultipartFile file, String introduction, String nickName)
+            throws IOException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // 닉네임 변경 시 중복 체크
+        if (nickName != null && !nickName.equals(user.getNickName())) {
+            if (userRepository.existsByNickName(nickName)) {
+                throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            }
+        }
+
+        String profilePhotoUrl = user.getProfilePhoto();
+
+        // 파일이 있으면 저장 로직 수행 (SFTP)
+        if (file != null && !file.isEmpty()) {
+            profilePhotoUrl = sftpService.uploadFile(file, "profile", String.valueOf(userId));
+        }
+
+        user.updateProfile(introduction, profilePhotoUrl, nickName);
+        return user;
     }
 
     @Transactional
