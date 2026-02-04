@@ -44,7 +44,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false) // 개발 환경에서는 false, 운영(HTTPS)에서는 true 권장
                 .path("/")
-                .maxAge(2 * 24 * 60 * 60) // 2일
+                .maxAge(7 * 24 * 60 * 60) // 7일
                 .sameSite("Lax")
                 .build();
 

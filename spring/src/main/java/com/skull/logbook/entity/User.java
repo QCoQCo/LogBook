@@ -1,6 +1,7 @@
 package com.skull.logbook.entity;
 
 import jakarta.persistence.*;
+import com.skull.logbook.constant.Role;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +39,11 @@ public class User extends BaseDeletedEntity {
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Blog blog;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Role role = Role.USER;
 
     public void updateProfile(String introduction, String profilePhoto, String nickName) {
         if (introduction != null) {
