@@ -3,7 +3,9 @@ package com.skull.logbook.service;
 import com.skull.logbook.dto.SignupRequestDto;
 import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.AuthSession;
+import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
+import com.skull.logbook.repository.BlogRepository;
 import com.skull.logbook.repository.UserRepository;
 import com.skull.logbook.repository.AuthSessionRepository;
 import com.skull.logbook.security.JwtTokenProvider;
@@ -29,10 +31,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final BlogRepository blogRepository;
     private final AuthSessionRepository authSessionRepository; // [추가]
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+
+    private static final String DEFAULT_LAYOUT = """
+        {
+          "layout": [],
+          "elements": []
+        }
+        """;
 
     public Long signup(SignupRequestDto requestDto) {
         if (userRepository.findByLoginId(requestDto.getLoginId()).isPresent()) {
@@ -61,6 +71,13 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+
+        Blog blog = Blog.builder()
+                .user(user)
+                .layout(DEFAULT_LAYOUT)
+                .build();
+
+        blogRepository.save(blog);
 
         return user.getId();
     }

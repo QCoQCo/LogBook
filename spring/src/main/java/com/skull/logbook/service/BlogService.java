@@ -4,6 +4,7 @@ import com.skull.logbook.dto.BlogLayoutDto;
 import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.BlogRepository;
+import com.skull.logbook.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,11 +21,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BlogService {
     private final BlogRepository blogRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
     public BlogLayoutDto getBlogData(String loginId) {
-        User user = userService.getUserByLoginId(loginId);
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
         Blog blog = blogRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 블로그가 존재하지 않습니다."));
@@ -57,5 +59,4 @@ public class BlogService {
             throw new RuntimeException("블로그 JSON 파싱 실패", e);
         }
     }
-
 }
