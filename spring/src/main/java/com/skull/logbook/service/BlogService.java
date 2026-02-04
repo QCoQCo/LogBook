@@ -1,5 +1,6 @@
 package com.skull.logbook.service;
 
+import com.skull.logbook.dto.BlogDto;
 import com.skull.logbook.dto.BlogLayoutDto;
 import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
@@ -58,5 +59,17 @@ public class BlogService {
         } catch (Exception e) {
             throw new RuntimeException("블로그 JSON 파싱 실패", e);
         }
+    }
+
+    public Blog updateBlogLayout(
+            Long userId,
+            String layout
+    ) {
+        Blog blog = blogRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 유저의 블로그가 존재하지 않습니다."));
+
+        blog.updateLayout(layout);
+
+        return blog;
     }
 }

@@ -66,13 +66,6 @@ public class AuthController {
                         "user", userMap));
     }
 
-    @GetMapping("/{loginId}")
-    public ResponseEntity<?> getUser(@PathVariable String loginId) {
-        UserResponseDto user = userService.getBlogOwner(loginId);
-
-        return ResponseEntity.ok(user);
-    }
-
     @PostMapping("/signup/check-loginId")
     public ResponseEntity<?> checkLoginId(@RequestBody Map<String, String> request) {
         String loginId = request.get("loginId");

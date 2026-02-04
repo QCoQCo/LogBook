@@ -1,6 +1,9 @@
 package com.skull.logbook.controller;
 
+import com.skull.logbook.dto.UserResponseDto;
+import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
+import com.skull.logbook.service.BlogService;
 import com.skull.logbook.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -18,10 +21,18 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final BlogService blogService;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @GetMapping("/{loginId}")
+    public ResponseEntity<?> getUser(@PathVariable String loginId) {
+        UserResponseDto user = userService.getBlogOwner(loginId);
+
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -29,14 +40,20 @@ public class UserController {
             @PathVariable Long userId,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestPart(value = "introduction", required = false) String introduction,
-            @RequestPart(value = "nickName", required = false) String nickName) {
+            @RequestPart(value = "nickName", required = false) String nickName,
+            @RequestPart(value = "layout", required = false) String layout
+    ) {
         try {
             User updatedUser = userService.updateUserProfile(userId, file, introduction, nickName);
+
+            Blog updatedBlog = blogService.updateBlogLayout(userId, layout);
+
             return ResponseEntity.ok(Map.of(
                     "message", "프로필이 수정되었습니다.",
                     "profilePhoto", updatedUser.getProfilePhoto() != null ? updatedUser.getProfilePhoto() : "",
                     "introduction", updatedUser.getIntroduction() != null ? updatedUser.getIntroduction() : "",
                     "nickName", updatedUser.getNickName()));
+
         } catch (IOException e) {
             e.printStackTrace(); // [디버깅] 서버 로그에 상세 에러 출력
             return ResponseEntity.internalServerError().body(Map.of("message", "파일 업로드 실패: " + e.getMessage()));

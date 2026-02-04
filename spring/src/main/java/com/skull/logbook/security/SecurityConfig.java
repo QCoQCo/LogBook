@@ -36,6 +36,7 @@ public class SecurityConfig {
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blogs/**").permitAll() // 블로그 정보 get method는 token 필요없음
                         .requestMatchers(HttpMethod.GET, "/playlist/**").permitAll() // 플레이리스트 조회는 누구나 가능
                         .requestMatchers(HttpMethod.GET, "/chat/**").permitAll()
