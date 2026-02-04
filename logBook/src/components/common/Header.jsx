@@ -4,6 +4,7 @@ import Login from './Login';
 import { useAuth, useUserData, useUI } from '../../context';
 import UserInfoModal from '../chat/UserInfoModal';
 import ChangePasswordModal from './ChangePasswordModal';
+import FindAccountModal from './FindAccountModal';
 import {
     initAuthChannel,
     addAuthListener,
@@ -22,6 +23,7 @@ const Header = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showUserModal, setShowUserModal] = useState(false);
     const [showChangePwModal, setShowChangePwModal] = useState(false);
+    const [showFindAccountModal, setShowFindAccountModal] = useState(false);
     const searchRef = useRef(null);
     const searchAreaRef = useRef(null);
     const searchAreaElRef = useRef(null);
@@ -52,6 +54,23 @@ const Header = () => {
 
     const handleModalClose = () => {
         setShowUserModal(false);
+    };
+
+    const handleFindAccountOpen = () => {
+        // Login 닫고 FindAccount 열기 (Login 컴포넌트 내부에서 호출됨)
+        // toggleLogin()은 context/UIContext에서 관리되므로 여기서 직접 닫기는 어려울 수 있으나,
+        // Login에 전달된 onClose가 toggleLogin이므로,
+        // Header에서 상태관리가 약간 분리되어 있음. 
+        // useUI().setShowLogin(false) 가 필요할 수 있음.
+        // 현재 Header는 useUI의 showLogin을 사용 중.
+        // toggleLogin을 호출하면 닫힘.
+        if (showLogin) toggleLogin();
+        setShowFindAccountModal(true);
+    };
+
+    const handleToLogin = () => {
+        setShowFindAccountModal(false);
+        if (!showLogin) toggleLogin();
     };
 
     useEffect(() => {
@@ -304,7 +323,7 @@ const Header = () => {
                         ) : (
                             <div className='login-btn-wrap'>
                                 <button onClick={toggleLogin}>로그인</button>
-                                {showLogin && <Login onClose={toggleLogin} />}
+                                {showLogin && <Login onClose={toggleLogin} onFindAccount={handleFindAccountOpen} />}
                             </div>
                         )}
                     </div>
@@ -326,6 +345,13 @@ const Header = () => {
             <ChangePasswordModal
                 isOpen={showChangePwModal}
                 onClose={() => setShowChangePwModal(false)}
+            />
+
+            {/* 계정 찾기 모달 */}
+            <FindAccountModal
+                isOpen={showFindAccountModal}
+                onClose={() => setShowFindAccountModal(false)}
+                onToLogin={handleToLogin}
             />
         </header>
     );
