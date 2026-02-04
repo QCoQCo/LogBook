@@ -226,4 +226,29 @@ public class UserService {
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         user.changePassword(encodedNewPassword);
     }
+
+    // 아이디 찾기
+    @Transactional(readOnly = true)
+    public String findLoginId(String userEmail) {
+        User user = userRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 사용자가 없습니다."));
+        return user.getLoginId();
+    }
+
+    // 비밀번호 재설정 (3중 검증 + 변경)
+    @Transactional
+    public void resetPassword(String loginId, String userEmail, String nickName, String newPassword) {
+        User user = userRepository.findByLoginIdAndUserEmailAndNickName(loginId, userEmail, nickName)
+                .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 사용자가 없습니다."));
+
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+        user.changePassword(encodedNewPassword);
+    }
+
+    // 사용자 검증 (비밀번호 찾기 1단계)
+    @Transactional(readOnly = true)
+    public void verifyUser(String loginId, String userEmail, String nickName) {
+        userRepository.findByLoginIdAndUserEmailAndNickName(loginId, userEmail, nickName)
+                .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 사용자가 없습니다."));
+    }
 }

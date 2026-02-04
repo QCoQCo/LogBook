@@ -138,4 +138,38 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+
+    @PostMapping("/find-id")
+    public ResponseEntity<?> findId(@RequestBody Map<String, String> request) {
+        try {
+            String id = userService.findLoginId(request.get("email"));
+            return ResponseEntity.ok(Map.of("loginId", id));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-user")
+    public ResponseEntity<?> verifyUser(@RequestBody Map<String, String> request) {
+        try {
+            userService.verifyUser(request.get("loginId"), request.get("email"), request.get("nickName"));
+            return ResponseEntity.ok(Map.of("message", "사용자 확인 성공"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        try {
+            userService.resetPassword(
+                    request.get("loginId"),
+                    request.get("email"),
+                    request.get("nickName"),
+                    request.get("newPassword"));
+            return ResponseEntity.ok(Map.of("message", "비밀번호가 재설정되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        }
+    }
 }
