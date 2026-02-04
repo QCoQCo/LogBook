@@ -5,7 +5,7 @@
     .blog-wrapper {
         position: relative;
         display: flex;
-        gap: 30px;
+        gap: 10px;
 
         .user-info-area {
             position: sticky;
@@ -14,10 +14,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 500px;
+            height: 550px;
             gap: 20px;
             flex: 0.3;
-            padding: 20px;
+            padding: 10px;
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); // 전체적인 카드 느낌 추가
