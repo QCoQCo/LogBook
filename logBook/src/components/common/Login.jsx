@@ -5,7 +5,7 @@ import './Login.scss';
 import { loginClient } from '../../utils/auth';
 import { useAuth } from '../../context';
 
-const Login = ({ onClose = () => { } }) => {
+const Login = ({ onClose = () => { }, onFindAccount = () => { } }) => {
     const { login } = useAuth();
 
     useEffect(() => {
@@ -205,7 +205,7 @@ const Login = ({ onClose = () => { } }) => {
                         </Link>
                     </div>
                     <div className='lb-find-id-pw'>
-                        <a href='#'>아이디/비밀번호 찾기</a>
+                        <a href='#' onClick={(e) => { e.preventDefault(); onFindAccount(); }}>아이디/비밀번호 찾기</a>
                     </div>
                 </div>
             </div>
