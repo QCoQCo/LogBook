@@ -29,10 +29,10 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         try {
             initAuthChannel();
-        } catch (e) { }
+        } catch (e) {}
         try {
             migrateLocalToSession();
-        } catch (e) { }
+        } catch (e) {}
 
         const initializeUser = () => {
             try {
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
                         const payload = JSON.parse(raw);
                         sendAuthEvent('login', payload);
                     }
-                } catch (e) { }
+                } catch (e) {}
                 return;
             }
             if (data.type === 'login') {
@@ -82,13 +82,13 @@ export const AuthProvider = ({ children }) => {
                         );
                         setCurrentUser(data.payload);
                     }
-                } catch (e) { }
+                } catch (e) {}
             }
             if (data.type === 'logout') {
                 try {
                     sessionStorage.removeItem('logbook_current_user');
                     localStorage.removeItem('logbook_current_user'); // 동기화 보장
-                } catch (e) { }
+                } catch (e) {}
                 setCurrentUser(null);
             }
         });
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
         return () => {
             try {
                 unsub && unsub();
-            } catch (e) { }
+            } catch (e) {}
         };
     }, [isTokenExpired]);
 
@@ -109,6 +109,25 @@ export const AuthProvider = ({ children }) => {
         } catch (e) {
             setCurrentUser(payload);
         }
+    }, []);
+
+    // 로그인한 사용자 정보 일부 갱신 (프로필 사진·닉네임 등 수정 후 헤더/모달 반영용)
+    const updateCurrentUser = useCallback((updates) => {
+        if (!updates || Object.keys(updates).length === 0) return;
+        setCurrentUser((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev, ...updates };
+            try {
+                sessionStorage.setItem('logbook_current_user', JSON.stringify(next));
+                if (localStorage.getItem('logbook_current_user')) {
+                    localStorage.setItem('logbook_current_user', JSON.stringify(next));
+                }
+                sendAuthEvent('login', next);
+            } catch (e) {
+                // ignore
+            }
+            return next;
+        });
     }, []);
 
     const logout = useCallback(async () => {
@@ -135,6 +154,7 @@ export const AuthProvider = ({ children }) => {
         isLogin: !!currentUser,
         login,
         logout,
+        updateCurrentUser,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

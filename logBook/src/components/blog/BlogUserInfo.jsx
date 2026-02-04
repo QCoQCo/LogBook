@@ -1,4 +1,4 @@
-import { useBlog } from '../../context';
+import { useBlog, useAuth, useUserData } from '../../context';
 import { useEffect, useRef, useState } from 'react';
 import apiClient from '../../utils/apiClient';
 
@@ -16,6 +16,8 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
 
     // useContext
     const { isBlogEditting, setIsBlogEditting, activeTab } = useBlog();
+    const { currentUser, updateCurrentUser } = useAuth();
+    const { updateUserInCache } = useUserData();
 
     const handleChangeIntroText = (e) => {
         setIntroText(e.target.value);
@@ -71,7 +73,20 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
             }
 
             // [수정] userId(String, loginId) 대신 blogOwnerData.id(Long, PK) 사용
-            await apiClient.put(`/users/${blogOwnerData.id}`, formData);
+            const { data } = await apiClient.put(`/users/${blogOwnerData.id}`, formData);
+
+            // 헤더·프로필 모달에 즉시 반영 (UserDataContext + AuthContext 갱신)
+            const updates = {
+                ...(data.profilePhoto !== undefined && { profilePhoto: data.profilePhoto || null }),
+                ...(data.nickName !== undefined && { nickName: data.nickName }),
+                ...(data.introduction !== undefined && { introduction: data.introduction }),
+            };
+            if (Object.keys(updates).length > 0) {
+                updateUserInCache(blogOwnerData.id, updates);
+                if (currentUser?.id === blogOwnerData.id) {
+                    updateCurrentUser(updates);
+                }
+            }
 
             if (onUpdate) {
                 await onUpdate();
@@ -142,14 +157,17 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                     </div>
                 </div>
                 <input
-                    type="file"
+                    type='file'
                     ref={fileInputRef}
                     style={{ display: 'none' }}
-                    accept="image/*"
+                    accept='image/*'
                     onChange={handleFileChange}
                 />
                 {isBlogEditting && (
-                    <button className='edit-profile-photo' onClick={() => fileInputRef.current.click()}>
+                    <button
+                        className='edit-profile-photo'
+                        onClick={() => fileInputRef.current.click()}
+                    >
                         <img src='/img/logbook-edit.png' />
                     </button>
                 )}
@@ -158,7 +176,7 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                         <>
                             <div className='nickname-input-group'>
                                 <input
-                                    type="text"
+                                    type='text'
                                     value={nickName}
                                     onChange={handleChangeNickName}
                                     className='edit-nickname-input'
@@ -172,7 +190,11 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                                 </button>
                             </div>
                             {nickNameMessage && (
-                                <span className={`nickname-message ${isNickNameChecked ? 'success' : 'error'}`}>
+                                <span
+                                    className={`nickname-message ${
+                                        isNickNameChecked ? 'success' : 'error'
+                                    }`}
+                                >
                                     {nickNameMessage}
                                 </span>
                             )}
@@ -186,8 +208,8 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                         isBlogEditting
                             ? 'user-introduction is-editting'
                             : isOwnBlog
-                                ? 'user-introduction is-my-blog'
-                                : 'user-introduction'
+                            ? 'user-introduction is-my-blog'
+                            : 'user-introduction'
                     }
                 >
                     <textarea
