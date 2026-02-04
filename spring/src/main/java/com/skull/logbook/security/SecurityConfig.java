@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/playlist/**").permitAll() // 플레이리스트 조회는 누구나 가능
                         .requestMatchers(HttpMethod.GET, "/chat/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/feed/**").permitAll() // 피드 조회는 누구나 가능
+                        .requestMatchers("/img/**").permitAll() // 이미지 조회 허용
                         .requestMatchers("/error").permitAll() // 에러 메시지 확인을 위해 허용
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated())

@@ -27,20 +27,17 @@ const Blog = () => {
     const postsTabBtnRef = useRef(null);
     const playListTabBtnRef = useRef(null);
 
+    const fetchBlogOwner = async () => {
+        try {
+            const response = await axios.get(`/api/auth/${userId}`);
+            setBlogOwnerData(response.data);
+        } catch (error) {
+            // 404 등 에러가 나면 여기로 옴
+            setBlogOwnerData(null);
+        }
+    };
+
     useEffect(() => {
-        const fetchBlogOwner = async () => {
-            try {
-                const response = await axios.get(`/api/auth/${userId}`);
-                console.log("bbb" + response.data);
-                setBlogOwnerData(response.data);
-            } catch (error) {
-                // 404 등 에러가 나면 여기로 옴
-                setBlogOwnerData(null);
-            }
-        };
-
-        console.log("aaa" + userId);
-
         if (userId) {
             fetchBlogOwner();
         }
@@ -80,7 +77,7 @@ const Blog = () => {
     return (
         <div id="Blog">
             <div className="blog-wrapper">
-                <BlogUserInfo userId={userId} isOwnBlog={isOwnBlog} blogOwnerData={blogOwnerData} />
+                <BlogUserInfo userId={userId} isOwnBlog={isOwnBlog} blogOwnerData={blogOwnerData} onUpdate={fetchBlogOwner} />
                 <div className="blog-wrapper-area">
                     <div className="blog-wrapper-tab">
                         <button
