@@ -25,4 +25,11 @@ public class Blog extends BaseDeletedEntity {
         unique = true
     )
     private User user;
+
+    public void updateLayout(String layout) {
+        if (layout == null || layout.isBlank()) {
+            throw new IllegalArgumentException("레이아웃은 비어 있을 수 없습니다.");
+        }
+        this.layout = layout;
+    }
 }

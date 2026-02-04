@@ -29,7 +29,7 @@ const Blog = () => {
 
     const fetchBlogOwner = async () => {
         try {
-            const response = await axios.get(`/api/auth/${userId}`);
+            const response = await axios.get(`/api/users/${userId}`);
             setBlogOwnerData(response.data);
         } catch (error) {
             // 404 등 에러가 나면 여기로 옴
@@ -77,7 +77,12 @@ const Blog = () => {
     return (
         <div id="Blog">
             <div className="blog-wrapper">
-                <BlogUserInfo userId={userId} isOwnBlog={isOwnBlog} blogOwnerData={blogOwnerData} onUpdate={fetchBlogOwner} />
+                <BlogUserInfo
+                    userId={userId}
+                    isOwnBlog={isOwnBlog}
+                    blogOwnerData={blogOwnerData}
+                    onUpdate={fetchBlogOwner}
+                />
                 <div className="blog-wrapper-area">
                     <div className="blog-wrapper-tab">
                         <button
