@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Login from './Login';
 import { useAuth, useUserData, useUI } from '../../context';
 import UserInfoModal from '../chat/UserInfoModal';
+import ChangePasswordModal from './ChangePasswordModal';
 import {
     initAuthChannel,
     addAuthListener,
@@ -20,6 +21,7 @@ const Header = () => {
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showUserModal, setShowUserModal] = useState(false);
+    const [showChangePwModal, setShowChangePwModal] = useState(false);
     const searchRef = useRef(null);
     const searchAreaRef = useRef(null);
     const searchAreaElRef = useRef(null);
@@ -41,6 +43,11 @@ const Header = () => {
     const handleProfileClick = () => {
         setShowUserModal(true);
         setShowMenu(false); // 메뉴 닫기
+    };
+
+    const handleChangePassword = () => {
+        setShowChangePwModal(true);
+        setShowMenu(false);
     };
 
     const handleModalClose = () => {
@@ -314,6 +321,12 @@ const Header = () => {
                     isOwnProfile={true}
                 />
             )}
+
+            {/* 비밀번호 변경 모달 */}
+            <ChangePasswordModal
+                isOpen={showChangePwModal}
+                onClose={() => setShowChangePwModal(false)}
+            />
         </header>
     );
 };

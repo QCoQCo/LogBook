@@ -56,4 +56,8 @@ public class User extends BaseDeletedEntity {
             this.nickName = nickName;
         }
     }
+
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
+    }
 }

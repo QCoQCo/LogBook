@@ -122,4 +122,20 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("message", "토큰 갱신 실패: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request) {
+        try {
+            Long userId = Long.parseLong(request.get("userId"));
+            String oldPassword = request.get("oldPassword");
+            String newPassword = request.get("newPassword");
+
+            userService.changePassword(userId, oldPassword, newPassword);
+            return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "잘못된 사용자 ID입니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }
