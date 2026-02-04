@@ -281,6 +281,11 @@ const Header = () => {
                                                 내 블로그
                                             </Link>
                                         </li>
+                                        <li role="menuitem">
+                                            <button type="button" onClick={handleChangePassword}>
+                                                비밀번호 변경
+                                            </button>
+                                        </li>
                                         <li role='menuitem'>
                                             <button type='button' onClick={handleLogout}>
                                                 로그아웃

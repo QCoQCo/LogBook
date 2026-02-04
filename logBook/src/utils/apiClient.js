@@ -58,8 +58,8 @@ apiClient.interceptors.request.use(async (config) => {
                     throw new axios.Cancel("Token expired");
                 }
 
-                // 2. 만료 임박 (5분 전) - 동기식(Blocking) Singleton Refresh
-                if (exp > 0 && exp - now < 300) {
+                // 2. 만료 임박 (1시간 전) - 동기식(Blocking) Singleton Refresh
+                if (exp > 0 && exp - now < 3600) {
                     if (!isRefreshing) {
                         isRefreshing = true;
                         try {

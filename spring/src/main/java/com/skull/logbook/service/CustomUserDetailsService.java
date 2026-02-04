@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .username(user.getLoginId())
                 .password(user.getPassword())
                 // 권한 설정 (필요하다면 Role 부여 등)
-                .roles("USER")
+                .roles(user.getRole().name())
                 .build();
     }
 }
