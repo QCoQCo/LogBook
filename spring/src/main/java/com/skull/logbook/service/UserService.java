@@ -16,7 +16,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -152,6 +154,13 @@ public class UserService {
                 user.getUserEmail(),
                 user.getProfilePhoto(),
                 user.getIntroduction());
+    }
+
+    /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만) */
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(UserResponseDto::from)
+                .collect(Collectors.toList());
     }
 
     private String hashToken(String token) {

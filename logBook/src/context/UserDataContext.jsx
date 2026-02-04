@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import apiClient from '../utils/apiClient';
 
 // UserDataContext 생성
 const UserDataContext = createContext();
@@ -14,33 +15,49 @@ export const UserDataProvider = ({ children }) => {
     const [userDataLoading, setUserDataLoading] = useState(false);
     const [userDataLoaded, setUserDataLoaded] = useState(false);
 
-    // 사용자 데이터 로딩 함수
+    // 사용자 데이터 로딩 함수 (백엔드 API 사용, 실패 시 빈 배열로 완료)
     const loadUserData = useCallback(async () => {
         if (userDataLoaded || userDataLoading) return; // 이미 로드되었거나 로딩 중이면 중복 실행 방지
 
         try {
             setUserDataLoading(true);
-            const response = await fetch('/data/userData.json');
-            if (!response.ok) {
-                throw new Error('사용자 데이터 로딩 실패');
-            }
-            const users = await response.json();
+            const { data } = await apiClient.get('/users');
+            // 백엔드 DTO: id, loginId, nickName, userEmail, profilePhoto, introduction
+            // 프론트 호환: userId(loginId)로 Map 검색하므로 userId 필드 추가
+            const users = Array.isArray(data) ? data.map((u) => ({ ...u, userId: u.loginId })) : [];
             setUserData(users);
             setUserDataLoaded(true);
         } catch (error) {
-            console.error('사용자 데이터 로드 실패:', error);
+            // 401(미로그인) 등으로 실패해도 빈 배열로 완료 처리하여 재시도 가능
+            if (error?.response?.status === 401) {
+                setUserData([]);
+            }
+            setUserDataLoaded(true);
+            if (error?.response?.status !== 401) {
+                console.error('사용자 데이터 로드 실패:', error);
+            }
         } finally {
             setUserDataLoading(false);
         }
     }, [userDataLoaded, userDataLoading]);
 
+    // 로그인 후 사용자 목록 재요청용 (userDataLoaded 초기화 후 loadUserData 호출)
+    const refetchUserData = useCallback(() => {
+        setUserDataLoaded(false);
+        setUserDataLoading(false);
+    }, []);
+
     // 사용자 데이터를 Map으로 변환하여 검색 성능 향상
     const userDataMap = useMemo(() => {
         const map = new Map();
         userData.forEach((user) => {
-            // userId로 인덱싱
+            // userId(loginId)로 인덱싱
             if (user.userId) {
                 map.set(user.userId, user);
+            }
+            // id(DB PK)로도 인덱싱 (헤더 등에서 currentUser.id로 조회)
+            if (user.id != null) {
+                map.set(user.id, user);
             }
             // nickName으로도 인덱싱 (중복 허용)
             if (user.nickName && !map.has(user.nickName)) {
@@ -79,6 +96,18 @@ export const UserDataProvider = ({ children }) => {
         [userDataMap]
     );
 
+    // 사용자 캐시 갱신 (프로필 수정 등으로 한 명의 데이터만 반영할 때)
+    const updateUserInCache = useCallback((identifier, updates) => {
+        if (updates == null || Object.keys(updates).length === 0) return;
+        setUserData((prev) =>
+            prev.map((u) => {
+                const match =
+                    u.id === identifier || u.userId === identifier || u.loginId === identifier;
+                return match ? { ...u, ...updates } : u;
+            })
+        );
+    }, []);
+
     // 사용자 닉네임 업데이트 함수
     const updateUserNickname = useCallback((userId, newNickname) => {
         try {
@@ -103,8 +132,10 @@ export const UserDataProvider = ({ children }) => {
             userDataLoading,
             userDataLoaded,
             loadUserData,
+            refetchUserData,
             getUserProfilePhoto,
             getUserInfo,
+            updateUserInCache,
             updateUserNickname,
         }),
         [
@@ -112,8 +143,10 @@ export const UserDataProvider = ({ children }) => {
             userDataLoading,
             userDataLoaded,
             loadUserData,
+            refetchUserData,
             getUserProfilePhoto,
             getUserInfo,
+            updateUserInCache,
             updateUserNickname,
         ]
     );
