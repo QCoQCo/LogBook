@@ -59,16 +59,20 @@ const PostDetail = () => {
 
     const getPostData = async () => {
         try {
-            const res = await axios.get('/data/initData.json');
+            // [Modified] Mock Data -> Real API (임시로 목록 조회 후 필터링)
+            const res = await axios.get('/api/feed?page=0');
+            // API는 DTO 리스트 반환: [{id, userId, title, content, tags...}, ...]
+            // postId는 숫자, DTO ID는 Long(숫자)
             const post = res.data.find((p) => p.postId === postId);
 
             if (post && userData) {
-                const owner = userData.find((user) => user.id === post.userId);
+                // DTO userId는 String, userData id는 Number일 수 있음. 비교 시 주의
+                const owner = userData.find((user) => String(user.id) === String(post.userId));
                 setCurrentPost(post);
                 setPostOwner(owner);
 
                 // 게시글 소유자 확인
-                if (owner.userId === currentUser?.id) {
+                if (owner && currentUser && String(owner.userId) === String(currentUser.id)) {
                     setIsOwnPost(true);
                 } else {
                     setIsOwnPost(false);
