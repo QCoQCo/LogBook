@@ -15,7 +15,19 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
     const fileInputRef = useRef();
 
     // useContext
-    const { layout, elements, isBlogEditting, setIsBlogEditting, activeTab } = useBlog();
+    const {
+        layout,
+        setLayout,
+        originLayout,
+        setOriginLayout,
+        elements,
+        setElements,
+        originElements,
+        setOriginElements,
+        isBlogEditting,
+        setIsBlogEditting,
+        activeTab,
+    } = useBlog();
     const { currentUser, updateCurrentUser } = useAuth();
     const { updateUserInCache } = useUserData();
 
@@ -55,6 +67,9 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
     };
 
     const handleClickEditBlog = () => {
+        // 깊은 복사 -> 얕은 복사를 하면 layout / elements 가 변할 때 같이 변해버림
+        setOriginLayout(JSON.parse(JSON.stringify(layout)));
+        setOriginElements(JSON.parse(JSON.stringify(elements)));
         setIsBlogEditting(true);
     };
 
@@ -108,6 +123,10 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
     };
 
     const handleClickCancelBtn = () => {
+        if (originLayout && originElements) {
+            setLayout(originLayout);
+            setElements(originElements);
+        }
         setIsBlogEditting(false);
         setIntroText(blogOwnerData?.introduction || "");
         setNickName(blogOwnerData?.nickName || "");

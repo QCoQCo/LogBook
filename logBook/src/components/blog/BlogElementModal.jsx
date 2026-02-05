@@ -43,11 +43,29 @@ const BlogElementModal = ({ item, isBlogEditting, releaseModal }) => {
             return;
         }
 
-        setElements((prev) =>
-            prev.map((element) =>
-                element.i === item.i ? { ...element, content: modalContent } : element
-            )
-        );
+        if (type === 'link') {
+            setElements((prev) =>
+                prev.map((element) =>
+                    element.i === item.i
+                        ? {
+                              ...element,
+                              content: modalContent,
+                              meta: {
+                                  title: null,
+                                  thumbnail: null,
+                                  status: 'loading', // loading | done | error
+                              },
+                          }
+                        : element,
+                ),
+            );
+        } else {
+            setElements((prev) =>
+                prev.map((element) =>
+                    element.i === item.i ? { ...element, content: modalContent } : element,
+                ),
+            );
+        }
         releaseModal();
     };
 
@@ -83,26 +101,26 @@ const BlogElementModal = ({ item, isBlogEditting, releaseModal }) => {
     console.log(currentContent);
 
     return isBlogEditting ? (
-        <div id='BlogElementModal' onClick={handleModalClick}>
-            <div className='modal-top'>
-                <img className='modal-icon' src={`/img/icon-${type}.png`} alt='모달 아이콘' />
-                <button className='close-modal-btn' onClick={releaseModal}>
+        <div id="BlogElementModal" onClick={handleModalClick}>
+            <div className="modal-top">
+                <img className="modal-icon" src={`/img/icon-${type}.png`} alt="모달 아이콘" />
+                <button className="close-modal-btn" onClick={releaseModal}>
                     모달 닫기
                 </button>
             </div>
-            <div className='modal-inner'>
+            <div className="modal-inner">
                 <h1>{title}</h1>
                 {['title', 'link', 'image'].includes(type) ? (
-                    <div className='modal-content-area'>
+                    <div className="modal-content-area">
                         <input
                             className={`input-${type}-element`}
-                            type='text'
+                            type="text"
                             value={modalContent}
                             onChange={handleChangeInput}
                             ref={inputRef}
                             placeholder={placeholder}
                         />
-                        <p className='empty-content-alert' ref={alertRef}>
+                        <p className="empty-content-alert" ref={alertRef}>
                             내용을 입력해 주세요
                         </p>
                     </div>
@@ -116,18 +134,18 @@ const BlogElementModal = ({ item, isBlogEditting, releaseModal }) => {
             </div>
         </div>
     ) : (
-        <div className='blog-image-modal'>
-            <img src={currentContent} alt='이미지 크게보기' />
+        <div className="blog-image-modal">
+            <img src={currentContent} alt="이미지 크게보기" />
         </div>
     );
 };
 
 const ModalBtnArea = ({ handleClickConfirm, handleClickCancel }) => (
-    <div className='modal-btn-area'>
-        <button className='btn-confirm' onClick={handleClickConfirm}>
+    <div className="modal-btn-area">
+        <button className="btn-confirm" onClick={handleClickConfirm}>
             확인
         </button>
-        <button className='btn-cancel' onClick={handleClickCancel}>
+        <button className="btn-cancel" onClick={handleClickCancel}>
             취소
         </button>
     </div>
