@@ -1,12 +1,13 @@
 package com.skull.logbook.service;
 
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable; // Added import for Pageable
 import org.springframework.stereotype.Service;
 
 import com.skull.logbook.dto.PostResponseDto;
 import com.skull.logbook.entity.Post;
+import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.PostRepository;
+import com.skull.logbook.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class PostService {
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository; // Injected
+    private final UserRepository userRepository;
 
     public List<PostResponseDto> getAllPosts(int page, int size) {
         // 1. 게시글 목록 우선 조회
@@ -42,6 +44,11 @@ public class PostService {
                         data -> (Long) data[0],
                         Collectors.mapping(data -> (String) data[1], Collectors.toList())));
 
+        // 4. 작성자 닉네임 조회 (userId -> nickName)
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
+        Map<Long, String> authorNameMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getNickName, (a, b) -> a));
+
         for (Post post : posts) {
             System.out.println("postId: " + post.getId());
             System.out.println("title: " + post.getTitle());
@@ -51,11 +58,12 @@ public class PostService {
             System.out.println("tags: " + tagsMap.getOrDefault(post.getId(), new ArrayList<>()));
         }
 
-        // 4. DTO 변환 (태그 주입)
+        // 5. DTO 변환 (태그, 작성자명 주입)
         return posts.stream()
                 .map(post -> new PostResponseDto(
                         post.getId(),
                         String.valueOf(post.getUserId()),
+                        authorNameMap.getOrDefault(post.getUserId(), ""),
                         post.getTitle(),
                         post.getContent(),
                         post.getCreatedAt().toString(),

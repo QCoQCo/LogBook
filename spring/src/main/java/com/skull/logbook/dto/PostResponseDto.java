@@ -14,6 +14,7 @@ public class PostResponseDto {
     @JsonProperty("postId")
     private Long id;
     private String userId;
+    private String authorName;
     private String title;
     private String content;
     private String createdAt;
