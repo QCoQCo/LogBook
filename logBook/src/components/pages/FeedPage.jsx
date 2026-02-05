@@ -609,7 +609,15 @@ const FeedPage = () => {
                                             }}
                                         >
                                             <img
-                                                src={post.thumbnail || '/img/logBook_logo.png'}
+                                                src={
+                                                    post.thumbnail ||
+                                                    (() => {
+                                                        if (!post.content) return null;
+                                                        const match = post.content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
+                                                        return match ? match[1] : null;
+                                                    })() ||
+                                                    '/img/logBook_logo.png'
+                                                }
                                                 alt={post.title || 'thumbnail'}
                                                 loading='lazy'
                                                 style={{
@@ -636,7 +644,15 @@ const FeedPage = () => {
                                     <>
                                         <div className='card-thumb'>
                                             <img
-                                                src={post.thumbnail || '/img/logBook_logo.png'}
+                                                src={
+                                                    post.thumbnail ||
+                                                    (() => {
+                                                        if (!post.content) return null;
+                                                        const match = post.content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
+                                                        return match ? match[1] : null;
+                                                    })() ||
+                                                    '/img/logBook_logo.png'
+                                                }
                                                 alt={post.title || 'thumbnail'}
                                                 loading='lazy'
                                                 onError={(e) => {
