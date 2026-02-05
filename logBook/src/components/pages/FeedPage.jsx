@@ -633,6 +633,9 @@ const FeedPage = () => {
                                             />
                                         </div>
                                         <div className='card-body' style={{ flex: 1 }}>
+                                            {post.authorName && (
+                                                <span className='card-author'>{post.authorName}</span>
+                                            )}
                                             <h3 className='card-title'>{post.title}</h3>
                                             <p className='card-excerpt'>
                                                 {(post.content || '').slice(0, 240)}
@@ -663,6 +666,9 @@ const FeedPage = () => {
                                             />
                                         </div>
                                         <div className='card-body'>
+                                            {post.authorName && (
+                                                <span className='card-author'>{post.authorName}</span>
+                                            )}
                                             <h3 className='card-title'>{post.title}</h3>
                                             <p className='card-excerpt'>
                                                 {(post.content || '').slice(0, 120)}
