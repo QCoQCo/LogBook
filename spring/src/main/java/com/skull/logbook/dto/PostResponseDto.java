@@ -1,5 +1,7 @@
 package com.skull.logbook.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,4 +18,5 @@ public class PostResponseDto {
     private String content;
     private String createdAt;
     private String updatedAt;
+    private List<String> tags;
 }
