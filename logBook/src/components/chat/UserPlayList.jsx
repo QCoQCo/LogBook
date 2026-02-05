@@ -13,6 +13,7 @@ import 'swiper/css/thumbs';
 const UserPlaylist = ({ openYTPopup, playTrackInPopup, currentTrack, isPopupOpen }) => {
     const { currentUser, isLogin } = useAuth();
     const { currentChatRoom } = useChat();
+    const { fetchPlaylists } = usePlaylist();
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
     const [playlistData, setPlaylistData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -20,34 +21,37 @@ const UserPlaylist = ({ openYTPopup, playTrackInPopup, currentTrack, isPopupOpen
     const [currentSong, setCurrentSong] = useState(null);
     const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
 
-    // 플레이리스트 데이터 로드
+    // 플레이리스트 데이터 로드 (apiClient → DB)
     const loadPlaylistData = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('/data/playlistData.json');
-            if (!response.ok) {
-                throw new Error('플레이리스트 데이터 로드 실패');
+            if (!isLogin || !currentUser) {
+                setPlaylistData([]);
+                setLoading(false);
+                return;
             }
 
-            const data = await response.json();
-            // 현재 사용자의 플레이리스트만 필터링 (로그인한 경우)
-            const userPlaylist =
-                isLogin && currentUser
-                    ? data.filter((playlist) => playlist.userId === currentUser.id)
-                    : data; // 비로그인시 모든 플레이리스트 표시
+            const userId = currentUser.id ?? currentUser.userId;
+            if (!userId) {
+                setPlaylistData([]);
+                setLoading(false);
+                return;
+            }
 
-            setPlaylistData(userPlaylist);
+            const lists = await fetchPlaylists(userId);
+            setPlaylistData(Array.isArray(lists) ? lists : []);
         } catch (err) {
             console.error('플레이리스트 로드 오류:', err);
             setError('플레이리스트를 불러올 수 없습니다.');
+            setPlaylistData([]);
         } finally {
             setLoading(false);
         }
-    }, [isLogin, currentUser]);
+    }, [isLogin, currentUser, fetchPlaylists]);
 
-    // 컴포넌트 마운트 시 데이터 로드
+    // 컴포넌트 마운트 및 로그인 유저 변경 시 데이터 로드
     useEffect(() => {
         loadPlaylistData();
     }, [loadPlaylistData]);

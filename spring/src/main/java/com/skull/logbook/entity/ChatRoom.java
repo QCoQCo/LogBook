@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 // 채팅방 메타정보. 시드/사용자 생성 모두 MySQL 관리. 메시지는 Firebase.
 @Entity
 @Getter
@@ -15,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "chatRoom")
-public class ChatRoom {
+public class ChatRoom extends BaseUpdatedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,9 +48,4 @@ public class ChatRoom {
     @Column
     private String password;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 }
