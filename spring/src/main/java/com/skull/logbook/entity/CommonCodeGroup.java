@@ -32,9 +32,6 @@ public class CommonCodeGroup extends BaseDeletedEntity {
     @Column(name = "useYn", nullable = false, length = 1)
     private String useYn;
 
-    @Column(name = "regDate", nullable = false)
-    private LocalDateTime regDate;
-
     @Column(name = "modifier", length = 50)
     private String modifier;
 
@@ -48,7 +45,6 @@ public class CommonCodeGroup extends BaseDeletedEntity {
         this.groupName = groupName;
         this.description = description;
         this.useYn = useYn;
-        this.regDate = regDate != null ? regDate : LocalDateTime.now();
         this.modifier = modifier;
     }
 }
