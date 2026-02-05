@@ -35,6 +35,16 @@ public class BlogService {
         try {
             JsonNode root = objectMapper.readTree(blog.getLayout());
 
+            JsonNode elementsNode = root.get("elements");
+            if (elementsNode != null && elementsNode.isArray()) {
+                for (JsonNode el : elementsNode) {
+                    if (el.isObject() && !el.has("meta")) {
+                        ((tools.jackson.databind.node.ObjectNode) el)
+                                .set("meta", objectMapper.createObjectNode());
+                    }
+                }
+            }
+
             List<Map<String, Object>> layout =
                     objectMapper.convertValue(
                             root.get("layout"),
@@ -72,4 +82,6 @@ public class BlogService {
 
         return blog;
     }
+
+
 }

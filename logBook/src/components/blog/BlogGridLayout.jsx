@@ -1,9 +1,11 @@
-import axios from "axios";
-import ReactGridLayout from "react-grid-layout";
-import { useEffect, useState } from "react";
-import { useBlog } from "../../context";
-import BlogLayoutItem from "./BlogLayoutItem";
-import apiClient from "../../utils/apiClient";
+import axios from 'axios';
+import ReactGridLayout from 'react-grid-layout';
+import { useEffect, useState } from 'react';
+import { useBlog } from '../../context';
+import BlogLayoutItem from './BlogLayoutItem';
+import apiClient from '../../utils/apiClient';
+
+import './BlogGridLayout.scss';
 
 const BlogGridLayout = ({ userId, enableModal }) => {
     const [newItemCounter, setNewItemCounter] = useState(0);
@@ -28,7 +30,7 @@ const BlogGridLayout = ({ userId, enableModal }) => {
             const layoutData = blogData.layout;
             const elementData = blogData.elements;
 
-            const numbersFromLayoutId = layoutData.map((item) => parseInt(item.i.split("-")[1]));
+            const numbersFromLayoutId = layoutData.map((item) => parseInt(item.i.split('-')[1]));
 
             setLayout(layoutData);
             setElements(elementData);
@@ -36,7 +38,7 @@ const BlogGridLayout = ({ userId, enableModal }) => {
                 numbersFromLayoutId.length > 0 ? Math.max(...numbersFromLayoutId) + 1 : 0,
             );
         } catch (e) {
-            console.error("블로그 데이터 로딩 실패: ", e);
+            console.error('블로그 데이터 로딩 실패: ', e);
             setLayout([]);
             setElements([]);
         }
@@ -88,13 +90,13 @@ const BlogGridLayout = ({ userId, enableModal }) => {
         // console.log(newItemCounter, '추가됨');
 
         setLayout(finalLayout);
-        setElements((prev) => [...prev, { i: newId, content: null }]);
+        setElements((prev) => [...prev, { i: newId, content: null, meta: {} }]);
         setNewItemCounter((prevCounter) => prevCounter + 1);
     };
 
     const renderGridItems = () => {
         return layout.map((item) => {
-            if (item.i !== "__dropping-elem__") {
+            if (item.i !== '__dropping-elem__') {
                 return (
                     <div key={item.i}>
                         <BlogLayoutItem
@@ -122,11 +124,11 @@ const BlogGridLayout = ({ userId, enableModal }) => {
                 isResizable={isBlogEditting}
                 draggableHandle=".grid-item-text"
                 droppingItem={{
-                    i: "__dropping-elem__",
+                    i: '__dropping-elem__',
                     w: draggingItem ? draggingItem.w : 1,
                     h: draggingItem ? draggingItem.h : 1,
                 }}
-                compactType={"vertical"}
+                compactType={'vertical'}
                 onLayoutChange={onLayoutChange}
             >
                 {renderGridItems()}

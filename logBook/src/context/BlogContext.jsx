@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo } from "react";
 
 // BlogContext 생성
 const BlogContext = createContext();
@@ -6,21 +6,23 @@ const BlogContext = createContext();
 export const BlogProvider = ({ children }) => {
     // Blog GridLayout 관련 상태
     const [layout, setLayout] = useState([]);
+    const [originLayout, setOriginLayout] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
     const [clickedItem, setClickedItem] = useState(null);
     const [elements, setElements] = useState([]);
+    const [originElements, setOriginElements] = useState([]);
     const [isBlogEditting, setIsBlogEditting] = useState(false);
 
     // 블로그 탭 위치 관리
     const [activeTab, setActiveTabState] = useState(() => {
-        const s = sessionStorage.getItem('logbook_activeTab');
+        const s = sessionStorage.getItem("logbook_activeTab");
         return s ? Number(s) : 1;
     });
 
     const setActiveTab = useCallback((n) => {
         setActiveTabState(n);
         try {
-            sessionStorage.setItem('logbook_activeTab', String(n));
+            sessionStorage.setItem("logbook_activeTab", String(n));
         } catch (e) {}
     }, []);
 
@@ -29,27 +31,35 @@ export const BlogProvider = ({ children }) => {
         () => ({
             layout,
             setLayout,
+            originLayout,
+            setOriginLayout,
             draggingItem,
             setDraggingItem,
             clickedItem,
             setClickedItem,
             elements,
             setElements,
+            originElements,
+            setOriginElements,
             isBlogEditting,
             setIsBlogEditting,
         }),
         [
             layout,
             setLayout,
+            originLayout,
+            setOriginLayout,
             draggingItem,
             setDraggingItem,
             clickedItem,
             setClickedItem,
             elements,
             setElements,
+            originElements,
+            setOriginElements,
             isBlogEditting,
             setIsBlogEditting,
-        ]
+        ],
     );
 
     const uiBlogState = useMemo(
@@ -57,7 +67,7 @@ export const BlogProvider = ({ children }) => {
             activeTab,
             setActiveTab,
         }),
-        [activeTab, setActiveTab]
+        [activeTab, setActiveTab],
     );
 
     // 전체 값 통합
@@ -66,7 +76,7 @@ export const BlogProvider = ({ children }) => {
             ...blogValues,
             ...uiBlogState,
         }),
-        [blogValues, uiBlogState]
+        [blogValues, uiBlogState],
     );
 
     return <BlogContext.Provider value={value}>{children}</BlogContext.Provider>;
@@ -75,7 +85,7 @@ export const BlogProvider = ({ children }) => {
 export const useBlog = () => {
     const context = useContext(BlogContext);
     if (!context) {
-        throw new Error('useBlog must be used within a BlogProvider');
+        throw new Error("useBlog must be used within a BlogProvider");
     }
     return context;
 };
