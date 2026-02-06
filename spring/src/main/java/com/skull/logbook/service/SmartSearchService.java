@@ -5,6 +5,8 @@ import com.skull.logbook.dto.SearchResponseDto;
 import com.skull.logbook.entity.Post;
 import com.skull.logbook.repository.PostRepository;
 import com.skull.logbook.repository.PostTagRepository;
+import com.skull.logbook.repository.UserRepository;
+import com.skull.logbook.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +21,7 @@ public class SmartSearchService {
 
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository;
-    // private final PostService postService; // Removed unused field
+    private final UserRepository userRepository;
 
     public SearchResponseDto search(String query) {
         Pageable pageable = PageRequest.of(0, 10);
@@ -99,10 +101,16 @@ public class SmartSearchService {
                         data -> (Long) data[0],
                         Collectors.mapping(data -> (String) data[1], Collectors.toList())));
 
+        // 3. 작성자 닉네임 조회
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
+        Map<Long, String> authorNameMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getNickName, (a, b) -> a));
+
         return posts.stream()
                 .map(post -> new PostResponseDto(
                         post.getId(),
                         String.valueOf(post.getUserId()),
+                        authorNameMap.getOrDefault(post.getUserId(), ""), // authorName 추가
                         post.getTitle(),
                         post.getContent(),
                         post.getCreatedAt().toString(),
