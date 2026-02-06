@@ -17,6 +17,6 @@ public class SmartSearchController {
 
     @GetMapping("/hybrid")
     public SearchResponseDto search(@RequestParam String query) {
-        return smartSearchService.search(query);
+        return smartSearchService.search(query, 20);
     }
 }

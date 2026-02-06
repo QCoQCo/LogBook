@@ -12,6 +12,12 @@ export const PostProvider = ({ children }) => {
     const [hasMore, setHasMore] = useState(true);
     const [isMoreLoading, setIsMoreLoading] = useState(false);
 
+    // AI 검색 메타데이터 상태
+    const [searchMetadata, setSearchMetadata] = useState({
+        recommendedTags: [],
+        searchSource: 'DB'
+    });
+
     // 통합 데이터 로드 함수
     const fetchPosts = useCallback(async (queryParam) => {
         setIsMoreLoading(true);
@@ -32,11 +38,20 @@ export const PostProvider = ({ children }) => {
             // 검색 결과 구조가 일반 피드와 다를 수 있으므로 처리 (posts 필드가 있는지, 아니면 배열인지)
             // SmartSearchDropdown을 보면 response.data에 posts, recommendedTags 등이 있음.
             if (isSearch) {
+                // SearchResponseDto 처리
                 resultList = Array.isArray(data.posts) ? data.posts : [];
+                setSearchMetadata({
+                    recommendedTags: data.recommendedTags || [],
+                    searchSource: data.searchSource || 'DB'
+                });
                 // 검색 결과는 일단 단일 페이지로 간주 (무한 스크롤 비활성화)
                 setHasMore(false);
             } else {
                 resultList = Array.isArray(data) ? data : [];
+                setSearchMetadata({
+                    recommendedTags: [],
+                    searchSource: 'DB'
+                });
                 if (resultList.length < 20) {
                     setHasMore(false);
                 } else {
@@ -49,6 +64,7 @@ export const PostProvider = ({ children }) => {
         } catch (err) {
             console.error("Failed to fetch posts:", err);
             setPosts([]);
+            setSearchMetadata({ recommendedTags: [], searchSource: 'DB' });
         } finally {
             setIsMoreLoading(false);
         }
