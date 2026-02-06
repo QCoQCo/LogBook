@@ -1,12 +1,20 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import RGL, { WidthProvider } from 'react-grid-layout';
 import { usePost } from '../../context';
 const ReactGridLayout = WidthProvider(RGL);
 import './FeedPage.scss';
 
 const FeedPage = () => {
-    const { posts, loadMorePosts, hasMore, isMoreLoading } = usePost();
+    const { posts, loadMorePosts, hasMore, isMoreLoading, fetchPosts } = usePost();
+    const location = useLocation();
+
+    // URL 검색 파라미터 변경 감지 및 데이터 로드
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const search = params.get('search');
+        fetchPosts(search);
+    }, [location.search, fetchPosts]);
     const skipRebuildRef = useRef(false);
 
     // [New] 새로고침 시 스크롤 최상단 강제 이동

@@ -12,42 +12,78 @@ export const PostProvider = ({ children }) => {
     const [hasMore, setHasMore] = useState(true);
     const [isMoreLoading, setIsMoreLoading] = useState(false);
 
-    useEffect(() => {
-        let mounted = true;
-        // page=0 (초기 100개) 로드
-        apiClient.get('/feed?page=0')
-            .then((response) => {
-                if (!mounted) return;
-                const data = response.data;
-                const initialPosts = Array.isArray(data) ? data : [];
-                setPosts(initialPosts);
-                // 만약 처음부터 20개 미만이면 더 볼 것도 없음
-                if (initialPosts.length < 20) {
+    // 통합 데이터 로드 함수
+    const fetchPosts = useCallback(async (queryParam) => {
+        setIsMoreLoading(true);
+        try {
+            let endpoint = '/posts?page=0';
+            let isSearch = false;
+
+            if (queryParam) {
+                // apiClient has baseURL '/api', so we just need '/search/hybrid'
+                endpoint = `/search/hybrid?query=${encodeURIComponent(queryParam)}`;
+                isSearch = true;
+            }
+
+            const response = await apiClient.get(endpoint);
+            const data = response.data;
+            let resultList = [];
+
+            // 검색 결과 구조가 일반 피드와 다를 수 있으므로 처리 (posts 필드가 있는지, 아니면 배열인지)
+            // SmartSearchDropdown을 보면 response.data에 posts, recommendedTags 등이 있음.
+            if (isSearch) {
+                resultList = Array.isArray(data.posts) ? data.posts : [];
+                // 검색 결과는 일단 단일 페이지로 간주 (무한 스크롤 비활성화)
+                setHasMore(false);
+            } else {
+                resultList = Array.isArray(data) ? data : [];
+                if (resultList.length < 20) {
                     setHasMore(false);
+                } else {
+                    setHasMore(true);
                 }
-            })
-            .catch(() => {
-                if (!mounted) return;
-                setPosts([]);
-            });
-        return () => (mounted = false);
+            }
+
+            setPosts(resultList);
+            setPage(0);
+        } catch (err) {
+            console.error("Failed to fetch posts:", err);
+            setPosts([]);
+        } finally {
+            setIsMoreLoading(false);
+        }
     }, []);
 
-    // 추가 로드 함수 (무한 스크롤용)
+    useEffect(() => {
+        // 초기 로딩 시 URL 파라미터 확인
+        const params = new URLSearchParams(window.location.search);
+        const search = params.get('search');
+        fetchPosts(search);
+    }, [fetchPosts]);
+
+    // 추가 로드 함수 (무한 스크롤용 - 검색 모드가 아닐 때만 동작)
     const loadMorePosts = useCallback(async () => {
         if (isMoreLoading || !hasMore) return;
+
+        // URL에 검색어가 있으면 추가 로드 중단 (현재 페이징 미지원 가정)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('search')) return;
 
         setIsMoreLoading(true);
         try {
             const nextPage = page + 1;
-            const response = await apiClient.get(`/feed?page=${nextPage}`);
+            const response = await apiClient.get(`/posts?page=${nextPage}`);
             const newPosts = response.data;
 
             if (Array.isArray(newPosts) && newPosts.length > 0) {
-                setPosts((prev) => [...prev, ...newPosts]); // 기존 목록 뒤에 붙이기
-                setPage(nextPage); // 페이지 번호 증가 (기억)
+                // 중복 제거 (postId 기준)
+                setPosts((prev) => {
+                    const existingIds = new Set(prev.map(p => p.postId));
+                    const filtered = newPosts.filter(p => !existingIds.has(p.postId));
+                    return [...prev, ...filtered];
+                });
+                setPage(nextPage);
 
-                // 가져온 게 20개 미만이면 이제 끝난 것임
                 if (newPosts.length < 20) {
                     setHasMore(false);
                 }
@@ -72,10 +108,11 @@ export const PostProvider = ({ children }) => {
             posts,
             setPosts,
             loadMorePosts,
+            fetchPosts, // 노출
             hasMore,
             isMoreLoading
         }),
-        [posts, setPosts, loadMorePosts, hasMore, isMoreLoading]
+        [posts, setPosts, loadMorePosts, fetchPosts, hasMore, isMoreLoading]
     );
 
     // Post Editor 관련 값들

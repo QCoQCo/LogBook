@@ -2,6 +2,7 @@
     width: 100%;
     height: 100px;
     background-color: #f0f0f0;
+
     .container {
         display: flex;
         align-items: center;
@@ -9,11 +10,13 @@
         width: 100%;
         height: 100%;
         padding: 0 20px;
+
         .left {
             display: flex;
             align-items: center;
             justify-content: start;
             padding: 10px;
+
             .logo-wrapper {
                 a {
                     display: flex;
@@ -21,6 +24,7 @@
                     justify-content: start;
                     gap: 10px;
                     transition: all 0.3s ease-in-out;
+
                     .logo {
                         width: 100px;
                         height: 100px;
@@ -29,6 +33,7 @@
                         background-repeat: no-repeat;
                         background-position: center;
                     }
+
                     .title {
                         width: 200px;
                         height: 100px;
@@ -37,6 +42,7 @@
                         background-repeat: no-repeat;
                         background-position: center;
                     }
+
                     &:hover {
                         animation: header-logo-animation 3s ease-in-out infinite;
 
@@ -46,6 +52,7 @@
                     }
                 }
             }
+
             .intro-wrapper {
                 width: 150px;
                 height: 50px;
@@ -54,6 +61,7 @@
                 overflow: hidden;
                 background-color: #121212;
                 transition: all 0.3s ease;
+
                 a {
                     position: relative;
                     display: block;
@@ -77,12 +85,10 @@
                         left: -100%;
                         width: 100%;
                         height: 100%;
-                        background: linear-gradient(
-                            90deg,
-                            transparent,
-                            rgba(255, 255, 255, 0.2),
-                            transparent
-                        );
+                        background: linear-gradient(90deg,
+                                transparent,
+                                rgba(255, 255, 255, 0.2),
+                                transparent);
                         transition: left 0.5s;
                     }
 
@@ -95,11 +101,13 @@
                         font-weight: 600;
                     }
                 }
+
                 &:hover {
                     transform: translateY(-3px);
                 }
             }
         }
+
         .right {
             display: flex;
             align-items: center;
@@ -127,15 +135,19 @@
                 visibility: hidden;
                 transform-origin: right center;
                 transform: scaleX(0);
-                min-width: 44px; /* ensure small visible area when scaled */
+                min-width: 44px;
+                /* ensure small visible area when scaled */
                 pointer-events: none;
                 transition: transform 220ms ease, opacity 180ms ease, visibility 180ms;
 
                 form {
                     display: flex;
                     align-items: center;
+                    width: 100%;
                 }
+
                 .search-input {
+                    width: 100%;
                     display: flex;
                     align-items: center;
                     gap: 8px;
@@ -145,16 +157,20 @@
                     box-shadow: 0 4px 10px rgba(20, 20, 20, 0.04);
                     position: relative;
                 }
+
                 .input-icon {
                     display: inline-flex;
-                    flex: 0 0 28px; /* fixed space for the icon so it's never pushed out */
+                    flex: 0 0 28px;
+                    /* fixed space for the icon so it's never pushed out */
                     align-items: center;
                     justify-content: center;
                     color: #6b6b6b;
                     z-index: 2;
                 }
+
                 input {
                     flex: 1 1 auto;
+                    width: 100%;
                     min-width: 120px;
                     height: 42px;
                     padding: 6px 8px;
@@ -164,6 +180,7 @@
                     color: #111;
                     outline: none;
                 }
+
                 .clear-btn {
                     all: unset;
                     cursor: pointer;
@@ -173,6 +190,7 @@
                     padding: 2px 6px;
                     border-radius: 6px;
                 }
+
                 .clear-btn:hover {
                     background: rgba(0, 0, 0, 0.04);
                     color: #444;
@@ -185,6 +203,8 @@
                 visibility: visible;
                 transform: scaleX(1);
                 pointer-events: auto;
+                overflow: visible;
+                /* 드롭다운 표시를 위해 visible로 변경 */
             }
 
             .search-wrapper {
@@ -193,7 +213,8 @@
             }
 
             .search-btn {
-                position: relative; /* 기준을 만들어 검색 영역을 버튼 아래에 배치 */
+                position: relative;
+                /* 기준을 만들어 검색 영역을 버튼 아래에 배치 */
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
@@ -203,12 +224,15 @@
                 align-items: center;
                 justify-content: center;
                 transition: all 0.3s ease;
+
                 svg {
                     width: 20px;
                 }
+
                 &:hover {
                     background-color: #c0dedd;
                 }
+
                 .search-toggle {
                     all: unset;
                     width: 100%;
@@ -218,15 +242,18 @@
                     justify-content: center;
                     cursor: pointer;
                 }
+
                 &.active {
                     background: linear-gradient(180deg, #f6f9f8, #e7f2ef);
                     box-shadow: 0 6px 16px rgba(20, 40, 30, 0.08);
                     transform: translateY(-1px);
                 }
+
                 .search-toggle svg {
                     color: #1f6f63;
                 }
             }
+
             .notification-btn {
                 width: 40px;
                 height: 40px;
@@ -237,13 +264,16 @@
                 align-items: center;
                 justify-content: center;
                 transition: all 0.3s ease;
+
                 svg {
                     width: 20px;
                 }
+
                 &:hover {
                     background-color: #c0dedd;
                 }
             }
+
             .login-btn {
                 .login-btn-wrap {
                     button {
@@ -259,10 +289,12 @@
                         overflow: hidden;
                         cursor: pointer;
                         transition: all 0.3s ease;
+
                         &:hover {
                             background-color: #000;
                             color: #fff;
                         }
+
                         &::before {
                             content: '';
                             position: absolute;
@@ -270,12 +302,10 @@
                             left: -100%;
                             width: 100%;
                             height: 100%;
-                            background: linear-gradient(
-                                90deg,
-                                transparent,
-                                rgba(135, 135, 135, 0.6),
-                                transparent
-                            );
+                            background: linear-gradient(90deg,
+                                    transparent,
+                                    rgba(135, 135, 135, 0.6),
+                                    transparent);
                             transition: left 0.5s;
                         }
 
@@ -357,6 +387,7 @@
 
                         // 호버 효과 (프로필 사진이 없을 때)
                         &:hover .user-name {
+
                             &.no-profile-image,
                             &.fallback-user-name {
                                 background-color: #1a8cd8;
@@ -384,6 +415,7 @@
                         z-index: 1000;
 
                         li {
+
                             a,
                             button,
                             .link {
@@ -411,6 +443,7 @@
             }
         }
     }
+
     // 다크모드 스타일
     &.dark-mode {
         background-color: #1a1a1a;
@@ -456,6 +489,10 @@
                             color: #fff;
                         }
                     }
+
+                    form {
+                        width: 100%;
+                    }
                 }
 
                 .search-btn {
@@ -499,6 +536,7 @@
                         }
 
                         &:hover .user-name {
+
                             &.no-profile-image,
                             &.fallback-user-name {
                                 background-color: #1a8cd8;
@@ -512,6 +550,7 @@
                         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 
                         li {
+
                             a,
                             button,
                             .link {
@@ -527,5 +566,6 @@
             }
         }
     }
+
     /* gradientShift animation moved to animations.css */
 }
