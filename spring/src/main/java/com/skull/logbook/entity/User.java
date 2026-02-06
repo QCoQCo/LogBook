@@ -60,4 +60,8 @@ public class User extends BaseDeletedEntity {
     public void changePassword(String newPassword) {
         this.password = newPassword;
     }
+
+    public void changeRole(Role role) {
+        this.role = role;
+    }
 }

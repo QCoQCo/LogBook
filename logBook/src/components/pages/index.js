@@ -7,6 +7,7 @@ import LogBookIntro from './LogBookIntro';
 import PostEdit from './PostEdit';
 import PostDetail from './PostDetail';
 import ErrorPage from './ErrorPage';
+import AdminPage from './AdminPage';
 
 export {
     FeedPage,
@@ -18,5 +19,6 @@ export {
     PostEdit,
     PostDetail,
     ErrorPage,
+    AdminPage,
 };
 // 파일명과 일치하게

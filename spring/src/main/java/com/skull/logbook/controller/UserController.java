@@ -1,5 +1,6 @@
 package com.skull.logbook.controller;
 
+import com.skull.logbook.constant.Role;
 import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
@@ -62,6 +63,21 @@ public class UserController {
         } catch (Exception e) {
             e.printStackTrace(); // [디버깅] 예상치 못한 에러 출력
             return ResponseEntity.internalServerError().body(Map.of("message", "서버 내부 오류: " + e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/me/role")
+    public ResponseEntity<?> updateMyRole(@RequestBody Map<String, String> body) {
+        String roleStr = body != null ? body.get("role") : null;
+        if (roleStr == null || (!roleStr.equals("USER") && !roleStr.equals("ADMIN"))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "role은 USER 또는 ADMIN이어야 합니다."));
+        }
+        try {
+            Role role = Role.valueOf(roleStr);
+            Map<String, Object> result = userService.updateMyRole(role);
+            return ResponseEntity.ok(result);
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
         }
     }
 }
