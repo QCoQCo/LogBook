@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '../../utils/apiClient';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useUserData, useAuth } from '../../context';
@@ -59,11 +59,8 @@ const PostDetail = () => {
 
     const getPostData = async () => {
         try {
-            // [Modified] Mock Data -> Real API (임시로 목록 조회 후 필터링)
-            const res = await axios.get('/api/feed?page=0');
-            // API는 DTO 리스트 반환: [{id, userId, title, content, tags...}, ...]
-            // postId는 숫자, DTO ID는 Long(숫자)
-            const post = res.data.find((p) => p.postId === postId);
+            const res = await apiClient.get(`/posts/${postId}`);
+            const post = res.data;
 
             if (post && userData) {
                 // DTO userId는 String, userData id는 Number일 수 있음. 비교 시 주의

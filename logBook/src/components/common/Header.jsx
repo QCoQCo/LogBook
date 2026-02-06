@@ -13,6 +13,9 @@ import {
 } from '../../utils/sessionSync';
 import './Header.scss';
 
+import SmartSearchDropdown from './SmartSearchDropdown'; // New Component
+import axios from 'axios'; // For API calls
+
 const Header = () => {
     const navigate = useNavigate();
     const { isChatPage, showLogin, toggleLogin } = useUI(); // 다크모드 상태 구독
@@ -21,6 +24,13 @@ const Header = () => {
     const [showMenu, setShowMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Smart Search States
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [searchResults, setSearchResults] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchDebounceRef = useRef(null);
+
     const [showUserModal, setShowUserModal] = useState(false);
     const [showChangePwModal, setShowChangePwModal] = useState(false);
     const [showFindAccountModal, setShowFindAccountModal] = useState(false);
@@ -130,16 +140,45 @@ const Header = () => {
         e.preventDefault();
         const q = searchQuery && searchQuery.trim();
         if (q) {
-            // navigate to a search route. If you don't have a route, adjust as needed.
             try {
-                navigate(`/search?q=${encodeURIComponent(q)}`);
+                // 검색 페이지(Feed)로 이동
+                navigate(`/feed?search=${encodeURIComponent(q)}`);
+                setShowDropdown(false);
+                setShowSearch(false);
             } catch (err) {
-                // ignore navigation errors
-                // console.debug('[Header] search navigate failed', err);
+                // ignore
             }
         }
-        setShowSearch(false);
-        setSearchQuery('');
+    };
+
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+
+        if (searchDebounceRef.current) {
+            clearTimeout(searchDebounceRef.current);
+        }
+
+        if (query.trim().length < 1) {
+            setShowDropdown(false);
+            setSearchResults(null);
+            return;
+        }
+
+        setShowDropdown(true);
+        setIsSearching(true);
+
+        searchDebounceRef.current = setTimeout(async () => {
+            try {
+                const response = await axios.get(`/api/search/hybrid?query=${encodeURIComponent(query)}`);
+                setSearchResults(response.data);
+            } catch (error) {
+                console.error("Search failed", error);
+                setSearchResults(null);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 400); // 400ms debounce
     };
 
     return (
@@ -182,7 +221,10 @@ const Header = () => {
                                         ref={searchRef}
                                         type='text'
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={handleSearchChange} // 변경된 핸들러
+                                        onFocus={() => {
+                                            if (searchQuery.trim().length >= 2) setShowDropdown(true);
+                                        }}
                                         placeholder='검색어를 입력하세요'
                                         aria-label='검색어'
                                     />
@@ -193,6 +235,8 @@ const Header = () => {
                                             aria-label='입력 초기화'
                                             onClick={() => {
                                                 setSearchQuery('');
+                                                setShowDropdown(false);
+                                                setSearchResults(null);
                                                 try {
                                                     searchRef.current && searchRef.current.focus();
                                                 } catch (e) {
@@ -205,6 +249,18 @@ const Header = () => {
                                     )}
                                 </div>
                             </form>
+
+                            {/* Smart Search Dropdown Integration */}
+                            {(showDropdown && searchQuery.trim().length >= 1) && (
+                                <SmartSearchDropdown
+                                    results={searchResults}
+                                    isLoading={isSearching}
+                                    onClose={() => {
+                                        setShowDropdown(false);
+                                        setShowSearch(false);
+                                    }}
+                                />
+                            )}
                         </div>
                     </div>
 

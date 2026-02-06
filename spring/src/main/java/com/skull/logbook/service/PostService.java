@@ -64,4 +64,23 @@ public class PostService {
                 ))
                 .toList();
     }
+
+    public PostResponseDto getPostDetail(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+
+        List<Object[]> tagData = postTagRepository.findTagsByPostIds(Collections.singletonList(postId));
+        List<String> tags = tagData.stream()
+                .map(data -> (String) data[1])
+                .collect(Collectors.toList());
+
+        return new PostResponseDto(
+                post.getId(),
+                String.valueOf(post.getUserId()),
+                post.getTitle(),
+                post.getContent(),
+                post.getCreatedAt().toString(),
+                post.getUpdatedAt().toString(),
+                tags);
+    }
 }

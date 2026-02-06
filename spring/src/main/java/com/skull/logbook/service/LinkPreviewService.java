@@ -7,7 +7,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 
-
 @Service
 @RequiredArgsConstructor
 public class LinkPreviewService {
@@ -35,25 +34,27 @@ public class LinkPreviewService {
 
     private String extractTitle(Document doc) {
         String ogTitle = getMeta(doc, "property", "og:title");
-        if (ogTitle != null) return ogTitle;
+        if (ogTitle != null)
+            return ogTitle;
 
         String twitterTitle = getMeta(doc, "name", "twitter:title");
-        if (twitterTitle != null) return twitterTitle;
+        if (twitterTitle != null)
+            return twitterTitle;
 
         return doc.title().isBlank() ? null : doc.title();
     }
 
     private String extractThumbnail(Document doc) {
         String ogImage = getMeta(doc, "property", "og:image");
-        if (ogImage != null) return ogImage;
+        if (ogImage != null)
+            return ogImage;
 
         return getMeta(doc, "name", "twitter:image");
     }
 
     private String getMeta(Document doc, String key, String value) {
         Element meta = doc.selectFirst(
-                String.format("meta[%s=%s]", key, value)
-        );
+                String.format("meta[%s=%s]", key, value));
         return meta != null ? meta.attr("content") : null;
     }
 
