@@ -12,6 +12,8 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
+    // 로그인 사용자의 역할을 화면에서만 USER/ADMIN으로 전환 (테스트·데모용)
+    const [roleOverride, setRoleOverride] = useState(null);
 
     const isTokenExpired = useCallback((token) => {
         try {
@@ -90,6 +92,7 @@ export const AuthProvider = ({ children }) => {
                     localStorage.removeItem('logbook_current_user'); // 동기화 보장
                 } catch (e) {}
                 setCurrentUser(null);
+                setRoleOverride(null);
             }
         });
 
@@ -143,15 +146,21 @@ export const AuthProvider = ({ children }) => {
             sessionStorage.removeItem('logbook_current_user');
             localStorage.removeItem('logbook_current_user');
             setCurrentUser(null);
+            setRoleOverride(null);
             sendAuthEvent('logout');
         } catch (e) {
             setCurrentUser(null);
         }
     }, [currentUser?.id]);
 
+    // 실제 권한: 오버라이드가 있으면 그대로, 없으면 currentUser.role, 없으면 'USER'
+    const effectiveRole = roleOverride ?? currentUser?.role ?? 'USER';
+
     const value = {
         currentUser,
         isLogin: !!currentUser,
+        effectiveRole,
+        setRoleOverride,
         login,
         logout,
         updateCurrentUser,

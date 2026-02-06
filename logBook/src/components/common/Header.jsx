@@ -17,7 +17,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { isChatPage, showLogin, toggleLogin } = useUI(); // 다크모드 상태 구독
     const { getUserInfo, getUserProfilePhoto, userDataLoaded } = useUserData();
-    const { currentUser, isLogin, logout } = useAuth();
+    const { currentUser, isLogin, logout, effectiveRole, setRoleOverride } = useAuth();
     const [showMenu, setShowMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -157,6 +157,27 @@ const Header = () => {
                             <p>프로젝트 소개</p>
                         </Link>
                     </div>
+                    {isLogin && (
+                        <div className='role-toggle' role='group' aria-label='역할 전환'>
+                            <button
+                                type='button'
+                                className={effectiveRole === 'USER' ? 'active' : ''}
+                                onClick={() => setRoleOverride('USER')}
+                                aria-pressed={effectiveRole === 'USER'}
+                            >
+                                USER
+                            </button>
+                            <span className='role-divider'>|</span>
+                            <button
+                                type='button'
+                                className={effectiveRole === 'ADMIN' ? 'active' : ''}
+                                onClick={() => setRoleOverride('ADMIN')}
+                                aria-pressed={effectiveRole === 'ADMIN'}
+                            >
+                                ADMIN
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className='right'>

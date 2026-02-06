@@ -57,6 +57,7 @@ public class AuthController {
         userMap.put("userEmail", user.getUserEmail());
         userMap.put("profilePhoto", user.getProfilePhoto());
         userMap.put("introduction", user.getIntroduction());
+        userMap.put("role", user.getRole().name());
 
         // 토큰과 유저 정보를 함께 반환, 쿠키 헤더 추가
         return ResponseEntity.ok()
