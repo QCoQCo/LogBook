@@ -20,7 +20,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { isChatPage, showLogin, toggleLogin } = useUI(); // 다크모드 상태 구독
     const { getUserInfo, getUserProfilePhoto, userDataLoaded } = useUserData();
-    const { currentUser, isLogin, logout } = useAuth();
+    const { currentUser, isLogin, logout, effectiveRole, updateRoleInBackend } = useAuth();
     const [showMenu, setShowMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -70,7 +70,7 @@ const Header = () => {
         // Login 닫고 FindAccount 열기 (Login 컴포넌트 내부에서 호출됨)
         // toggleLogin()은 context/UIContext에서 관리되므로 여기서 직접 닫기는 어려울 수 있으나,
         // Login에 전달된 onClose가 toggleLogin이므로,
-        // Header에서 상태관리가 약간 분리되어 있음. 
+        // Header에서 상태관리가 약간 분리되어 있음.
         // useUI().setShowLogin(false) 가 필요할 수 있음.
         // 현재 Header는 useUI의 showLogin을 사용 중.
         // toggleLogin을 호출하면 닫힘.
@@ -196,6 +196,44 @@ const Header = () => {
                             <p>프로젝트 소개</p>
                         </Link>
                     </div>
+                    {isLogin && (
+                        <div className='role-toggle' role='group' aria-label='역할 전환'>
+                            <button
+                                type='button'
+                                className={effectiveRole === 'USER' ? 'active' : ''}
+                                onClick={async () => {
+                                    if (effectiveRole === 'USER') return;
+                                    const result = await updateRoleInBackend('USER');
+                                    if (!result?.ok && result?.message) {
+                                        alert(result.message);
+                                    }
+                                }}
+                                aria-pressed={effectiveRole === 'USER'}
+                            >
+                                USER
+                            </button>
+                            <span className='role-divider'>|</span>
+                            <button
+                                type='button'
+                                className={effectiveRole === 'ADMIN' ? 'active' : ''}
+                                onClick={async () => {
+                                    if (effectiveRole === 'ADMIN') return;
+                                    const result = await updateRoleInBackend('ADMIN');
+                                    if (!result?.ok && result?.message) {
+                                        alert(result.message);
+                                    }
+                                }}
+                                aria-pressed={effectiveRole === 'ADMIN'}
+                            >
+                                ADMIN
+                            </button>
+                        </div>
+                    )}
+                    {isLogin && effectiveRole === 'ADMIN' && (
+                        <Link to='/admin' className='admin-page-btn'>
+                            <p>관리자</p>
+                        </Link>
+                    )}
                 </div>
 
                 <div className='right'>
@@ -363,8 +401,8 @@ const Header = () => {
                                                 내 블로그
                                             </Link>
                                         </li>
-                                        <li role="menuitem">
-                                            <button type="button" onClick={handleChangePassword}>
+                                        <li role='menuitem'>
+                                            <button type='button' onClick={handleChangePassword}>
                                                 비밀번호 변경
                                             </button>
                                         </li>
@@ -379,7 +417,12 @@ const Header = () => {
                         ) : (
                             <div className='login-btn-wrap'>
                                 <button onClick={toggleLogin}>로그인</button>
-                                {showLogin && <Login onClose={toggleLogin} onFindAccount={handleFindAccountOpen} />}
+                                {showLogin && (
+                                    <Login
+                                        onClose={toggleLogin}
+                                        onFindAccount={handleFindAccountOpen}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>

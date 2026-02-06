@@ -84,6 +84,10 @@ function App() {
                                                         path='error'
                                                         element={<Pages.ErrorPage />}
                                                     />
+                                                    <Route
+                                                        path='admin'
+                                                        element={<Pages.AdminPage />}
+                                                    />
                                                 </Route>
                                             </Routes>
                                         </BrowserRouter>

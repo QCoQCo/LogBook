@@ -6,12 +6,40 @@ import {
     sendAuthEvent,
 } from '../utils/sessionSync';
 import { forceRemoveUserFromAllRooms } from '../utils/chatService';
+import apiClient from '../utils/apiClient';
+
+// JWT payload에서 auth 클레임 추출 (예: "ROLE_ADMIN" -> "ADMIN")
+const getRoleFromToken = (token) => {
+    try {
+        if (!token) return null;
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(base64));
+        const auth = payload.auth;
+        if (!auth) return null;
+        // Spring Security는 "ROLE_ADMIN", "ROLE_USER" 형태로 저장
+        const role = auth.startsWith('ROLE_') ? auth.slice(5) : auth;
+        return role === 'ADMIN' || role === 'USER' || role === 'GUEST' ? role : null;
+    } catch (e) {
+        return null;
+    }
+};
+
+// 저장된 사용자 객체에 role이 없으면 JWT에서 채움 (관리자 로그인 시 토글 기본값 반영)
+const ensureUserRole = (user) => {
+    if (!user) return user;
+    if (user.role != null && user.role !== '') return user;
+    const roleFromToken = getRoleFromToken(user.token);
+    return { ...user, role: roleFromToken ?? 'USER' };
+};
 
 // AuthContext 생성
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
+    // 로그인 사용자의 역할을 화면에서만 USER/ADMIN으로 전환 (테스트·데모용)
+    const [roleOverride, setRoleOverride] = useState(null);
 
     const isTokenExpired = useCallback((token) => {
         try {
@@ -47,7 +75,7 @@ export const AuthProvider = ({ children }) => {
                         localStorage.removeItem('logbook_current_user');
                         setCurrentUser(null);
                     } else {
-                        setCurrentUser(parsed);
+                        setCurrentUser(ensureUserRole(parsed));
                     }
                 } else {
                     setCurrentUser(null);
@@ -76,11 +104,12 @@ export const AuthProvider = ({ children }) => {
             if (data.type === 'login') {
                 try {
                     if (data.payload) {
+                        const userWithRole = ensureUserRole(data.payload);
                         sessionStorage.setItem(
                             'logbook_current_user',
-                            JSON.stringify(data.payload)
+                            JSON.stringify(userWithRole)
                         );
-                        setCurrentUser(data.payload);
+                        setCurrentUser(userWithRole);
                     }
                 } catch (e) {}
             }
@@ -90,6 +119,7 @@ export const AuthProvider = ({ children }) => {
                     localStorage.removeItem('logbook_current_user'); // 동기화 보장
                 } catch (e) {}
                 setCurrentUser(null);
+                setRoleOverride(null);
             }
         });
 
@@ -101,13 +131,14 @@ export const AuthProvider = ({ children }) => {
     }, [isTokenExpired]);
 
     const login = useCallback((payload, persist = false) => {
+        const userWithRole = ensureUserRole(payload);
         try {
-            sessionStorage.setItem('logbook_current_user', JSON.stringify(payload));
-            if (persist) localStorage.setItem('logbook_current_user', JSON.stringify(payload));
-            setCurrentUser(payload);
-            sendAuthEvent('login', payload);
+            sessionStorage.setItem('logbook_current_user', JSON.stringify(userWithRole));
+            if (persist) localStorage.setItem('logbook_current_user', JSON.stringify(userWithRole));
+            setCurrentUser(userWithRole);
+            sendAuthEvent('login', userWithRole);
         } catch (e) {
-            setCurrentUser(payload);
+            setCurrentUser(userWithRole);
         }
     }, []);
 
@@ -130,6 +161,33 @@ export const AuthProvider = ({ children }) => {
         });
     }, []);
 
+    /** 역할을 DB에 반영하고 새 토큰으로 갱신. (관리자만 성공, 비관리자는 403) */
+    const updateRoleInBackend = useCallback(async (role) => {
+        if (role !== 'USER' && role !== 'ADMIN') return;
+        try {
+            const { data } = await apiClient.patch('/users/me/role', { role });
+            const payload = { ...data.user, token: data.token };
+            try {
+                sessionStorage.setItem('logbook_current_user', JSON.stringify(payload));
+                if (localStorage.getItem('logbook_current_user')) {
+                    localStorage.setItem('logbook_current_user', JSON.stringify(payload));
+                }
+                sendAuthEvent('login', payload);
+            } catch (e) {
+                // ignore
+            }
+            setCurrentUser(payload);
+            setRoleOverride(null);
+            return { ok: true };
+        } catch (err) {
+            if (err?.response?.status === 403) {
+                setRoleOverride(role);
+                return { ok: false, message: '역할 변경은 관리자만 가능합니다.' };
+            }
+            return { ok: false, message: err?.response?.data?.message || '역할 변경에 실패했습니다.' };
+        }
+    }, []);
+
     const logout = useCallback(async () => {
         try {
             if (currentUser?.id) {
@@ -143,15 +201,22 @@ export const AuthProvider = ({ children }) => {
             sessionStorage.removeItem('logbook_current_user');
             localStorage.removeItem('logbook_current_user');
             setCurrentUser(null);
+            setRoleOverride(null);
             sendAuthEvent('logout');
         } catch (e) {
             setCurrentUser(null);
         }
     }, [currentUser?.id]);
 
+    // 실제 권한: 오버라이드가 있으면 그대로, 없으면 currentUser.role, 없으면 'USER'
+    const effectiveRole = roleOverride ?? currentUser?.role ?? 'USER';
+
     const value = {
         currentUser,
         isLogin: !!currentUser,
+        effectiveRole,
+        setRoleOverride,
+        updateRoleInBackend,
         login,
         logout,
         updateCurrentUser,

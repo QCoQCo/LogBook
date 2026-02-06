@@ -4,6 +4,7 @@ import com.skull.logbook.dto.SignupRequestDto;
 import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.AuthSession;
 import com.skull.logbook.entity.Blog;
+import com.skull.logbook.constant.Role;
 import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.BlogRepository;
 import com.skull.logbook.repository.UserRepository;
@@ -22,9 +23,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -267,5 +270,40 @@ public class UserService {
     public void verifyUser(String loginId, String userEmail, String nickName) {
         userRepository.findByLoginIdAndUserEmailAndNickName(loginId, userEmail, nickName)
                 .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 사용자가 없습니다."));
+    }
+
+    /** 현재 로그인 사용자의 역할을 변경하고 새 토큰을 발급한다. (USER ↔ ADMIN) */
+    @Transactional
+    public Map<String, Object> updateMyRole(Role role) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AccessDeniedException("로그인이 필요합니다.");
+        }
+        String loginId = auth.getName();
+        User user = getUserByLoginId(loginId);
+        if (role != Role.USER && role != Role.ADMIN) {
+            throw new IllegalArgumentException("USER 또는 ADMIN만 설정할 수 있습니다.");
+        }
+        user.changeRole(role);
+
+        UserDetails principal = org.springframework.security.core.userdetails.User
+                .builder()
+                .username(user.getLoginId())
+                .password("")
+                .roles(user.getRole().name())
+                .build();
+        Authentication newAuth = new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities());
+        String newToken = jwtTokenProvider.createToken(newAuth);
+
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("id", user.getId());
+        userMap.put("loginId", user.getLoginId());
+        userMap.put("nickName", user.getNickName());
+        userMap.put("userEmail", user.getUserEmail());
+        userMap.put("profilePhoto", user.getProfilePhoto());
+        userMap.put("introduction", user.getIntroduction());
+        userMap.put("role", user.getRole().name());
+
+        return Map.of("token", newToken, "user", userMap);
     }
 }
