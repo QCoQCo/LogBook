@@ -14,7 +14,7 @@ import {
 import './Header.scss';
 
 import SmartSearchDropdown from './SmartSearchDropdown'; // New Component
-import axios from 'axios'; // For API calls
+import apiClient from '../../utils/apiClient'; // For API calls
 
 const Header = () => {
     const navigate = useNavigate();
@@ -143,6 +143,7 @@ const Header = () => {
             try {
                 // 검색 페이지(Feed)로 이동
                 navigate(`/feed?search=${encodeURIComponent(q)}`);
+                setSearchQuery(''); // 입력창 초기화
                 setShowDropdown(false);
                 setShowSearch(false);
             } catch (err) {
@@ -170,7 +171,7 @@ const Header = () => {
 
         searchDebounceRef.current = setTimeout(async () => {
             try {
-                const response = await axios.get(`/api/search/hybrid?query=${encodeURIComponent(query)}`);
+                const response = await apiClient.get(`/search/hybrid?query=${encodeURIComponent(query)}`);
                 setSearchResults(response.data);
             } catch (error) {
                 console.error("Search failed", error);
@@ -294,6 +295,7 @@ const Header = () => {
                                     results={searchResults}
                                     isLoading={isSearching}
                                     onClose={() => {
+                                        setSearchQuery(''); // 입력창 초기화
                                         setShowDropdown(false);
                                         setShowSearch(false);
                                     }}

@@ -13,7 +13,7 @@ import java.security.Principal;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/playlist")
+@RequestMapping("/playlists")
 @RequiredArgsConstructor
 public class PlaylistController {
 

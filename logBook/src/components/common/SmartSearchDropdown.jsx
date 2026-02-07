@@ -14,11 +14,13 @@ const SmartSearchDropdown = ({ results, isLoading, onClose }) => {
 
     if (!results) return null;
 
-    const { recommendedTags = [], posts = [], searchSource } = results;
+    const { recommendedTags = [], posts = [], relatedTopics = [], recommendedPosts = [], searchSource } = results;
     const hasTags = recommendedTags.length > 0;
     const hasPosts = posts.length > 0;
+    const hasRelatedTopics = relatedTopics.length > 0;
+    const hasRecommendedPosts = recommendedPosts.length > 0;
 
-    if (!hasTags && !hasPosts) {
+    if (!hasTags && !hasPosts && !hasRelatedTopics) {
         return (
             <div className="smart-search-dropdown empty">
                 <span>검색 결과가 없습니다.</span>
@@ -29,16 +31,16 @@ const SmartSearchDropdown = ({ results, isLoading, onClose }) => {
     return (
         <div className="smart-search-dropdown">
             {/* AI Recommendation Badge */}
-            {searchSource === 'AI_HYBRID' && (
+            {searchSource === 'AI_PRECISE_RANKING' && (
                 <div className="ai-badge">
-                    ✨ AI Smart Search 활성화됨
+                    ✨ AI Representative Ranking & Topic Map Powered
                 </div>
             )}
 
-            {/* Section 1: Recommended Tags */}
+            {/* Section 1: Recommended Tags (Original Query Extension) */}
             {hasTags && (
                 <div className="section tags-section">
-                    <div className="section-title">추천 태그</div>
+                    <div className="section-title">검색어 제안</div>
                     <div className="tags-wrapper">
                         {recommendedTags.map((tag, idx) => (
                             <Link
@@ -54,12 +56,31 @@ const SmartSearchDropdown = ({ results, isLoading, onClose }) => {
                 </div>
             )}
 
-            {/* Section 2: Related Posts */}
+            {/* Section 2: Related Topics (Topic Map 기반 연관 주제) */}
+            {hasRelatedTopics && (
+                <div className="section related-topics-section">
+                    <div className="section-title">함께 보면 좋은 주제</div>
+                    <div className="topics-wrapper">
+                        {relatedTopics.map((topic, idx) => (
+                            <Link
+                                key={idx}
+                                to={`/feed?query=${encodeURIComponent(topic)}`}
+                                className="topic-chip"
+                                onClick={onClose}
+                            >
+                                {topic}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Section 3: All Results */}
             {hasPosts && (
                 <div className="section posts-section">
-                    <div className="section-title">관련 포스트</div>
+                    <div className="section-title">전체 결과</div>
                     <div className="posts-wrapper">
-                        {posts.slice(0, 5).map((post) => (
+                        {posts.map((post) => (
                             <Link
                                 key={post.postId}
                                 to={`/post/detail?postId=${post.postId}`}
@@ -86,11 +107,11 @@ const SmartSearchDropdown = ({ results, isLoading, onClose }) => {
                                 <div className="post-info">
                                     <div className="post-title">{post.title}</div>
                                     <div className="post-preview">
-                                        {(post.content || '').slice(0, 40)}...
+                                        {(post.content || '').slice(0, 50)}...
                                     </div>
                                     {post.tags && post.tags.length > 0 && (
                                         <div className="post-mini-tags">
-                                            {post.tags.slice(0, 2).map((t, i) => (
+                                            {post.tags.slice(0, 3).map((t, i) => (
                                                 <span key={i}>#{t}</span>
                                             ))}
                                         </div>

@@ -44,3 +44,8 @@ file:
         username: ${SFTP_USERNAME}
         password: ${SFTP_PASSWORD}
         uploadPath: ${SFTP_UPLOADPATH}
+
+llm:
+    vllm:
+        api-url: ${LLM_VLLM_API_URL:http://localhost:11434}
+        model-name: ${LLM_VLLM_MODEL_NAME:llama3.1:8b}
