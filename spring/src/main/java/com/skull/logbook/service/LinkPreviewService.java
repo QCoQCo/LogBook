@@ -19,8 +19,6 @@ public class LinkPreviewService {
                     .followRedirects(true)
                     .get();
 
-            System.out.println("ㅁ어라ㅣ머ㅑ뵇" + doc);
-
             String title = extractTitle(doc);
             String thumbnail = extractThumbnail(doc);
 

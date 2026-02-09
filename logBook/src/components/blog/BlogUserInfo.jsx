@@ -1,13 +1,13 @@
-import { useBlog, useAuth, useUserData } from "../../context";
-import { useEffect, useRef, useState } from "react";
-import apiClient from "../../utils/apiClient";
+import { useBlog, useAuth, useUserData } from '../../context';
+import { useEffect, useRef, useState } from 'react';
+import apiClient from '../../utils/apiClient';
 
 const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
-    const [introText, setIntroText] = useState("");
-    const [nickName, setNickName] = useState("");
-    const [originalNickName, setOriginalNickName] = useState("");
+    const [introText, setIntroText] = useState('');
+    const [nickName, setNickName] = useState('');
+    const [originalNickName, setOriginalNickName] = useState('');
     const [isNickNameChecked, setIsNickNameChecked] = useState(true); // 본인 닉네임은 체크된 상태로 간주
-    const [nickNameMessage, setNickNameMessage] = useState("");
+    const [nickNameMessage, setNickNameMessage] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -24,8 +24,8 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
         setElements,
         originElements,
         setOriginElements,
-        isBlogEditting,
-        setIsBlogEditting,
+        isBlogEditing,
+        setisBlogEditing,
         activeTab,
     } = useBlog();
     const { currentUser, updateCurrentUser } = useAuth();
@@ -39,30 +39,30 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
         setNickName(e.target.value);
         if (e.target.value === originalNickName) {
             setIsNickNameChecked(true); // 원래 닉네임과 같으면 체크 통과
-            setNickNameMessage("");
+            setNickNameMessage('');
         } else {
             setIsNickNameChecked(false);
-            setNickNameMessage("");
+            setNickNameMessage('');
         }
     };
 
     const handleCheckNickName = async () => {
         if (!nickName) {
-            alert("닉네임을 입력해주세요.");
+            alert('닉네임을 입력해주세요.');
             return;
         }
         try {
-            const response = await apiClient.post("/auth/signup/check-nickname", { nickName });
+            const response = await apiClient.post('/auth/signup/check-nickname', { nickName });
             if (response.data.exists) {
-                setNickNameMessage("이미 사용 중인 닉네임입니다.");
+                setNickNameMessage('이미 사용 중인 닉네임입니다.');
                 setIsNickNameChecked(false);
             } else {
-                setNickNameMessage("사용 가능한 닉네임입니다.");
+                setNickNameMessage('사용 가능한 닉네임입니다.');
                 setIsNickNameChecked(true);
             }
         } catch (error) {
-            console.error("Nickname check failed:", error);
-            alert("닉네임 중복 확인 중 오류가 발생했습니다.");
+            console.error('Nickname check failed:', error);
+            alert('닉네임 중복 확인 중 오류가 발생했습니다.');
         }
     };
 
@@ -70,12 +70,12 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
         // 깊은 복사 -> 얕은 복사를 하면 layout / elements 가 변할 때 같이 변해버림
         setOriginLayout(JSON.parse(JSON.stringify(layout)));
         setOriginElements(JSON.parse(JSON.stringify(elements)));
-        setIsBlogEditting(true);
+        setisBlogEditing(true);
     };
 
     const handleClickConfirmBtn = async () => {
         if (!isNickNameChecked) {
-            alert("닉네임 중복 확인을 해주세요.");
+            alert('닉네임 중복 확인을 해주세요.');
             return;
         }
 
@@ -87,11 +87,11 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                 elements: elements,
             };
 
-            formData.append("introduction", introText);
-            formData.append("nickName", nickName); // 닉네임 추가
-            formData.append("layout", JSON.stringify(layoutJson));
+            formData.append('introduction', introText);
+            formData.append('nickName', nickName); // 닉네임 추가
+            formData.append('layout', JSON.stringify(layoutJson));
             if (selectedFile) {
-                formData.append("file", selectedFile);
+                formData.append('file', selectedFile);
             }
 
             // [수정] userId(String, loginId) 대신 blogOwnerData.id(Long, PK) 사용
@@ -113,12 +113,12 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
             if (onUpdate) {
                 await onUpdate();
             }
-            setIsBlogEditting(false);
+            setisBlogEditing(false);
             setSelectedFile(null);
             setPreviewUrl(null);
         } catch (error) {
-            console.error("Failed to update profile:", error);
-            alert("프로필 수정에 실패했습니다.");
+            console.error('Failed to update profile:', error);
+            alert('프로필 수정에 실패했습니다.');
         }
     };
 
@@ -127,12 +127,12 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
             setLayout(originLayout);
             setElements(originElements);
         }
-        setIsBlogEditting(false);
-        setIntroText(blogOwnerData?.introduction || "");
-        setNickName(blogOwnerData?.nickName || "");
-        setOriginalNickName(blogOwnerData?.nickName || "");
+        setisBlogEditing(false);
+        setIntroText(blogOwnerData?.introduction || '');
+        setNickName(blogOwnerData?.nickName || '');
+        setOriginalNickName(blogOwnerData?.nickName || '');
         setIsNickNameChecked(true);
-        setNickNameMessage("");
+        setNickNameMessage('');
         setSelectedFile(null);
         setPreviewUrl(null);
     };
@@ -146,7 +146,7 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
     };
 
     useEffect(() => {
-        setIsBlogEditting(false);
+        setisBlogEditing(false);
     }, []);
 
     useEffect(() => {
@@ -159,11 +159,11 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
 
     // 프로필 이미지 URL 처리 (기존 데이터 호환성 및 기본 이미지)
     const getProfileImageUrl = (url) => {
-        if (!url) return "/img/userProfile-ex.png";
-        if (url.startsWith("http")) return url; // 외부 링크 혹은 이미 완전한 URL
+        if (!url) return '/img/userProfile-ex.png';
+        if (url.startsWith('http')) return url; // 외부 링크 혹은 이미 완전한 URL
         // DB에 '/img/'로 시작하는 예전 경로가 있다면 '/api'를 붙여준다.
-        if (url.startsWith("/img/")) {
-            return "/api" + url;
+        if (url.startsWith('/img/')) {
+            return '/api' + url;
         }
         return url;
     };
@@ -185,11 +185,11 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                 <input
                     type="file"
                     ref={fileInputRef}
-                    style={{ display: "none" }}
+                    style={{ display: 'none' }}
                     accept="image/*"
                     onChange={handleFileChange}
                 />
-                {isBlogEditting && (
+                {isBlogEditing && (
                     <button
                         className="edit-profile-photo"
                         onClick={() => fileInputRef.current.click()}
@@ -198,7 +198,7 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                     </button>
                 )}
                 <div className="user-nickname-wrapper">
-                    {isBlogEditting ? (
+                    {isBlogEditing ? (
                         <>
                             <div className="nickname-input-group">
                                 <input
@@ -218,7 +218,7 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                             {nickNameMessage && (
                                 <span
                                     className={`nickname-message ${
-                                        isNickNameChecked ? "success" : "error"
+                                        isNickNameChecked ? 'success' : 'error'
                                     }`}
                                 >
                                     {nickNameMessage}
@@ -231,21 +231,21 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                 </div>
                 <div
                     className={
-                        isBlogEditting
-                            ? "user-introduction is-editting"
+                        isBlogEditing
+                            ? 'user-introduction is-editting'
                             : isOwnBlog
-                              ? "user-introduction is-my-blog"
-                              : "user-introduction"
+                              ? 'user-introduction is-my-blog'
+                              : 'user-introduction'
                     }
                 >
                     <textarea
                         ref={introTextRef}
                         onChange={handleChangeIntroText}
                         value={introText}
-                        readOnly={isBlogEditting ? "" : "readonly"}
+                        readOnly={isBlogEditing ? '' : 'readonly'}
                     ></textarea>
                 </div>
-                {isBlogEditting && activeTab === 1 && (
+                {isBlogEditing && activeTab === 1 && (
                     <div className="user-info-btns">
                         <button className="save-btn" onClick={handleClickConfirmBtn}>
                             저 장
@@ -255,7 +255,7 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                         </button>
                     </div>
                 )}
-                {!isBlogEditting && isOwnBlog && activeTab === 1 && (
+                {!isBlogEditing && isOwnBlog && activeTab === 1 && (
                     <button className="edit-btn" onClick={handleClickEditBlog}>
                         내 블로그 수정하기
                     </button>

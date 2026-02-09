@@ -2,6 +2,10 @@ package com.skull.logbook.controller;
 
 import java.util.List;
 
+import com.skull.logbook.dto.UserPostListDto;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,5 +32,14 @@ public class PostController {
     @GetMapping("/{postId}")
     public PostResponseDto getPostDetail(@PathVariable Long postId) {
         return postService.getPostDetail(postId);
+    }
+
+    @GetMapping("/lists/{userId}")
+    public List<UserPostListDto> getPostsByUserId(
+            @PathVariable Long userId,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    ) {
+        return postService.getPostsByUserId(userId, pageable);
     }
 }
