@@ -18,16 +18,25 @@ export const PostProvider = ({ children }) => {
         searchSource: 'DB'
     });
 
+    // 현재 검색 상태 저장 (무한 스크롤용)
+    const [currentSearch, setCurrentSearch] = useState({ query: null, isTagSearch: false });
+
     // 통합 데이터 로드 함수
-    const fetchPosts = useCallback(async (queryParam) => {
+    const fetchPosts = useCallback(async (queryParam, isTagSearch = false) => {
         setIsMoreLoading(true);
+        // 새로운 검색이 시작되면 검색 상태 업데이트
+        setCurrentSearch({ query: queryParam, isTagSearch });
+
         try {
             let endpoint = '/posts?page=0';
             let isSearch = false;
 
             if (queryParam) {
                 // apiClient has baseURL '/api', so we just need '/search/hybrid'
-                endpoint = `/search/hybrid?query=${encodeURIComponent(queryParam)}`;
+                endpoint = `/search/hybrid?query=${encodeURIComponent(queryParam)}&page=0`;
+                if (isTagSearch) {
+                    endpoint += '&tagOnly=true';
+                }
                 isSearch = true;
             }
 
@@ -44,8 +53,13 @@ export const PostProvider = ({ children }) => {
                     recommendedTags: data.recommendedTags || [],
                     searchSource: data.searchSource || 'DB'
                 });
-                // 검색 결과는 일단 단일 페이지로 간주 (무한 스크롤 비활성화)
-                setHasMore(false);
+
+                // 검색 결과도 페이징 처리 가능하도록 수정
+                if (resultList.length < 20) {
+                    setHasMore(false);
+                } else {
+                    setHasMore(true);
+                }
             } else {
                 resultList = Array.isArray(data) ? data : [];
                 setSearchMetadata({
@@ -74,22 +88,43 @@ export const PostProvider = ({ children }) => {
         // 초기 로딩 시 URL 파라미터 확인
         const params = new URLSearchParams(window.location.search);
         const search = params.get('search');
-        fetchPosts(search);
+        // tag 검색은 FeedPage에서 처리하므로 여기서는 search만 확인
+        if (search) {
+            fetchPosts(search);
+        } else if (!params.get('tag') && !params.get('query')) {
+            // 아무 파라미터도 없으면 기본 포스트 로드
+            fetchPosts(null);
+        }
     }, [fetchPosts]);
 
-    // 추가 로드 함수 (무한 스크롤용 - 검색 모드가 아닐 때만 동작)
+    // 추가 로드 함수 (무한 스크롤용 - 검색 모드가 아닐 때만 동작 -> 검색 모드에서도 동작하도록 수정)
     const loadMorePosts = useCallback(async () => {
         if (isMoreLoading || !hasMore) return;
-
-        // URL에 검색어가 있으면 추가 로드 중단 (현재 페이징 미지원 가정)
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('search')) return;
 
         setIsMoreLoading(true);
         try {
             const nextPage = page + 1;
-            const response = await apiClient.get(`/posts?page=${nextPage}`);
-            const newPosts = response.data;
+            let endpoint = `/posts?page=${nextPage}`;
+            let isSearch = false;
+
+            // 저장된 검색 상태 확인
+            if (currentSearch.query) {
+                endpoint = `/search/hybrid?query=${encodeURIComponent(currentSearch.query)}&page=${nextPage}`;
+                if (currentSearch.isTagSearch) {
+                    endpoint += '&tagOnly=true';
+                }
+                isSearch = true;
+            }
+
+            const response = await apiClient.get(endpoint);
+            const data = response.data;
+            let newPosts = [];
+
+            if (isSearch) {
+                newPosts = Array.isArray(data.posts) ? data.posts : [];
+            } else {
+                newPosts = Array.isArray(data) ? data : [];
+            }
 
             if (Array.isArray(newPosts) && newPosts.length > 0) {
                 // 중복 제거 (postId 기준)
@@ -111,7 +146,7 @@ export const PostProvider = ({ children }) => {
         } finally {
             setIsMoreLoading(false);
         }
-    }, [page, hasMore, isMoreLoading]);
+    }, [page, hasMore, isMoreLoading, currentSearch]);
 
     // Post Editor 관련 상태
     const [markdown, setMarkdown] = useState('');

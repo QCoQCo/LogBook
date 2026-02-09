@@ -49,6 +49,7 @@ public class LogbookApplication {
 		// LLM 설정
 		setIfAbsent("LLM_VLLM_API_URL", dotenv.get("LLM_VLLM_API_URL"));
 		setIfAbsent("LLM_VLLM_MODEL_NAME", dotenv.get("LLM_VLLM_MODEL_NAME"));
+		setIfAbsent("LLM_GOOGLE_API_KEY", dotenv.get("LLM_GOOGLE_API_KEY"));
 	}
 
 	private static String getEnvOr(Dotenv dotenv, String key1, String key2) {

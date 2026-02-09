@@ -46,6 +46,6 @@ file:
         uploadPath: ${SFTP_UPLOADPATH}
 
 llm:
-    vllm:
-        api-url: ${LLM_VLLM_API_URL:http://localhost:11434}
-        model-name: ${LLM_VLLM_MODEL_NAME:llama3.1:8b}
+    google:
+        api-key: ${LLM_GOOGLE_API_KEY}
+        models: "gemini-2.0-flash,gemini-2.0-flash-lite,gemini-2.0-flash-001"

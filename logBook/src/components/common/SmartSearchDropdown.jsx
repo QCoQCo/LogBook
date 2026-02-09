@@ -20,7 +20,19 @@ const SmartSearchDropdown = ({ results, isLoading, onClose }) => {
     const hasRelatedTopics = relatedTopics.length > 0;
     const hasRecommendedPosts = recommendedPosts.length > 0;
 
-    if (!hasTags && !hasPosts && !hasRelatedTopics) {
+    // Debug logging
+    console.log('[SmartSearchDropdown] Render State:', {
+        hasTags,
+        hasPosts,
+        hasRelatedTopics,
+        searchSource,
+        postsCount: posts.length,
+        tagsCount: recommendedTags.length
+    });
+
+    // EMPTY_RESULT_WITH_AI_TAGS인 경우 태그만 표시
+    const isEmpty = !hasTags && !hasPosts && !hasRelatedTopics;
+    if (isEmpty && searchSource !== 'EMPTY_RESULT_WITH_AI_TAGS') {
         return (
             <div className="smart-search-dropdown empty">
                 <span>검색 결과가 없습니다.</span>
@@ -38,9 +50,9 @@ const SmartSearchDropdown = ({ results, isLoading, onClose }) => {
             )}
 
             {/* Section 1: Recommended Tags (Original Query Extension) */}
-            {hasTags && (
-                <div className="section tags-section">
-                    <div className="section-title">검색어 제안</div>
+            <div className="section tags-section">
+                <div className="section-title">검색어 제안</div>
+                {hasTags ? (
                     <div className="tags-wrapper">
                         {recommendedTags.map((tag, idx) => (
                             <Link
@@ -53,13 +65,17 @@ const SmartSearchDropdown = ({ results, isLoading, onClose }) => {
                             </Link>
                         ))}
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div className="empty-message">
+                        <span>💡 관련 태그가 준비중입니다</span>
+                    </div>
+                )}
+            </div>
 
             {/* Section 2: Related Topics (Topic Map 기반 연관 주제) */}
-            {hasRelatedTopics && (
-                <div className="section related-topics-section">
-                    <div className="section-title">함께 보면 좋은 주제</div>
+            <div className="section related-topics-section">
+                <div className="section-title">함께 보면 좋은 주제</div>
+                {hasRelatedTopics ? (
                     <div className="topics-wrapper">
                         {relatedTopics.map((topic, idx) => (
                             <Link
@@ -71,6 +87,20 @@ const SmartSearchDropdown = ({ results, isLoading, onClose }) => {
                                 {topic}
                             </Link>
                         ))}
+                    </div>
+                ) : (
+                    <div className="empty-message">
+                        <span>💡 연관 주제가 준비중입니다</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Empty Posts Message (AI 추천만 있을 때) */}
+            {!hasPosts && searchSource === 'EMPTY_RESULT_WITH_AI_TAGS' && (
+                <div className="section empty-posts-section">
+                    <div className="empty-message">
+                        <span>🔍 관련 글이 없습니다</span>
+                        <p>추천 태그를 클릭하여 관련 내용을 찾아보세요</p>
                     </div>
                 </div>
             )}
