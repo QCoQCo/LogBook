@@ -6,14 +6,23 @@ const ReactGridLayout = WidthProvider(RGL);
 import './FeedPage.scss';
 
 const FeedPage = () => {
-    const { posts, loadMorePosts, hasMore, isMoreLoading, fetchPosts } = usePost();
+    const { posts, loadMorePosts, hasMore, isMoreLoading, fetchPosts, searchMetadata } = usePost();
     const location = useLocation();
 
     // URL 검색 파라미터 변경 감지 및 데이터 로드
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const search = params.get('search');
-        fetchPosts(search);
+        const tag = params.get('tag');
+        const query = params.get('query');
+
+        // Tag 검색인 경우 isTagSearch=true 전달
+        if (tag) {
+            fetchPosts(tag, true); // Tag 전용 검색
+        } else {
+            const searchTerm = query || search;
+            fetchPosts(searchTerm, false); // 일반 검색
+        }
     }, [location.search, fetchPosts]);
     const skipRebuildRef = useRef(false);
 
@@ -562,6 +571,24 @@ const FeedPage = () => {
                     </button>
                 </div>
             </div>
+            {searchMetadata && searchMetadata.recommendedTags && searchMetadata.recommendedTags.length > 0 && (
+                <div className="ai-search-info">
+                    <div className="ai-mode-badge">
+                        <span className="sparkle-icon">✨</span> AI 강화 검색 모드
+                    </div>
+                    <div className="recommended-tags">
+                        {searchMetadata.recommendedTags.map(tag => (
+                            <button
+                                key={tag}
+                                className="tag-chip"
+                                onClick={() => fetchPosts(tag)}
+                            >
+                                #{tag}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
             <div
                 className='container'
                 ref={containerRef}

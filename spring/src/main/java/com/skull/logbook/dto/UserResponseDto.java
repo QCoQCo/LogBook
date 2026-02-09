@@ -23,6 +23,7 @@ public class UserResponseDto {
     private String userEmail;
     private String profilePhoto;
     private String introduction;
+    private String role;
 
     public static UserResponseDto from(User user) {
         return new UserResponseDto(
@@ -31,6 +32,7 @@ public class UserResponseDto {
                 user.getNickName(),
                 user.getUserEmail(),
                 user.getProfilePhoto(),
-                user.getIntroduction());
+                user.getIntroduction(),
+                user.getRole() != null ? user.getRole().name() : null);
     }
 }

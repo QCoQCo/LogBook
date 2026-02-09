@@ -5,6 +5,7 @@ import {
     ReportManage,
     ChatroomManage,
     StatsManage,
+    CommonCodeManage,
 } from '../admin';
 import './AdminPage.scss';
 
@@ -13,6 +14,7 @@ const TABS = [
     { id: 'posts', label: '게시글 관리' },
     { id: 'reports', label: '신고관리' },
     { id: 'chatrooms', label: '채팅방 관리' },
+    { id: 'commoncode', label: '공통코드관리' },
     { id: 'stats', label: '통계' },
 ];
 
@@ -53,6 +55,7 @@ const AdminPage = () => {
                 {activeTab === 'posts' && <PostManage />}
                 {activeTab === 'reports' && <ReportManage />}
                 {activeTab === 'chatrooms' && <ChatroomManage />}
+                {activeTab === 'commoncode' && <CommonCodeManage />}
                 {activeTab === 'stats' && <StatsManage />}
             </div>
         </div>

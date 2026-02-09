@@ -45,6 +45,11 @@ public class LogbookApplication {
 		setIfAbsent("SFTP_USERNAME", getEnvOr(dotenv, "SFTP_USERNAME", "sftp.username"));
 		setIfAbsent("SFTP_PASSWORD", getEnvOr(dotenv, "SFTP_PASSWORD", "sftp.password"));
 		setIfAbsent("SFTP_UPLOADPATH", getEnvOr(dotenv, "SFTP_UPLOADPATH", "sftp.uploadPath"));
+
+		// LLM 설정
+		setIfAbsent("LLM_VLLM_API_URL", dotenv.get("LLM_VLLM_API_URL"));
+		setIfAbsent("LLM_VLLM_MODEL_NAME", dotenv.get("LLM_VLLM_MODEL_NAME"));
+		setIfAbsent("LLM_GOOGLE_API_KEY", dotenv.get("LLM_GOOGLE_API_KEY"));
 	}
 
 	private static String getEnvOr(Dotenv dotenv, String key1, String key2) {

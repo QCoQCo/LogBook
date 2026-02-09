@@ -64,4 +64,10 @@ public class User extends BaseDeletedEntity {
     public void changeRole(Role role) {
         this.role = role;
     }
+
+    public void updateUserEmail(String userEmail) {
+        if (userEmail != null && !userEmail.isBlank()) {
+            this.userEmail = userEmail;
+        }
+    }
 }

@@ -5,8 +5,67 @@
 
     .container {
         margin: 0 auto;
-        position: relative; /* new: allow absolutely positioned dropped snippets */
+        position: relative;
+        /* new: allow absolutely positioned dropped snippets */
         max-width: 1200px;
+    }
+
+    /* AI Search Info UI */
+    .ai-search-info {
+        margin: 0 auto 24px;
+        max-width: 1200px;
+        padding: 0 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .ai-mode-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f0f7ff, #e6f0ff);
+            color: #0078d4;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            width: fit-content;
+            border: 1px solid rgba(0, 120, 212, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 120, 212, 0.05);
+
+            .sparkle-icon {
+                font-size: 14px;
+            }
+        }
+
+        .recommended-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+
+            .tag-chip {
+                background: #fff;
+                border: 1px solid #eee;
+                padding: 6px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+                color: #444;
+                cursor: pointer;
+                transition: all 150ms ease;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+
+                &:hover {
+                    border-color: #0078d4;
+                    color: #0078d4;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.1);
+                }
+
+                &:active {
+                    transform: translateY(0);
+                }
+            }
+        }
     }
 
     /* Columns toggle UI (top-right) */
@@ -56,6 +115,7 @@
             &.active {
                 background: #0078d4;
                 box-shadow: 0 6px 18px rgba(0, 120, 212, 0.18);
+
                 img {
                     filter: none;
                     opacity: 1;
@@ -71,9 +131,11 @@
         @media (max-width: 560px) {
             top: 12px;
             right: 12px;
+
             .col-btn {
                 width: 32px;
                 height: 32px;
+
                 img {
                     width: 16px;
                     height: 16px;
@@ -85,6 +147,7 @@
     .layout {
         display: block;
         position: relative;
+
         .react-grid-item {
             cursor: pointer;
             transition: all 200ms ease;
@@ -108,7 +171,7 @@
                 will-change: transform;
             }
 
-            > .react-resizable-handle {
+            >.react-resizable-handle {
                 position: absolute;
                 width: 20px;
                 height: 20px;
@@ -189,7 +252,7 @@
     }
 
     /* Hide resize handles for normal post cards so only dropped snippets can be resized */
-    .post-card > .react-resizable-handle {
+    .post-card>.react-resizable-handle {
         display: none !important;
     }
 
@@ -300,6 +363,7 @@
         #FeedPage .container {
             max-width: 360px;
         }
+
         .post-card .card-thumb {
             height: 100px;
         }
@@ -404,10 +468,12 @@
         border-radius: 8px;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
         z-index: 50;
-        > .react-resizable-handle {
+
+        >.react-resizable-handle {
             position: absolute;
             width: 20px;
             height: 20px;
+
             &::after {
                 content: '';
                 position: absolute;
