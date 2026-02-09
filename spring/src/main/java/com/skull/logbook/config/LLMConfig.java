@@ -11,23 +11,28 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Configuration
 public class LLMConfig {
 
-    @Value("${llm.vllm.api-url:http://proxogus.codns.com:11434}")
-    private String apiUrl;
+    @Value("${llm.google.api-key}")
+    private String googleApiKey;
 
-    @Value("${llm.vllm.model-name:casperhansen/llama-3.2-3b-instruct-awq}")
-    private String modelName;
+    @Value("#{'${llm.google.models}'.split(',')}")
+    private java.util.List<String> googleModels;
 
     @Bean
-    public WebClient vllmWebClient() {
+    public WebClient googleWebClient() {
         return WebClient.builder()
-                .baseUrl(apiUrl)
+                .baseUrl("https://generativelanguage.googleapis.com")
                 .defaultHeader("Content-Type", "application/json")
                 .build();
     }
 
     @Bean
-    public String vllmModelName() {
-        return modelName;
+    public String googleApiKey() {
+        return googleApiKey;
+    }
+
+    @Bean
+    public java.util.List<String> googleModels() {
+        return googleModels;
     }
 
     @Bean

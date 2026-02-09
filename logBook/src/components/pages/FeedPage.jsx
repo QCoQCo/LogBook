@@ -13,7 +13,16 @@ const FeedPage = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const search = params.get('search');
-        fetchPosts(search);
+        const tag = params.get('tag');
+        const query = params.get('query');
+
+        // Tag 검색인 경우 isTagSearch=true 전달
+        if (tag) {
+            fetchPosts(tag, true); // Tag 전용 검색
+        } else {
+            const searchTerm = query || search;
+            fetchPosts(searchTerm, false); // 일반 검색
+        }
     }, [location.search, fetchPosts]);
     const skipRebuildRef = useRef(false);
 
