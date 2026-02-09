@@ -1,8 +1,126 @@
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import apiClient from '../../utils/apiClient';
+import AdminList from './AdminList';
+import AdminListBtns from './AdminListBtns';
+import AdminPagination from './AdminPagination';
+
+const PAGE_SIZE = 10;
+
+const POST_COLUMNS = [
+    { key: 'postId', label: 'ID' },
+    {
+        key: 'title',
+        label: '제목',
+        render: (value, row) => (
+            <Link to={`/post/detail?postId=${row.postId}`} className='post-manage__title-link'>
+                {value || '-'}
+            </Link>
+        ),
+    },
+    { key: 'authorName', label: '작성자' },
+    {
+        key: 'content',
+        label: '내용 미리보기',
+        render: (value) => (
+            <span className='post-manage__preview'>
+                {value && typeof value === 'string' ? value.slice(0, 50) + (value.length > 50 ? '…' : '') : '-'}
+            </span>
+        ),
+    },
+    { key: 'createdAt', label: '작성일' },
+];
+
 const PostManage = () => {
+    const navigate = useNavigate();
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [page, setPage] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+
+    const totalPages = Math.max(0, Math.ceil(totalElements / PAGE_SIZE));
+
+    const fetchPosts = useCallback(async (pageNum) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const [listRes, countRes] = await Promise.all([
+                apiClient.get('/posts', { params: { page: pageNum, size: PAGE_SIZE } }),
+                apiClient.get('/posts/count'),
+            ]);
+            const list = listRes.data;
+            const total = countRes.data?.totalElements ?? 0;
+            setPosts(Array.isArray(list) ? list.map((p) => ({ ...p, id: p.postId })) : []);
+            setTotalElements(total);
+        } catch (err) {
+            setError(err?.response?.data?.message || '게시글 목록을 불러오는데 실패했습니다.');
+            setPosts([]);
+            setTotalElements(0);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchPosts(page);
+    }, [page, fetchPosts]);
+
+    const handlePageChange = (newPage) => {
+        setPage(newPage);
+    };
+
+    const handleEdit = (row) => {
+        navigate(`/post/edit?postId=${row.postId}`);
+    };
+
+    const handleDelete = async (row) => {
+        if (!row?.postId) return;
+        if (!window.confirm(`"${row.title || '이 게시글'}"을(를) 삭제 처리하시겠습니까?`)) return;
+        try {
+            await apiClient.delete(`/posts/${row.postId}`);
+            await fetchPosts(page);
+        } catch (err) {
+            alert(err?.response?.data?.message || '삭제에 실패했습니다.');
+        }
+    };
+
     return (
         <section className='admin-page__content'>
             <h2>게시글 관리</h2>
-            <p>게시글 목록, 삭제, 숨김 처리 등 게시글 관리 기능</p>
+            <p className='admin-page__desc'>
+                게시글 목록, 삭제, 숨김 처리 등 게시글 관리 기능 (페이지당 {PAGE_SIZE}건)
+            </p>
+            {error && (
+                <p className='admin-page__error' role='alert'>
+                    {error}
+                </p>
+            )}
+            <AdminList
+                columns={POST_COLUMNS}
+                data={posts}
+                loading={loading}
+                emptyMessage='등록된 게시글이 없습니다.'
+                actions={{
+                    label: '작업',
+                    render: (row) => (
+                        <AdminListBtns
+                            row={row}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
+                    ),
+                }}
+            />
+            {!loading && totalElements > 0 && (
+                <AdminPagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    totalElements={totalElements}
+                    size={PAGE_SIZE}
+                    onPageChange={handlePageChange}
+                />
+            )}
         </section>
     );
 };

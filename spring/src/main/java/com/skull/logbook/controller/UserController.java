@@ -80,4 +80,55 @@ public class UserController {
             return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
         }
     }
+
+    /** 관리자: 닉네임, 이메일, 역할 일괄 수정 (JSON body, 선택 필드만 보내면 됨) */
+    @PatchMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateUserByAdmin(
+            @PathVariable Long userId,
+            @RequestBody Map<String, String> body) {
+        if (body == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "요청 본문이 없습니다."));
+        }
+        try {
+            String nickName = body.get("nickName");
+            String userEmail = body.get("userEmail");
+            String roleStr = body.get("role");
+            Role role = null;
+            if (roleStr != null && !roleStr.isBlank()) {
+                if (!roleStr.equals("USER") && !roleStr.equals("ADMIN") && !roleStr.equals("GUEST")) {
+                    return ResponseEntity.badRequest().body(Map.of("message", "role은 USER, ADMIN, GUEST 중 하나여야 합니다."));
+                }
+                role = Role.valueOf(roleStr);
+            }
+            UserResponseDto result = userService.updateUserByAdmin(userId, nickName, userEmail, role);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{userId}/role")
+    public ResponseEntity<?> updateUserRole(@PathVariable Long userId, @RequestBody Map<String, String> body) {
+        String roleStr = body != null ? body.get("role") : null;
+        if (roleStr == null || (!roleStr.equals("USER") && !roleStr.equals("ADMIN") && !roleStr.equals("GUEST"))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "role은 USER, ADMIN, GUEST 중 하나여야 합니다."));
+        }
+        try {
+            Role role = Role.valueOf(roleStr);
+            UserResponseDto result = userService.updateUserRole(userId, role);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        try {
+            userService.softDeleteUser(userId);
+            return ResponseEntity.ok(Map.of("message", "회원이 삭제 처리되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }

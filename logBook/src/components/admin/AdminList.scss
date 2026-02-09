@@ -1,0 +1,63 @@
+.admin-list {
+    overflow-x: auto;
+
+    &--loading,
+    &--empty {
+        padding: 2rem;
+        text-align: center;
+        color: #666;
+    }
+
+    &__table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    &__th {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        background: #f0f0f0;
+        border-bottom: 2px solid #ddd;
+    }
+
+    &__tr {
+        border-bottom: 1px solid #eee;
+
+        &:hover {
+            background: #f9f9f9;
+        }
+    }
+
+    &__td {
+        padding: 0.75rem 1rem;
+
+        &--actions {
+            white-space: nowrap;
+        }
+    }
+}
+
+.user-role {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    &--admin {
+        background: rgba(78, 205, 196, 0.2);
+        color: #0d9488;
+    }
+
+    &--user {
+        background: #f0f0f0;
+        color: #555;
+    }
+
+    &--guest {
+        background: #fef3c7;
+        color: #92400e;
+    }
+}
