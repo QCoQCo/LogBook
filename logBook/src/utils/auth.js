@@ -25,7 +25,7 @@ const derivePBKDF2 = async (
     saltBuf,
     iterations = 100000,
     hash = 'SHA-256',
-    keyLen = 32
+    keyLen = 32,
 ) => {
     const enc = new TextEncoder();
     const passKey = await crypto.subtle.importKey(
@@ -33,7 +33,7 @@ const derivePBKDF2 = async (
         enc.encode(password),
         { name: 'PBKDF2' },
         false,
-        ['deriveBits']
+        ['deriveBits'],
     );
     const derived = await crypto.subtle.deriveBits(
         {
@@ -43,7 +43,7 @@ const derivePBKDF2 = async (
             hash,
         },
         passKey,
-        keyLen * 8
+        keyLen * 8,
     );
     return derived; // ArrayBuffer
 };
@@ -105,4 +105,12 @@ export const loginClient = async (id, password) => {
     }
 };
 
-export default { signupClient, loginClient };
+export const getCurrentUserId = () => {
+    const user =
+        JSON.parse(localStorage.getItem('logbook_current_user')) ||
+        JSON.parse(sessionStorage.getItem('logbook_current_user'));
+
+    return user?.id ?? null;
+};
+
+export default { signupClient, loginClient, getCurrentUserId };

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo } from "react";
+import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
 // BlogContext 생성
 const BlogContext = createContext();
@@ -11,18 +11,18 @@ export const BlogProvider = ({ children }) => {
     const [clickedItem, setClickedItem] = useState(null);
     const [elements, setElements] = useState([]);
     const [originElements, setOriginElements] = useState([]);
-    const [isBlogEditting, setIsBlogEditting] = useState(false);
+    const [isBlogEditing, setisBlogEditing] = useState(false);
 
     // 블로그 탭 위치 관리
     const [activeTab, setActiveTabState] = useState(() => {
-        const s = sessionStorage.getItem("logbook_activeTab");
+        const s = sessionStorage.getItem('logbook_activeTab');
         return s ? Number(s) : 1;
     });
 
     const setActiveTab = useCallback((n) => {
         setActiveTabState(n);
         try {
-            sessionStorage.setItem("logbook_activeTab", String(n));
+            sessionStorage.setItem('logbook_activeTab', String(n));
         } catch (e) {}
     }, []);
 
@@ -41,8 +41,8 @@ export const BlogProvider = ({ children }) => {
             setElements,
             originElements,
             setOriginElements,
-            isBlogEditting,
-            setIsBlogEditting,
+            isBlogEditing,
+            setisBlogEditing,
         }),
         [
             layout,
@@ -57,8 +57,8 @@ export const BlogProvider = ({ children }) => {
             setElements,
             originElements,
             setOriginElements,
-            isBlogEditting,
-            setIsBlogEditting,
+            isBlogEditing,
+            setisBlogEditing,
         ],
     );
 
@@ -85,7 +85,7 @@ export const BlogProvider = ({ children }) => {
 export const useBlog = () => {
     const context = useContext(BlogContext);
     if (!context) {
-        throw new Error("useBlog must be used within a BlogProvider");
+        throw new Error('useBlog must be used within a BlogProvider');
     }
     return context;
 };

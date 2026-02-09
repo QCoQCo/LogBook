@@ -2,6 +2,7 @@ package com.skull.logbook.repository;
 
 import java.util.List;
 
+import com.skull.logbook.dto.UserPostListDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,21 +15,41 @@ import com.skull.logbook.entity.Post;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-        List<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
+	List<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-        List<Post> findAllByDeletedAtIsNullOrderByCreatedAtDesc(Pageable pageable);
+    // ID 목록으로 조회
+    List<Post> findAllByIdIn(List<Long> ids);
 
-        long countByDeletedAtIsNull();
+    // userId로 유저의 모든 게시글을 조회
+    @Query("""
+    select new com.skull.logbook.dto.UserPostListDto(
+            p.id,
+            p.title,
+            p.content,
+            p.createdAt
+        )
+        from Post p
+        where p.userId = :userId
+        order by p.createdAt desc
+    """)
+    List<UserPostListDto> findPostListByUserId(
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
 
-        List<Post> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String title, String content,
-                        Pageable pageable);
+	List<Post> findAllByDeletedAtIsNullOrderByCreatedAtDesc(Pageable pageable);
 
-        List<Post> findAllByIdIn(List<Long> ids);
+	long countByDeletedAtIsNull();
 
-        @Query("SELECT DISTINCT p FROM Post p " +
-                        "JOIN PostTag pt ON p.id = pt.post.id " +
-                        "JOIN CommonCode cc ON pt.tagId = cc.codeValue " +
-                        "WHERE cc.codeName = :tagName " +
-                        "ORDER BY p.createdAt DESC")
-        List<Post> findByTagName(@Param("tagName") String tagName, Pageable pageable);
+	List<Post> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String title, String content,
+					Pageable pageable);
+
+	List<Post> findAllByIdIn(List<Long> ids);
+
+	@Query("SELECT DISTINCT p FROM Post p " +
+					"JOIN PostTag pt ON p.id = pt.post.id " +
+					"JOIN CommonCode cc ON pt.tagId = cc.codeValue " +
+					"WHERE cc.codeName = :tagName " +
+					"ORDER BY p.createdAt DESC")
+	List<Post> findByTagName(@Param("tagName") String tagName, Pageable pageable);
 }
