@@ -156,12 +156,14 @@ public class UserService {
                 user.getNickName(),
                 user.getUserEmail(),
                 user.getProfilePhoto(),
-                user.getIntroduction());
+                user.getIntroduction(),
+                user.getRole() != null ? user.getRole().name() : null);
     }
 
-    /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만) */
+    /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만, 삭제 제외) */
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll().stream()
+                .filter(u -> !u.isDeleted())
                 .map(UserResponseDto::from)
                 .collect(Collectors.toList());
     }
@@ -305,5 +307,56 @@ public class UserService {
         userMap.put("role", user.getRole().name());
 
         return Map.of("token", newToken, "user", userMap);
+    }
+
+    /** 관리자: 특정 사용자의 역할 변경 */
+    @Transactional
+    public UserResponseDto updateUserRole(Long userId, Role role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        if (user.isDeleted()) {
+            throw new IllegalArgumentException("이미 삭제된 회원입니다.");
+        }
+        if (role != Role.USER && role != Role.ADMIN && role != Role.GUEST) {
+            throw new IllegalArgumentException("USER, ADMIN, GUEST 중 하나여야 합니다.");
+        }
+        user.changeRole(role);
+        return UserResponseDto.from(user);
+    }
+
+    /** 관리자: 특정 사용자의 닉네임, 이메일, 역할 수정 (null/빈 값은 변경하지 않음) */
+    @Transactional
+    public UserResponseDto updateUserByAdmin(Long userId, String nickName, String userEmail, Role role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        if (user.isDeleted()) {
+            throw new IllegalArgumentException("이미 삭제된 회원입니다.");
+        }
+        if (nickName != null && !nickName.isBlank()) {
+            if (!nickName.equals(user.getNickName()) && userRepository.existsByNickName(nickName)) {
+                throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            }
+            user.updateProfile(null, null, nickName);
+        }
+        if (userEmail != null && !userEmail.isBlank()) {
+            userRepository.findByUserEmail(userEmail)
+                    .filter(other -> !other.getId().equals(userId))
+                    .ifPresent(other -> {
+                        throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+                    });
+            user.updateUserEmail(userEmail);
+        }
+        if (role != null && (role == Role.USER || role == Role.ADMIN || role == Role.GUEST)) {
+            user.changeRole(role);
+        }
+        return UserResponseDto.from(user);
+    }
+
+    /** 관리자: 사용자 소프트 삭제 */
+    @Transactional
+    public void softDeleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        user.softDelete();
     }
 }

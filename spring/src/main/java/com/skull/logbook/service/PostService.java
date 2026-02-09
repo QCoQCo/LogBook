@@ -28,7 +28,7 @@ public class PostService {
 
         public List<PostResponseDto> getAllPosts(int page, int size) {
                 // 1. 게시글 목록 우선 조회
-                List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(page, size));
+                List<Post> posts = postRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc(PageRequest.of(page, size));
 
                 if (posts.isEmpty()) {
                         return Collections.emptyList();
@@ -73,9 +73,23 @@ public class PostService {
                                 .toList();
         }
 
+        public long countAll() {
+                return postRepository.countByDeletedAtIsNull();
+        }
+
+        @org.springframework.transaction.annotation.Transactional
+        public void softDeletePost(Long postId) {
+                Post post = postRepository.findById(postId)
+                                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                post.softDelete();
+        }
+
         public PostResponseDto getPostDetail(Long postId) {
                 Post post = postRepository.findById(postId)
                                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+                if (post.isDeleted()) {
+                        throw new IllegalArgumentException("삭제된 게시글입니다.");
+                }
 
                 // 작성자 닉네임 조회
                 User author = userRepository.findById(post.getUserId())
