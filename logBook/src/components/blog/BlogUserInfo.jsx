@@ -1,6 +1,7 @@
 import { useBlog, useAuth, useUserData } from '../../context';
 import { useEffect, useRef, useState } from 'react';
 import apiClient from '../../utils/apiClient';
+import UserInfoModal from '../chat/UserInfoModal';
 
 const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
     const [introText, setIntroText] = useState('');
@@ -10,6 +11,7 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
     const [nickNameMessage, setNickNameMessage] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
     const introTextRef = useRef();
     const fileInputRef = useRef();
@@ -172,6 +174,7 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
         return null;
     } else {
         return (
+            <>
             <div className="user-info-area">
                 <div className="profile-photo-wrapper">
                     <div className="profile-photo">
@@ -260,7 +263,28 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                         내 블로그 수정하기
                     </button>
                 )}
+                {!isBlogEditing && !isOwnBlog && activeTab === 1 && (
+                    <button className="edit-btn profile-view-btn" onClick={() => setShowProfileModal(true)}>
+                        프로필 보기
+                    </button>
+                )}
             </div>
+
+            {/* 타인 블로그일 때 프로필 보기 모달 */}
+            {blogOwnerData && (
+                <UserInfoModal
+                    isOpen={showProfileModal}
+                    onClose={() => setShowProfileModal(false)}
+                    userInfo={{
+                        ...blogOwnerData,
+                        userId: blogOwnerData.loginId ?? blogOwnerData.userId ?? String(blogOwnerData.id),
+                        profilePhoto: getProfileImageUrl(blogOwnerData.profilePhoto),
+                    }}
+                    currentUserId={currentUser?.id}
+                    isOwnProfile={false}
+                />
+            )}
+            </>
         );
     }
 };

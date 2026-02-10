@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import apiClient from '../../utils/apiClient';
 import './UserInfoModal.scss';
 
 const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile = false }) => {
@@ -23,24 +24,32 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
     };
 
     // 신고 제출
-    const handleReportSubmit = () => {
+    const handleReportSubmit = async () => {
         if (!reportReason.trim()) {
             alert('신고 사유를 선택해주세요.');
             return;
         }
+        const reportedUserLoginId = userInfo.userId ?? userInfo.loginId;
+        if (!reportedUserLoginId || String(reportedUserLoginId).trim() === '') {
+            alert('신고 대상 정보를 확인할 수 없습니다.');
+            return;
+        }
 
-        // TODO: 실제 신고 API 호출
-        console.log('신고 제출:', {
-            targetUserId: userInfo.userId,
-            reason: reportReason,
-            description: reportDescription,
-        });
-
-        alert('신고가 접수되었습니다.');
-        setShowReportModal(false);
-        setReportReason('');
-        setReportDescription('');
-        onClose();
+        try {
+            await apiClient.post('/reports', {
+                reportedUserLoginId: String(reportedUserLoginId).trim(),
+                reason: reportReason.trim(),
+                description: reportDescription?.trim() || '',
+            });
+            alert('신고가 접수되었습니다.');
+            setShowReportModal(false);
+            setReportReason('');
+            setReportDescription('');
+            onClose();
+        } catch (err) {
+            const message = err?.response?.data?.message || err?.message || '신고 접수에 실패했습니다.';
+            alert(message);
+        }
     };
 
     // 신고 모달 닫기
@@ -180,7 +189,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                                 <button className='cancel-button' onClick={handleReportModalClose}>
                                     취소
                                 </button>
-                                <button className='submit-button' onClick={handleReportSubmit}>
+                                <button className='submit-button' onClick={handleReportSubmit} type='button'>
                                     신고하기
                                 </button>
                             </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../utils/apiClient';
 import AdminList from './AdminList';
 import AdminListBtns from './AdminListBtns';
+import AdminModal from './AdminModal';
 
 const USER_COLUMNS = [
     { key: 'id', label: 'ID' },
@@ -120,58 +121,58 @@ const UserManage = () => {
                 }}
             />
 
-            {editUser && (
-                <div className='admin-modal-overlay' onClick={handleEditClose} role="dialog" aria-modal="true" aria-labelledby="edit-user-title">
-                    <div className='admin-modal' onClick={(e) => e.stopPropagation()}>
-                        <h3 id="edit-user-title">회원 수정</h3>
-                        <p className='admin-modal__user'>로그인ID: {editUser.loginId}</p>
-                        <form onSubmit={handleEditSubmit}>
-                            <label className='admin-modal__label'>
-                                닉네임
-                                <input
-                                    type='text'
-                                    value={editNickName}
-                                    onChange={(e) => setEditNickName(e.target.value)}
-                                    className='admin-modal__input'
-                                    placeholder='닉네임'
-                                />
-                            </label>
-                            <label className='admin-modal__label'>
-                                이메일
-                                <input
-                                    type='email'
-                                    value={editUserEmail}
-                                    onChange={(e) => setEditUserEmail(e.target.value)}
-                                    className='admin-modal__input'
-                                    placeholder='이메일'
-                                />
-                            </label>
-                            <label className='admin-modal__label'>
-                                역할
-                                <select
-                                    value={editRole}
-                                    onChange={(e) => setEditRole(e.target.value)}
-                                    className='admin-modal__select'
-                                >
-                                    {ROLES.map((r) => (
-                                        <option key={r.value} value={r.value}>
-                                            {r.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                            <div className='admin-modal__actions'>
-                                <button type='button' onClick={handleEditClose} className='admin-modal__btn'>
-                                    취소
-                                </button>
-                                <button type='submit' disabled={submitLoading} className='admin-modal__btn admin-modal__btn--primary'>
-                                    {submitLoading ? '저장 중...' : '저장'}
-                                </button>
-                            </div>
-                        </form>
+            <AdminModal
+                isOpen={!!editUser}
+                onClose={handleEditClose}
+                title="회원 수정"
+                titleId="edit-user-title"
+            >
+                <p className='admin-modal__user'>로그인ID: {editUser?.loginId}</p>
+                <form onSubmit={handleEditSubmit}>
+                    <label className='admin-modal__label'>
+                        닉네임
+                        <input
+                            type='text'
+                            value={editNickName}
+                            onChange={(e) => setEditNickName(e.target.value)}
+                            className='admin-modal__input'
+                            placeholder='닉네임'
+                        />
+                    </label>
+                    <label className='admin-modal__label'>
+                        이메일
+                        <input
+                            type='email'
+                            value={editUserEmail}
+                            onChange={(e) => setEditUserEmail(e.target.value)}
+                            className='admin-modal__input'
+                            placeholder='이메일'
+                        />
+                    </label>
+                    <label className='admin-modal__label'>
+                        역할
+                        <select
+                            value={editRole}
+                            onChange={(e) => setEditRole(e.target.value)}
+                            className='admin-modal__select'
+                        >
+                            {ROLES.map((r) => (
+                                <option key={r.value} value={r.value}>
+                                    {r.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <div className='admin-modal__actions'>
+                        <button type='button' onClick={handleEditClose} className='admin-modal__btn'>
+                            취소
+                        </button>
+                        <button type='submit' disabled={submitLoading} className='admin-modal__btn admin-modal__btn--primary'>
+                            {submitLoading ? '저장 중...' : '저장'}
+                        </button>
                     </div>
-                </div>
-            )}
+                </form>
+            </AdminModal>
         </section>
     );
 };

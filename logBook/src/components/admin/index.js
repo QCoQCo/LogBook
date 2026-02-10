@@ -1,3 +1,4 @@
+export { default as AdminModal } from './AdminModal';
 export { default as UserManage } from './UserManage';
 export { default as PostManage } from './PostManage';
 export { default as ReportManage } from './ReportManage';
