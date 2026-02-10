@@ -13,6 +13,8 @@ export const PostVerticalCard = ({ layout, postId, thumbnail, title }) => {
             onClick={(e) => {
                 if (isBlogEditing) {
                     e.preventDefault();
+                } else {
+                    window.scrollTo(0, 0);
                 }
             }}
         >

@@ -13,6 +13,8 @@ export const PostImageOnly = ({ layout, postId, thumbnail }) => {
             onClick={(e) => {
                 if (isBlogEditing) {
                     e.preventDefault();
+                } else {
+                    window.scrollTo(0, 0);
                 }
             }}
         >

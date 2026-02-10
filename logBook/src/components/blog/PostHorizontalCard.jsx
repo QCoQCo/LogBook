@@ -19,6 +19,8 @@ export const PostHorizontalCard = ({ layout, postId, thumbnail, title, content }
             onClick={(e) => {
                 if (isBlogEditing) {
                     e.preventDefault();
+                } else {
+                    window.scrollTo(0, 0);
                 }
             }}
         >

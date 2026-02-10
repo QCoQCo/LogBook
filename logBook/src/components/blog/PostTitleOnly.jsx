@@ -14,6 +14,8 @@ export const PostTitleOnly = ({ layout, postId, title }) => {
             onClick={(e) => {
                 if (isBlogEditing) {
                     e.preventDefault(); // 라우팅 차단
+                } else {
+                    window.scrollTo(0, 0);
                 }
             }}
         >
