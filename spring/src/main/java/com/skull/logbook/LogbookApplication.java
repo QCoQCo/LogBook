@@ -50,6 +50,12 @@ public class LogbookApplication {
 		setIfAbsent("LLM_VLLM_API_URL", dotenv.get("LLM_VLLM_API_URL"));
 		setIfAbsent("LLM_VLLM_MODEL_NAME", dotenv.get("LLM_VLLM_MODEL_NAME"));
 		setIfAbsent("LLM_GOOGLE_API_KEY", dotenv.get("LLM_GOOGLE_API_KEY"));
+
+		// SMTP 설정
+		setIfAbsent("SMTP_HOST", getEnvOr(dotenv, "SMTP_HOST", "smtp.host"));
+		setIfAbsent("SMTP_PORT", getEnvOr(dotenv, "SMTP_PORT", "smtp.port"));
+		setIfAbsent("SMTP_USERNAME", getEnvOr(dotenv, "SMTP_USERNAME", "smtp.username"));
+		setIfAbsent("SMTP_PASSWORD", getEnvOr(dotenv, "SMTP_PASSWORD", "smtp.password"));
 	}
 
 	private static String getEnvOr(Dotenv dotenv, String key1, String key2) {

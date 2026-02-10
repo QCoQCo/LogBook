@@ -1,7 +1,6 @@
 package com.skull.logbook.controller;
 
 import com.skull.logbook.dto.SignupRequestDto;
-import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.UserRepository;
 import com.skull.logbook.service.BlogService;
@@ -21,6 +20,25 @@ public class AuthController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final BlogService blogService;
+    private final com.skull.logbook.service.MailService mailService;
+
+    @PostMapping("/email/send")
+    public ResponseEntity<Map<String, String>> sendEmail(@RequestBody com.skull.logbook.dto.EmailRequest request) {
+        mailService.sendAuthMail(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "인증 코드가 전송되었습니다."));
+    }
+
+    @PostMapping("/email/verify")
+    public ResponseEntity<Map<String, Object>> verifyEmail(
+            @RequestBody com.skull.logbook.dto.EmailVerifyRequest request) {
+        String token = mailService.verifyEmailCode(request.getEmail(), request.getCode());
+
+        if (token != null) {
+            return ResponseEntity.ok(Map.of("verified", true, "token", token));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("verified", false, "message", "인증 코드가 올바르지 않거나 만료되었습니다."));
+        }
+    }
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto requestDto) {
@@ -146,7 +164,7 @@ public class AuthController {
     @PostMapping("/verify-user")
     public ResponseEntity<?> verifyUser(@RequestBody Map<String, String> request) {
         try {
-            userService.verifyUser(request.get("loginId"), request.get("email"), request.get("nickName"));
+            userService.verifyUser(request.get("loginId"), request.get("email"));
             return ResponseEntity.ok(Map.of("message", "사용자 확인 성공"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
@@ -156,10 +174,25 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
         try {
+            // [New] Token verification
+            String verificationToken = request.get("verificationToken");
+            if (verificationToken == null) {
+                return ResponseEntity.status(401).body(Map.of("message", "인증 토큰이 필요합니다."));
+            }
+
+            String verifiedEmail = mailService.verifyToken(verificationToken);
+            if (verifiedEmail == null) {
+                return ResponseEntity.status(401).body(Map.of("message", "유효하지 않거나 만료된 인증 토큰입니다."));
+            }
+
+            String requestedEmail = request.get("email");
+            if (!verifiedEmail.equals(requestedEmail)) {
+                return ResponseEntity.status(401).body(Map.of("message", "인증된 이메일과 요청된 이메일이 일치하지 않습니다."));
+            }
+
             userService.resetPassword(
                     request.get("loginId"),
                     request.get("email"),
-                    request.get("nickName"),
                     request.get("newPassword"));
             return ResponseEntity.ok(Map.of("message", "비밀번호가 재설정되었습니다."));
         } catch (IllegalArgumentException e) {
