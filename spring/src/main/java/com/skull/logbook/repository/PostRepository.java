@@ -44,8 +44,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	List<Post> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String title, String content,
 					Pageable pageable);
 
-	List<Post> findAllByIdIn(List<Long> ids);
-
 	@Query("SELECT DISTINCT p FROM Post p " +
 					"JOIN PostTag pt ON p.id = pt.post.id " +
 					"JOIN CommonCode cc ON pt.tagId = cc.codeValue " +
