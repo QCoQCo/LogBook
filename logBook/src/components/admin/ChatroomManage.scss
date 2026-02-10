@@ -1,0 +1,29 @@
+.chatroom-manage {
+    &__description {
+        max-width: 180px;
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+        color: #666;
+    }
+
+    &__badge {
+        display: inline-block;
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+
+        &--system {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        &--private {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    }
+}

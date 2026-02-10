@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../utils/apiClient';
 import AdminList from './AdminList';
+import AdminModal from './AdminModal';
 import './ReportManage.scss';
 
 const REPORT_REASON_LABELS = {
@@ -196,10 +197,14 @@ const ReportManage = () => {
             />
 
             {/* 신고 처리 모달 */}
-            {processModalOpen && selectedReport && (
-                <div className='admin-modal-overlay' onClick={handleCloseProcessModal}>
-                    <div className='admin-modal report-process-modal' onClick={(e) => e.stopPropagation()}>
-                        <h3>신고 처리</h3>
+            <AdminModal
+                isOpen={processModalOpen && !!selectedReport}
+                onClose={handleCloseProcessModal}
+                title="신고 처리"
+                className="report-process-modal"
+            >
+                {selectedReport && (
+                    <>
                         <p className='admin-modal__user'>
                             피신고자: {selectedReport.reportedUserNickName} (@{selectedReport.reportedUserLoginId})
                         </p>
@@ -266,9 +271,9 @@ const ReportManage = () => {
                                 </button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </AdminModal>
         </section>
     );
 };

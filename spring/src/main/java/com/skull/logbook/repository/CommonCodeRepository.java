@@ -13,4 +13,8 @@ public interface CommonCodeRepository extends JpaRepository<CommonCode, String> 
 
     @Query("SELECT c.codeName FROM CommonCode c WHERE c.codeGroup.groupCode = :groupCode AND c.useYn = 'Y'")
     List<String> findCodeNamesByGroupCode(@Param("groupCode") String groupCode);
+
+    /** 관리자용: 삭제되지 않은 전체 공통코드 (그룹 정보 포함, 그룹코드·정렬순) */
+    @Query("SELECT c FROM CommonCode c JOIN FETCH c.codeGroup g WHERE c.deletedAt IS NULL AND g.deletedAt IS NULL ORDER BY g.groupCode, c.sortOrder")
+    List<CommonCode> findAllWithGroupOrderByGroupCodeAndSortOrder();
 }
