@@ -4,6 +4,7 @@ import { useBlog } from '../../context';
 import { getCurrentUserId } from '../../utils/auth';
 
 import './BlogElementModal.scss';
+import BlogModalPostListItem from './BlogModalPostListItem';
 
 const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     const { elements, setElements } = useBlog();
@@ -14,7 +15,8 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     const [page, setPage] = useState(0); // post 아이템 페이징
     const [searchKeyword, setSearchKeyword] = useState(''); // 게시글 검색어
     const [loading, setLoading] = useState(false); // post 로딩 완료 정보
-    const [hasMore, setHasMore] = useState(true);
+    const [hasMore, setHasMore] = useState(true); // 추가 로딩을 할 게시물이 있는지 여부를 확인
+    const [postThumbnail, setPostThumbnail] = useState(null);
     const [selectedPost, setSelectedPost] = useState(null); // 선택한 게시글 정보 state
 
     // 현재 로그인한 유저 ID를 저장
@@ -65,6 +67,21 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     useEffect(() => {
         hasMoreRef.current = hasMore;
     }, [hasMore]);
+
+    useEffect(() => {
+        const getPostThumbnailFromContent = (content) => {
+            if (!content) return null;
+
+            const match = content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
+            return match ? match[1] : null;
+        };
+
+        if (selectedPost) {
+            setPostThumbnail(
+                getPostThumbnailFromContent(selectedPost.content) || '/img/logBook_logo.png',
+            );
+        }
+    }, [selectedPost]);
 
     // post list를 fetch 하기 위한 함수
     const fetchUserPosts = async (userId, page = 0, size = 20) => {
@@ -160,10 +177,12 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     };
 
     const handleClickConfirm = () => {
-        if (!modalContent.trim()) {
-            alertRef.current.style.display = 'block';
-            inputRef.current.focus();
-            return;
+        if (type !== 'post') {
+            if (!modalContent.trim()) {
+                alertRef.current.style.display = 'block';
+                inputRef.current.focus();
+                return;
+            }
         }
 
         if (type === 'link') {
@@ -189,6 +208,9 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                         ? {
                               ...element,
                               content: modalContent,
+                              meta: {
+                                  thumbnail: postThumbnail,
+                              },
                           }
                         : element,
                 ),
@@ -278,13 +300,13 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                         )}
 
                         {filteredPosts.map((post) => (
-                            <PostListItem
+                            <BlogModalPostListItem
                                 key={post.postId}
                                 post={post}
                                 isSelected={selectedPost?.postId === post.postId}
                                 onSelect={() => {
                                     setSelectedPost(post);
-                                    setModalContent(post.title);
+                                    setModalContent(post);
                                 }}
                             />
                         ))}
@@ -336,46 +358,6 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     ) : (
         <div className="blog-image-modal">
             <img src={currentContent} alt="이미지 크게보기" />
-        </div>
-    );
-};
-
-const PostListItem = ({ post, isSelected, onSelect }) => {
-    const getThumbnailFromContent = (content) => {
-        if (!content) return null;
-
-        const match = content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
-        return match ? match[1] : null;
-    };
-
-    const formatDate = (isoString) => {
-        if (!isoString) return '';
-        return isoString.replace('T', ' ').slice(0, 16);
-    };
-
-    const thumbnail = getThumbnailFromContent(post.content) || '/img/logBook_logo.png';
-
-    return (
-        <div
-            className={`post-list-item ${isSelected ? 'selected-post' : ''}`}
-            onClick={() => onSelect(post)}
-        >
-            {/* 썸네일 */}
-            <div className="post-thumbnail">
-                <img src={thumbnail} alt="게시글 썸네일" />
-            </div>
-
-            {/* 텍스트 영역 */}
-            <div className="post-info">
-                <h3 className="post-title">{post.title}</h3>
-
-                <p className="post-content">
-                    {post.content}
-                    <span className="post-more">...</span>
-                </p>
-
-                <span className="post-date">{formatDate(post.createdAt)}</span>
-            </div>
         </div>
     );
 };
