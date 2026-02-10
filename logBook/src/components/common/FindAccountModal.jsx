@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import apiClient from '../../utils/apiClient';
 import './FindAccountModal.scss';
 
@@ -7,21 +7,35 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
 
     // Find ID States
     const [findIdEmail, setFindIdEmail] = useState('');
-    const [findIdNick, setFindIdNick] = useState('');
     const [foundId, setFoundId] = useState('');
     const [findIdError, setFindIdError] = useState('');
 
     // Reset PW States
-    const [step, setStep] = useState(1); // 1: Verify, 2: Reset
+    // Step 1: User Verify, Step 2: Email Verify, Step 3: Reset PW
+    const [step, setStep] = useState(1);
     const [resetId, setResetId] = useState('');
     const [resetEmail, setResetEmail] = useState('');
-    const [resetNick, setResetNick] = useState('');
+
+    // Step 2: Email Auth States
+    const [authCode, setAuthCode] = useState('');
+    const [isCodeSent, setIsCodeSent] = useState(false);
+    const [timer, setTimer] = useState(0);
+    const timerRef = useRef(null);
+    const [verificationToken, setVerificationToken] = useState('');
+
+    // Step 3: New Password States
     const [newPw, setNewPw] = useState('');
     const [confirmPw, setConfirmPw] = useState('');
     const [resetError, setResetError] = useState('');
 
     // Common
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, []);
 
     if (!isOpen) return null;
 
@@ -50,11 +64,13 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
     };
 
     // --- Handlers for Reset PW ---
+
+    // Step 1: Verify User Info
     const handleVerifyUser = async (e) => {
         e.preventDefault();
         setResetError('');
 
-        if (!resetId || !resetEmail || !resetNick) {
+        if (!resetId || !resetEmail) {
             setResetError('모든 정보를 입력해주세요.');
             return;
         }
@@ -63,10 +79,9 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
         try {
             await apiClient.post('/auth/verify-user', {
                 loginId: resetId,
-                email: resetEmail,
-                nickName: resetNick
+                email: resetEmail
             });
-            setStep(2); // Move to password input step
+            setStep(2); // Move to Email Verification
         } catch (err) {
             setResetError(err.response?.data?.message || '사용자 정보를 찾을 수 없습니다.');
         } finally {
@@ -74,6 +89,78 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
         }
     };
 
+    // Step 2: Email Verification
+    const startTimer = () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+        setTimer(600); // 10분 = 600초 (사용자 요청 반영)
+        timerRef.current = setInterval(() => {
+            setTimer((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
+
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
+    const handleSendEmail = async () => {
+        setResetError('');
+        if (!resetEmail) {
+            setResetError('이메일 정보가 없습니다.');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            await apiClient.post('/auth/email/send', { email: resetEmail });
+            setIsCodeSent(true);
+            startTimer();
+            alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
+        } catch (err) {
+            setResetError(err.response?.data?.message || '이메일 전송 실패.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerifyCode = async () => {
+        setResetError('');
+        if (!authCode) {
+            alert('인증 코드를 입력하세요.');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const res = await apiClient.post('/auth/email/verify', {
+                email: resetEmail,
+                code: authCode
+            });
+
+            if (res.data.token) {
+                setVerificationToken(res.data.token);
+                if (timerRef.current) clearInterval(timerRef.current);
+                setStep(3); // Move to New Password Input
+            } else {
+                // Should not happen if success
+                setResetError('인증 토큰을 발급받지 못했습니다.');
+            }
+        } catch (err) {
+            setResetError(err.response?.data?.message || '인증 코드가 올바르지 않거나 만료되었습니다.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
+    // Step 3: Reset Password
     const handleResetPw = async (e) => {
         e.preventDefault();
         setResetError('');
@@ -94,13 +181,18 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
             return;
         }
 
+        if (!verificationToken) {
+            setResetError('인증 세션이 만료되었습니다. 처음부터 다시 시도해주세요.');
+            return;
+        }
+
         setIsLoading(true);
         try {
             await apiClient.post('/auth/reset-password', {
                 loginId: resetId,
                 email: resetEmail,
-                nickName: resetNick,
-                newPassword: newPw
+                newPassword: newPw,
+                verificationToken: verificationToken // New Field
             });
             alert('비밀번호가 재설정되었습니다. 로그인해주세요.');
             handleClose();
@@ -117,10 +209,16 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
         setActiveTab('findId');
         setFoundId('');
         setFindIdError('');
+
         setStep(1);
         setResetError('');
-        setFindIdEmail(''); setFindIdNick('');
-        setResetId(''); setResetEmail(''); setResetNick('');
+        setFindIdEmail('');
+
+        setResetId(''); setResetEmail('');
+        setAuthCode(''); setIsCodeSent(false); setTimer(0);
+        if (timerRef.current) clearInterval(timerRef.current);
+        setVerificationToken('');
+
         setNewPw(''); setConfirmPw('');
         onClose();
     };
@@ -192,7 +290,8 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
                     {/* --- Reset PW Tab --- */}
                     {activeTab === 'resetPw' && (
                         <div className="reset-pw-section">
-                            {step === 1 ? (
+                            {/* Step 1: User Info */}
+                            {step === 1 && (
                                 <form onSubmit={handleVerifyUser}>
                                     <div className="form-group">
                                         <label>아이디</label>
@@ -212,24 +311,78 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
                                             placeholder="이메일"
                                         />
                                     </div>
-                                    <div className="form-group">
-                                        <label>닉네임</label>
-                                        <input
-                                            type="text"
-                                            value={resetNick}
-                                            onChange={(e) => setResetNick(e.target.value)}
-                                            placeholder="닉네임"
-                                        />
-                                    </div>
                                     {resetError && <p className="error-msg">{resetError}</p>}
                                     <button type="submit" className="submit-btn" disabled={isLoading}>
                                         {isLoading ? '확인 중...' : '다음'}
                                     </button>
                                 </form>
-                            ) : (
+                            )}
+
+                            {/* Step 2: Email Auth (New) */}
+                            {step === 2 && (
+                                <div>
+                                    <div className="info-msg" style={{ marginBottom: '20px' }}>
+                                        회원 정보가 확인되었습니다.<br />
+                                        이메일 인증을 진행해주세요.
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>이메일 인증</label>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <input
+                                                type="email"
+                                                value={resetEmail}
+                                                disabled
+                                                style={{ flex: 1, backgroundColor: '#f0f0f0' }}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="check-btn"
+                                                style={{ width: '100px', height: '40px', padding: 0 }}
+                                                onClick={handleSendEmail}
+                                                disabled={isCodeSent || isLoading}
+                                            >
+                                                {isCodeSent ? '전송됨' : '인증번호 전송'}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {isCodeSent && (
+                                        <div className="form-group">
+                                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="인증코드 6자리"
+                                                    value={authCode}
+                                                    onChange={(e) => setAuthCode(e.target.value)}
+                                                    maxLength={6}
+                                                    style={{ flex: 1 }}
+                                                />
+                                                <span style={{ color: 'red', fontWeight: 'bold', minWidth: '50px', textAlign: 'center' }}>
+                                                    {formatTime(timer)}
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="submit-btn"
+                                                style={{ marginTop: '10px' }}
+                                                onClick={handleVerifyCode}
+                                                disabled={timer === 0 || isLoading}
+                                            >
+                                                {isLoading ? '확인 중...' : '인증 확인'}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {resetError && <p className="error-msg">{resetError}</p>}
+                                </div>
+                            )}
+
+                            {/* Step 3: New Password */}
+                            {step === 3 && (
                                 <form onSubmit={handleResetPw}>
                                     <div className="info-msg">
-                                        사용자 확인이 완료되었습니다.<br />
+                                        이메일 인증이 완료되었습니다.<br />
                                         새로운 비밀번호를 입력해주세요.
                                     </div>
                                     <div className="form-group">

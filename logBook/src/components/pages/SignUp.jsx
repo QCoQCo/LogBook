@@ -218,8 +218,86 @@ const SignUp = () => {
         }
     };
 
+    const [isEmailVerified, setIsEmailVerified] = useState(false);
+    const [authCode, setAuthCode] = useState('');
+    const [isCodeSent, setIsCodeSent] = useState(false);
+    const [timer, setTimer] = useState(0); // 초 단위
+    const timerRef = useRef(null);
+
+    const startTimer = () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+        setTimer(600); // 10분 = 600초 (사용자 요청 반영)
+        timerRef.current = setInterval(() => {
+            setTimer((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
+
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
+    const handleSendEmail = async () => {
+        if (!values.email || !emailRegex.test(values.email)) {
+            setErrors(prev => ({ ...prev, email: '유효한 이메일을 입력하세요.' }));
+            return;
+        }
+
+        try {
+            const resp = await fetch('/api/auth/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: values.email })
+            });
+            if (resp.ok) {
+                setIsCodeSent(true);
+                startTimer();
+                setErrors(prev => ({ ...prev, email: '' }));
+                alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
+            } else {
+                alert('이메일 전송에 실패했습니다.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('오류가 발생했습니다.');
+        }
+    };
+
+    const handleVerifyCode = async () => {
+        if (!authCode) {
+            alert('인증 코드를 입력하세요.');
+            return;
+        }
+
+        try {
+            const resp = await fetch('/api/auth/email/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: values.email, code: authCode })
+            });
+
+            if (resp.ok) {
+                setIsEmailVerified(true);
+                clearInterval(timerRef.current);
+                alert('이메일 인증이 완료되었습니다.');
+            } else {
+                alert('인증 코드가 올바르지 않거나 만료되었습니다.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('인증 중 오류가 발생했습니다.');
+        }
+    };
+
     const isFormValid = () => {
-        if (!values.id || !values.password || !values.passwordConfirm || !values.email || !values.nickName || !isIdChecked || !isNickNameChecked) {
+        if (!values.id || !values.password || !values.passwordConfirm || !values.email || !values.nickName || !isIdChecked || !isNickNameChecked || !isEmailVerified) {
             return false;
         }
 
@@ -233,9 +311,12 @@ const SignUp = () => {
         );
     };
 
+    // ... 기존 코드 유지
+
     return (
         <div id='SignUp'>
             {submitted ? (
+                // ... 성공 화면
                 <div className='signup-success' role='status' aria-live='polite'>
                     <p>
                         <h2>회원가입이 완료되었습니다</h2>
@@ -244,8 +325,10 @@ const SignUp = () => {
                 </div>
             ) : (
                 <div className='signup-container'>
+                    {/* ... 폼 헤더 */}
                     <h2 className='signup-title'>회원가입</h2>
                     <form className='signup-form' onSubmit={handleSubmit} noValidate>
+                        {/* ID 입력 필드 (생략 없이 유지) */}
                         <label className='form-row' htmlFor='signup-id'>
                             <div className='label-text'>
                                 ID <span className='necessary'>*</span>
@@ -283,9 +366,9 @@ const SignUp = () => {
                                     </div>
                                 )}
                             </div>
-
                         </label>
 
+                        {/* PW 입력 필드 (기존 유지) */}
                         <label className='form-row' htmlFor='signup-password'>
                             <div className='label-text'>
                                 PW <span className='necessary'>*</span>
@@ -334,6 +417,7 @@ const SignUp = () => {
                             )}
                         </label>
 
+                        {/* PW 확인 (기존 유지) */}
                         <label className='form-row' htmlFor='signup-password-confirm'>
                             <div className='label-text'>
                                 PW 확인 <span className='necessary'>*</span>
@@ -364,21 +448,64 @@ const SignUp = () => {
                             )}
                         </label>
 
+                        {/* Email 입력 필드 (수정됨) */}
                         <label className='form-row' htmlFor='signup-email'>
                             <div className='label-text'>
                                 Email <span className='necessary'>*</span>
                             </div>
-                            <input
-                                id='signup-email'
-                                ref={emailRef}
-                                className='input-field'
-                                type='email'
-                                name='email'
-                                value={values.email}
-                                onChange={handleChange}
-                                aria-describedby={errors.email ? 'signup-email-error' : undefined}
-                                aria-invalid={!!errors.email}
-                            />
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <input
+                                    id='signup-email'
+                                    ref={emailRef}
+                                    className='input-field'
+                                    type='email'
+                                    name='email'
+                                    value={values.email}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        setIsEmailVerified(false); // 이메일 변경 시 재인증 필요
+                                        setIsCodeSent(false);
+                                        setTimer(0);
+                                    }}
+                                    disabled={isEmailVerified} // 인증 완료 시 수정 불가
+                                    aria-describedby={errors.email ? 'signup-email-error' : undefined}
+                                    aria-invalid={!!errors.email}
+                                />
+                                <button
+                                    type='button'
+                                    onClick={handleSendEmail}
+                                    disabled={!values.email || !emailRegex.test(values.email) || isEmailVerified}
+                                    className='check-button'
+                                >
+                                    {isEmailVerified ? '인증 완료' : (isCodeSent ? '재전송' : '인증번호 전송')}
+                                </button>
+                            </div>
+
+                            {/* 인증 번호 입력란 (전송 시 표시) */}
+                            {isCodeSent && !isEmailVerified && (
+                                <div style={{ marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input
+                                        type='text'
+                                        placeholder='인증코드 6자리'
+                                        className='input-field'
+                                        value={authCode}
+                                        onChange={(e) => setAuthCode(e.target.value)}
+                                        maxLength={6}
+                                    />
+                                    <span style={{ color: 'red', fontWeight: 'bold', minWidth: '50px' }}>
+                                        {formatTime(timer)}
+                                    </span>
+                                    <button
+                                        type='button'
+                                        onClick={handleVerifyCode}
+                                        className='check-button'
+                                        disabled={timer === 0}
+                                    >
+                                        확인
+                                    </button>
+                                </div>
+                            )}
+
                             {(submitted || errors.email) && errors.email && (
                                 <div id='signup-email-error' className='field-error' role='alert'>
                                     {errors.email}
@@ -386,6 +513,7 @@ const SignUp = () => {
                             )}
                         </label>
 
+                        {/* 닉네임 입력 (기존 유지) */}
                         <label className='form-row' htmlFor='signup-nickName'>
                             <div className='label-text'>
                                 닉네임 <span className='necessary'>*</span>
@@ -400,8 +528,10 @@ const SignUp = () => {
                                     value={values.nickName}
                                     onChange={(e) => {
                                         handleChange(e);
-                                        setIsNickNameChecked(false); // 값이 바뀌면 다시 체크하도록 리셋
+                                        setIsNickNameChecked(false);
                                     }}
+                                    aria-describedby={errors.nickName ? 'signup-nickName-error' : undefined}
+                                    aria-invalid={!!errors.nickName}
                                 />
                                 <button
                                     type="button"

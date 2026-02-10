@@ -47,11 +47,11 @@ public class UserService {
     private final SftpService sftpService;
 
     private static final String DEFAULT_LAYOUT = """
-        {
-          "layout": [],
-          "elements": []
-        }
-        """;
+            {
+              "layout": [],
+              "elements": []
+            }
+            """;
 
     public Long signup(SignupRequestDto requestDto) {
         if (userRepository.findByLoginId(requestDto.getLoginId()).isPresent()) {
@@ -257,20 +257,20 @@ public class UserService {
         return user.getLoginId();
     }
 
-    // 비밀번호 재설정 (3중 검증 + 변경)
+    // 비밀번호 재설정 (아이디 + 이메일 검증 후 변경)
     @Transactional
-    public void resetPassword(String loginId, String userEmail, String nickName, String newPassword) {
-        User user = userRepository.findByLoginIdAndUserEmailAndNickName(loginId, userEmail, nickName)
+    public void resetPassword(String loginId, String userEmail, String newPassword) {
+        User user = userRepository.findByLoginIdAndUserEmail(loginId, userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 사용자가 없습니다."));
 
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         user.changePassword(encodedNewPassword);
     }
 
-    // 사용자 검증 (비밀번호 찾기 1단계)
+    // 사용자 검증 (비밀번호 찾기 1단계: 아이디 + 이메일)
     @Transactional(readOnly = true)
-    public void verifyUser(String loginId, String userEmail, String nickName) {
-        userRepository.findByLoginIdAndUserEmailAndNickName(loginId, userEmail, nickName)
+    public void verifyUser(String loginId, String userEmail) {
+        userRepository.findByLoginIdAndUserEmail(loginId, userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 사용자가 없습니다."));
     }
 
