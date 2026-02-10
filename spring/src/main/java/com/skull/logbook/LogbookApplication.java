@@ -56,6 +56,10 @@ public class LogbookApplication {
 		setIfAbsent("SMTP_PORT", getEnvOr(dotenv, "SMTP_PORT", "smtp.port"));
 		setIfAbsent("SMTP_USERNAME", getEnvOr(dotenv, "SMTP_USERNAME", "smtp.username"));
 		setIfAbsent("SMTP_PASSWORD", getEnvOr(dotenv, "SMTP_PASSWORD", "smtp.password"));
+
+		// OAuth2 Google 설정
+		setIfAbsent("GOOGLE_CLIENT_ID", dotenv.get("GOOGLE_CLIENT_ID"));
+		setIfAbsent("GOOGLE_CLIENT_SECRET", dotenv.get("GOOGLE_CLIENT_SECRET"));
 	}
 
 	private static String getEnvOr(Dotenv dotenv, String key1, String key2) {

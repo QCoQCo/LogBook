@@ -1,6 +1,7 @@
 package com.skull.logbook.entity;
 
 import jakarta.persistence.*;
+import com.skull.logbook.constant.AuthProvider;
 import com.skull.logbook.constant.Role;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,7 +24,7 @@ public class User extends BaseDeletedEntity {
     @Column(nullable = false, unique = true)
     private String loginId;
 
-    @Column(nullable = false)
+    @Column // OAuth2 사용자는 비밀번호가 없을 수 있으므로 nullable 허용
     private String password;
 
     @Column(nullable = false)
@@ -44,6 +45,13 @@ public class User extends BaseDeletedEntity {
     @Column(nullable = false)
     @Builder.Default
     private Role role = Role.USER;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    private String providerId; // 구글 등 소셜 플랫폼의 고유 ID
 
     public void updateProfile(String introduction, String profilePhoto, String nickName) {
         if (introduction != null) {

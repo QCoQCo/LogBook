@@ -197,6 +197,17 @@ const Login = ({ onClose = () => { }, onFindAccount = () => { } }) => {
                     <button type='submit' className='lb-submit'>
                         로그인
                     </button>
+                    <div className='lb-divider'>
+                        <span>또는</span>
+                    </div>
+                    <button
+                        type='button'
+                        className='lb-google-btn'
+                        onClick={() => window.location.href = 'http://localhost:8080/api/oauth2/authorization/google'}
+                    >
+                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" />
+                        구글로 시작하기
+                    </button>
                 </form>
                 <div className='lb-sign-info'>
                     <div className='lb-signup'>

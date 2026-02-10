@@ -75,6 +75,49 @@
                 cursor: pointer;
                 font-weight: 600;
             }
+
+            .lb-divider {
+                display: flex;
+                align-items: center;
+                margin: 0.5rem 0;
+                color: #888;
+                font-size: 0.8rem;
+
+                &::before, &::after {
+                    content: "";
+                    flex: 1;
+                    height: 1px;
+                    background: #eee;
+                }
+
+                span {
+                    padding: 0 10px;
+                }
+            }
+
+            .lb-google-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                background: #fff;
+                color: #333;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 0.625rem 0.75rem;
+                cursor: pointer;
+                font-weight: 500;
+                transition: background 0.2s;
+
+                &:hover {
+                    background: #f9f9f9;
+                }
+
+                img {
+                    width: 18px;
+                    height: 18px;
+                }
+            }
         }
 
         .lb-sign-info {

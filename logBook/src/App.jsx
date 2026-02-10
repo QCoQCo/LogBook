@@ -88,6 +88,10 @@ function App() {
                                                         path='admin'
                                                         element={<Pages.AdminPage />}
                                                     />
+                                                    <Route
+                                                        path='/oauth2/redirect'
+                                                        element={<Pages.OAuth2RedirectHandler />}
+                                                    />
                                                 </Route>
                                             </Routes>
                                         </BrowserRouter>
