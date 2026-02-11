@@ -30,7 +30,7 @@ public class User extends BaseDeletedEntity {
     @Column(nullable = false)
     private String nickName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = false)
     private String userEmail;
 
     private String profilePhoto;

@@ -31,6 +31,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2UserInfo oAuth2UserInfo = null;
         if (provider.equals("google")) {
             oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        } else if (provider.equals("kakao")) {
+            oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
+        } else if (provider.equals("naver")) {
+            oAuth2UserInfo = new NaverUserInfo(oAuth2User.getAttributes());
         }
 
         if (oAuth2UserInfo == null) {
@@ -42,21 +46,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = oAuth2UserInfo.getEmail();
         String loginId = provider + "_" + providerId; // 소셜 로그인용 유니크 아이디 생성
 
-        // 유저 찾기 또는 생성
-        User user = userRepository.findByUserEmail(email)
+        // 유저 찾기 또는 생성 (제공자와 제공자 아이디로 고유 식별)
+        User user = userRepository.findByProviderAndProviderId(AuthProvider.valueOf(provider.toUpperCase()), providerId)
                 .map(existingUser -> {
-                    // 이미 가입된 유저라면 정보 업데이트 (선택 사항)
+                    // 이미 가입된 유저라면 정보 업데이트 (이메일 등 반영)
+                    existingUser.updateUserEmail(email);
                     return existingUser;
                 })
                 .orElseGet(() -> {
                     // 신규 가입
                     return userRepository.save(User.builder()
                             .loginId(loginId)
-                            .password(UUID.randomUUID().toString()) // 소셜 유저는 랜덤 비밀번호 설정
+                            .password(UUID.randomUUID().toString())
                             .nickName(finalUserInfo.getName())
                             .userEmail(email)
                             .profilePhoto(finalUserInfo.getImageUrl())
-                            .provider(AuthProvider.GOOGLE)
+                            .provider(AuthProvider.valueOf(provider.toUpperCase()))
                             .providerId(providerId)
                             .build());
                 });

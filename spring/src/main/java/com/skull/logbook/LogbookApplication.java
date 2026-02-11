@@ -60,6 +60,14 @@ public class LogbookApplication {
 		// OAuth2 Google 설정
 		setIfAbsent("GOOGLE_CLIENT_ID", dotenv.get("GOOGLE_CLIENT_ID"));
 		setIfAbsent("GOOGLE_CLIENT_SECRET", dotenv.get("GOOGLE_CLIENT_SECRET"));
+
+		// OAuth2 Kakao 설정
+		setIfAbsent("KAKAO_CLIENT_ID", dotenv.get("KAKAO_CLIENT_ID"));
+		setIfAbsent("KAKAO_CLIENT_SECRET", dotenv.get("KAKAO_CLIENT_SECRET"));
+
+		// OAuth2 Naver 설정
+		setIfAbsent("NAVER_CLIENT_ID", dotenv.get("NAVER_CLIENT_ID"));
+		setIfAbsent("NAVER_CLIENT_SECRET", dotenv.get("NAVER_CLIENT_SECRET"));
 	}
 
 	private static String getEnvOr(Dotenv dotenv, String key1, String key2) {
