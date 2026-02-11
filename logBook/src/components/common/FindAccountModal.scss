@@ -1,0 +1,168 @@
+.find-account-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.find-account-modal {
+    background: #fff;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.2);
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.3s ease-out;
+
+    .close-btn {
+        position: absolute;
+        right: 0.5rem;
+        top: 0.5rem;
+        background: transparent;
+        border: none;
+        font-size: 1.25rem;
+        line-height: 1;
+        cursor: pointer;
+        color: #000;
+        z-index: 10;
+
+        &:hover {
+            color: #666;
+        }
+    }
+
+    .tabs {
+        display: flex;
+        border-bottom: 2px solid #eee;
+        margin-top: 1.5rem; // Add margin to space out from top since we removed title
+
+        button {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &.active {
+                color: #0b69ff;
+                border-bottom: 2px solid #0b69ff;
+                font-weight: 600;
+            }
+
+            &:hover:not(.active) {
+                background: #f9f9f9;
+            }
+        }
+    }
+
+    .tab-content {
+        padding: 1.5rem;
+
+        .form-group {
+            margin-bottom: 16px;
+
+            label {
+                display: block;
+                font-size: 0.9rem;
+                color: #333; // Match Login label color intensity if needed, or stick to #666 but Login uses inheritance/default. Login.scss doesn't specify color for .lb-label, but uses inner input. Let's use #666 for consistency with previous or #333 for better contrast. Login has no label color specified? 
+                // Login.scss line 44: .lb-label { ... } no color.
+                // Let's stick to a clean dark grey.
+                margin-bottom: 5px;
+            }
+
+            input {
+                width: 100%;
+                padding: 0.5rem 0.5rem; // Match Login input padding (Login: 0.5rem 0.5rem)
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                font-size: 0.95rem;
+                margin-top: 0.375rem; // Match Login margin-top
+
+                &:focus {
+                    outline: none;
+                    border-color: #0b69ff;
+                }
+            }
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.625rem 0.75rem; // Match Login button padding
+            background: #0b69ff; // Match Login blue
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.25rem; // Match Login button margin
+
+            &:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+        }
+
+        .error-msg {
+            color: #e74c3c; // Match Login .lb-error color
+            font-size: 0.85rem;
+            text-align: center;
+            background-color: #fdf2f2; // Match Login .lb-error bg
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 4px;
+            margin-bottom: 10px;
+        }
+
+        .result-view {
+            text-align: center;
+
+            h3 {
+                font-size: 1.1rem;
+                margin: 5px 0;
+            }
+
+            .found-id {
+                font-size: 1.5rem;
+                color: #0b69ff;
+                font-weight: bold;
+                margin: 15px 0;
+            }
+
+            .login-btn {
+                width: 100%;
+                padding: 0.625rem 0.75rem;
+                background: #10b981; // Keep green for distinction or change to blue? Original was green. Let's keep green for "Success/Go to Login" action.
+                color: white;
+                border: none;
+                border-radius: 8px;
+                margin-top: 15px;
+                cursor: pointer;
+                font-size: 1rem;
+                font-weight: 600;
+            }
+        }
+
+        .info-msg {
+            text-align: center;
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+    }
+}

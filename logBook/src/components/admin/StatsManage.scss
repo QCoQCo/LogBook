@@ -1,0 +1,65 @@
+.stats-manage {
+    &__loading {
+        color: #666;
+        padding: 2rem 0;
+    }
+
+    &__cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    &__card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+        &-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        &-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+    }
+
+    &__charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    &__chart-box {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    &__chart-title {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    &__empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 240px;
+        color: #999;
+        font-size: 0.95rem;
+    }
+}
