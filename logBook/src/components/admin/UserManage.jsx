@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../utils/apiClient';
 import AdminList from './AdminList';
-import AdminListBtns from './AdminListBtns';
 import AdminModal from './AdminModal';
 
 const USER_COLUMNS = [
@@ -106,6 +105,7 @@ const UserManage = () => {
         if (!window.confirm(message)) return;
         try {
             await apiClient.delete(`/users/${row.id}`);
+            handleEditClose();
             await fetchUsers();
         } catch (err) {
             alert(err?.response?.data?.message || '삭제에 실패했습니다.');
@@ -122,25 +122,18 @@ const UserManage = () => {
                 data={users}
                 loading={loading}
                 emptyMessage='등록된 회원이 없습니다.'
-                actions={{
-                    label: '작업',
-                    render: (row) => (
-                        <AdminListBtns
-                            row={row}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                        />
-                    ),
-                }}
+                onRowClick={handleEdit}
             />
 
-            <AdminModal
+            < AdminModal
                 isOpen={!!editUser}
                 onClose={handleEditClose}
-                title="회원 수정"
+                title="회원 상세"
                 titleId="edit-user-title"
             >
-                <p className='admin-modal__user'>로그인ID: {editUser?.loginId}</p>
+                <div className='admin-modal__user-info'>
+                    <p className='admin-modal__user'>로그인ID: {editUser?.loginId}</p>
+                </div>
                 <form onSubmit={handleEditSubmit}>
                     <label className='admin-modal__label'>
                         닉네임
@@ -181,7 +174,14 @@ const UserManage = () => {
                             취소
                         </button>
                         <button type='submit' disabled={submitLoading} className='admin-modal__btn admin-modal__btn--primary'>
-                            {submitLoading ? '저장 중...' : '저장'}
+                            {submitLoading ? '저장 중...' : '수정'}
+                        </button>
+                        <button
+                            type='button'
+                            onClick={() => handleDelete(editUser)}
+                            className='admin-modal__btn admin-modal__btn--danger'
+                        >
+                            삭제
                         </button>
                     </div>
                 </form>
