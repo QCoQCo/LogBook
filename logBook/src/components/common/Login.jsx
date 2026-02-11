@@ -5,7 +5,7 @@ import './Login.scss';
 import { loginClient } from '../../utils/auth';
 import { useAuth } from '../../context';
 
-const Login = ({ onClose = () => { }, onFindAccount = () => { } }) => {
+const Login = ({ onClose = () => {}, onFindAccount = () => {} }) => {
     const { login } = useAuth();
 
     useEffect(() => {
@@ -27,90 +27,18 @@ const Login = ({ onClose = () => { }, onFindAccount = () => { } }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    /*
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        if (!userId.trim() || !password) {
-            setError('ID와 비밀번호를 입력해주세요.');
-            return;
-        }
-
-        try {
-            // 1) Try static data file (plaintext passwords) first
-            let user = null;
-            try {
-                const resp = await fetch('/data/userData.json');
-                if (resp.ok) {
-                    const data = await resp.json();
-                    const users = Array.isArray(data) ? data : data.users || [];
-                    // note: file uses `userId` and `password` fields
-                    user = users.find((u) => u.userId === userId);
-                    if (user && user.password === password) {
-                        const payload = {
-                            id: user.userId,
-                            email: user.userEmail,
-                            nickName: user.nickName,
-                            profilePhoto: user.profilePhoto,
-                            introduction: user.introduction,
-                        };
-                        try {
-                            login(payload, false);
-                        } catch (e) {}
-                        onClose();
-                        navigate(`/blog?userId=${userId}`);
-                        return;
-                    }
-                }
-            } catch (err) {
-                // ignore fetch errors; fall through to loginClient
-            }
-
-            // 2) Fallback to local hashed users via loginClient
-            const ok = await loginClient(userId, password);
-            if (ok) {
-                // try to find user info in localStorage
-                let storedUser = null;
-                try {
-                    const usersJson = localStorage.getItem('logbook_users');
-                    const users = usersJson ? JSON.parse(usersJson) : [];
-                    storedUser = users.find((u) => u.id === userId || u.userId === userId);
-                } catch (e) {}
-
-                // if not found, try static file again to get profile/email
-                if (!storedUser) {
-                    try {
-                        const resp2 = await fetch('/data/userData.json');
-                        if (resp2.ok) {
-                            const data2 = await resp2.json();
-                            const users2 = Array.isArray(data2) ? data2 : data2.users || [];
-                            storedUser = users2.find((u) => u.userId === userId || u.id === userId);
-                        }
-                    } catch (e) {}
-                }
-
-                const payload = {
-                    id: storedUser?.id || storedUser?.userId || userId,
-                    email: storedUser?.userEmail || storedUser?.email,
-                    nickName: storedUser?.nickName,
-                    profilePhoto: storedUser?.profilePhoto,
-                    introduction: storedUser?.introduction,
-                };
-                try {
-                    login(payload, false);
-                } catch (e) {}
-                onClose();
-                navigate(`/blog?userId=${userId}`);
-                return;
-            }
-
-            setError('아이디 또는 비밀번호가 일치하지 않습니다.');
-        } catch (err) {
-            // console.error('로그인 처리 오류', err);
-            setError('로그인 중 오류가 발생했습니다. 콘솔을 확인하세요.');
-        }
+    const handleGoogleLogin = () => {
+        window.location.href = '/api/oauth2/authorization/google';
     };
-    */
+
+    const handleKakaoLogin = () => {
+        window.location.href = '/api/oauth2/authorization/kakao';
+    };
+
+    const handleNaverLogin = () => {
+        window.location.href = '/api/oauth2/authorization/naver';
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -156,58 +84,102 @@ const Login = ({ onClose = () => { }, onFindAccount = () => { } }) => {
     };
 
     const modal = (
-        <div className='lb-login-backdrop' onClick={onClose}>
+        <div className="lb-login-backdrop" onClick={onClose}>
             <div
-                className='lb-login-modal'
-                role='dialog'
-                aria-modal='true'
-                aria-label='로그인'
+                className="lb-login-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label="로그인"
                 onClick={(e) => e.stopPropagation()}
             >
-                <button className='lb-close' aria-label='닫기' onClick={onClose}>
+                <button className="lb-close" aria-label="닫기" onClick={onClose}>
                     ×
                 </button>
-                <h2 className='lb-title'>로그인</h2>
-                <form className='lb-form' onSubmit={handleSubmit}>
-                    <label className='lb-label'>
+                <h2 className="lb-title">로그인</h2>
+                <form className="lb-form" onSubmit={handleSubmit}>
+                    <label className="lb-label">
                         ID
                         <input
-                            name='input-id'
-                            type='text'
+                            name="input-id"
+                            type="text"
                             required
                             value={userId}
                             onChange={(e) => setUserId(e.target.value.toLowerCase())}
                         />
                     </label>
-                    <label className='lb-label'>
+                    <label className="lb-label">
                         비밀번호
                         <input
-                            name='input-password'
-                            type='password'
+                            name="input-password"
+                            type="password"
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </label>
                     {error && (
-                        <div className='lb-error' role='alert' aria-live='assertive'>
+                        <div className="lb-error" role="alert" aria-live="assertive">
                             {error}
                         </div>
                     )}
-                    <button type='submit' className='lb-submit'>
+                    <button type="submit" className="lb-submit">
                         로그인
                     </button>
+                    <div className="lb-sign-info">
+                        <div className="lb-signup">
+                            <Link to="/signUp" onClick={onClose}>
+                                회원가입
+                            </Link>
+                        </div>
+                        <div className="lb-find-id-pw">
+                            <a
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    onFindAccount();
+                                }}
+                            >
+                                아이디/비밀번호 찾기
+                            </a>
+                        </div>
+                    </div>
+                    <div className="lb-divider">
+                        <span>또는</span>
+                    </div>
+                    <div className="social-btn-wrapper">
+                        <button className="social-btn google-btn" onClick={handleGoogleLogin}>
+                            <img
+                                src="https://developers.google.com/identity/images/g-logo.png"
+                                alt="Google"
+                            />
+                        </button>
+                        <button className="social-btn kakao-btn" onClick={handleKakaoLogin}>
+                            <div className="kakao-icon-wrapper">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="#000000">
+                                    <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.558 1.707 4.8 4.34 6.054l-.85 3.107c-.053.197.067.4.264.45s.4-.067.45-.264l1.1-4.025c.55.087 1.118.133 1.696.133 4.97 0 9-3.185 9-7.115S16.97 3 12 3z" />
+                                </svg>
+                            </div>
+                        </button>
+                        <button className="social-btn naver-btn" onClick={handleNaverLogin}>
+                            <div className="naver-icon-wrapper">
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        clipRule="evenodd"
+                                        d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"
+                                        fill="white"
+                                    />
+                                </svg>
+                            </div>
+                        </button>
+                    </div>
                 </form>
-                <div className='lb-sign-info'>
-                    <div className='lb-signup'>
-                        <Link to='/signUp' onClick={onClose}>
-                            회원가입
-                        </Link>
-                    </div>
-                    <div className='lb-find-id-pw'>
-                        <a href='#' onClick={(e) => { e.preventDefault(); onFindAccount(); }}>아이디/비밀번호 찾기</a>
-                    </div>
-                </div>
             </div>
         </div>
     );

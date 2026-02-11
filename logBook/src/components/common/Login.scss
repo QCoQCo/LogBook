@@ -75,6 +75,96 @@
                 cursor: pointer;
                 font-weight: 600;
             }
+
+            .lb-divider {
+                display: flex;
+                align-items: center;
+                margin: 0.5rem 0;
+                color: #888;
+                font-size: 0.8rem;
+
+                &::before,
+                &::after {
+                    content: '';
+                    flex: 1;
+                    height: 1px;
+                    background: #eee;
+                }
+
+                span {
+                    padding: 0 10px;
+                }
+            }
+            .social-btn-wrapper {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                justify-content: center;
+
+                .social-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    border-radius: 8px;
+                    padding: 0.625rem 0.75rem;
+                    cursor: pointer;
+                    font-weight: 500;
+                    transition: background 0.2s;
+                    width: 60px;
+
+                    &.google-btn {
+                        background-color: #ffffff;
+                        color: #202124;
+                        border: 1px solid #dadce0;
+                        &:hover {
+                            background-color: #f8f9fa;
+                            box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3);
+                        }
+                    }
+
+                    &.kakao-btn {
+                        background-color: #fee500;
+                        color: #000000;
+                        border: none;
+                        &:hover {
+                            background-color: #f7e600;
+                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                        }
+
+                        .kakao-icon-wrapper {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 18px;
+                            height: 18px;
+                        }
+                    }
+
+                    &.naver-btn {
+                        background-color: #03c75a;
+                        color: #ffffff;
+                        border: none;
+                        &:hover {
+                            background-color: #02b351;
+                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                        }
+
+                        .naver-icon-wrapper {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 18px;
+                            height: 18px;
+                        }
+                    }
+
+                    img {
+                        width: 18px;
+                        height: 18px;
+                    }
+                }
+            }
         }
 
         .lb-sign-info {

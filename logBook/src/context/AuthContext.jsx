@@ -14,7 +14,15 @@ const getRoleFromToken = (token) => {
         if (!token) return null;
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(atob(base64));
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                })
+                .join(''),
+        );
+        const payload = JSON.parse(jsonPayload);
         const auth = payload.auth;
         if (!auth) return null;
         // Spring Security는 "ROLE_ADMIN", "ROLE_USER" 형태로 저장
@@ -46,7 +54,15 @@ export const AuthProvider = ({ children }) => {
             if (!token) return true;
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const payload = JSON.parse(atob(base64));
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split('')
+                    .map(function (c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    })
+                    .join(''),
+            );
+            const payload = JSON.parse(jsonPayload);
             const now = Math.floor(Date.now() / 1000);
             return payload.exp ? payload.exp < now : true;
         } catch (e) {
@@ -107,7 +123,7 @@ export const AuthProvider = ({ children }) => {
                         const userWithRole = ensureUserRole(data.payload);
                         sessionStorage.setItem(
                             'logbook_current_user',
-                            JSON.stringify(userWithRole)
+                            JSON.stringify(userWithRole),
                         );
                         setCurrentUser(userWithRole);
                     }
@@ -184,7 +200,10 @@ export const AuthProvider = ({ children }) => {
                 setRoleOverride(role);
                 return { ok: false, message: '역할 변경은 관리자만 가능합니다.' };
             }
-            return { ok: false, message: err?.response?.data?.message || '역할 변경에 실패했습니다.' };
+            return {
+                ok: false,
+                message: err?.response?.data?.message || '역할 변경에 실패했습니다.',
+            };
         }
     }, []);
 
