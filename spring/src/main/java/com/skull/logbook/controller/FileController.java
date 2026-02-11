@@ -6,10 +6,8 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -45,4 +43,39 @@ public class FileController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // 블로그 grid layout item 이미지 업로드 전용
+    @PostMapping("/blogItems/{userId}")
+    public ResponseEntity<?> uploadImage(
+            @PathVariable String userId,
+            @RequestParam("file") MultipartFile file
+    ) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("파일이 비어있습니다.");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null ||
+                !(originalFilename.endsWith(".jpg") ||
+                        originalFilename.endsWith(".jpeg") ||
+                        originalFilename.endsWith(".png") ||
+                        originalFilename.endsWith(".gif"))) {
+            return ResponseEntity.badRequest().body("허용되지 않는 확장자입니다.");
+        }
+
+        try {
+            String uploadedPath = sftpService.uploadFile(file, "blogItems", userId);
+
+            return ResponseEntity.ok(uploadedPath);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError()
+                    .body("이미지 업로드 실패: " + e.getMessage());
+        }
+    }
+
 }

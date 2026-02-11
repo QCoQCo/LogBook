@@ -9,7 +9,7 @@ export const ImageInputArea = ({ dispatch }) => {
         if (!file || !file.type.startsWith('image/')) return;
 
         dispatch({
-            type: 'SET_CONTENT',
+            type: 'SET_IMAGE_FILE',
             payload: file,
         });
 

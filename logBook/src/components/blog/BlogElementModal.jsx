@@ -1,3 +1,4 @@
+import apiClient from '../../utils/apiClient';
 import { useEffect, useRef, useReducer } from 'react';
 import { useBlog } from '../../context';
 import { modalReducer, initialModalState } from './modalReducer';
@@ -5,6 +6,7 @@ import { modalReducer, initialModalState } from './modalReducer';
 import './BlogElementModal.scss';
 import PostListArea from './PostListArea';
 import ImageInputArea from './ImageInputArea';
+import { getCurrentUserId } from '../../utils/auth';
 
 const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     const { elements, setElements } = useBlog();
@@ -62,8 +64,8 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     /* =========================
        Confirm
     ========================== */
-    const handleClickConfirm = () => {
-        if (type !== 'post' && !state.modalContent?.toString().trim()) {
+    const handleClickConfirm = async () => {
+        if (['title', 'link', 'map'].includes(type) && !state.modalContent?.toString().trim()) {
             dispatch({ type: 'SET_EMPTY_ERROR' });
 
             if (type !== 'image') {
@@ -104,28 +106,38 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
             );
         } else if (type === 'image') {
             if (!state.imageFile) {
-                return; // 에러 메시지도 안 씀
+                console.log('이미지 없음');
+                return;
             }
 
-            // 1. 서버 업로드
-            // 예시 (FormData)
-            const formData = new FormData();
-            formData.append('file', state.imageFile);
+            try {
+                const userId = getCurrentUserId();
 
-            // const res = await axios.post('/api/upload', formData);
-            // const uploadedUrl = res.data.url;
+                const formData = new FormData();
+                formData.append('file', state.imageFile);
 
-            // 2. 업로드 후 URL을 content에 저장
-            setElements((prev) =>
-                prev.map((element) =>
-                    element.i === item.i
-                        ? {
-                              ...element,
-                              content: uploadedUrl, // 서버에서 받은 URL
-                          }
-                        : element,
-                ),
-            );
+                const res = await apiClient.post(`/img/blogItems/${userId}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                const uploadedUrl = res.data;
+
+                setElements((prev) =>
+                    prev.map((element) =>
+                        element.i === item.i
+                            ? {
+                                  ...element,
+                                  content: uploadedUrl,
+                              }
+                            : element,
+                    ),
+                );
+            } catch (error) {
+                console.error('이미지 업로드 실패', error);
+                return;
+            }
         } else {
             setElements((prev) =>
                 prev.map((element) =>
