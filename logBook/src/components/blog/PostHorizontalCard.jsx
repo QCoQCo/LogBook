@@ -6,11 +6,6 @@ export const PostHorizontalCard = ({ layout, postId, thumbnail, title, content }
     const { isBlogEditing } = useBlog();
     const to = `/post/detail?postId=${postId}`;
 
-    useEffect(() => {
-        console.log('dafdsafasdf');
-        console.log(title, content);
-    }, []);
-
     return (
         <Link
             to={to}
