@@ -1,0 +1,117 @@
+.admin-page {
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    min-height: 60vh;
+
+    &__header {
+        margin-bottom: 1.5rem;
+
+        h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+    }
+
+    &__tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    &__tab {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        background: #f0f0f0;
+        color: #555;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+
+        &:hover {
+            background: #e5e5e5;
+            color: #333;
+        }
+
+        &.active {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        &:focus-visible {
+            outline: 2px solid #4ecdc4;
+            outline-offset: 2px;
+        }
+    }
+
+    &__panel {
+        min-height: 320px;
+    }
+
+    &__content {
+        padding: 1.25rem;
+        background: #fafafa;
+        border-radius: 10px;
+        border: 1px solid #eee;
+
+        h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        &__desc {
+            margin-bottom: 1rem;
+        }
+
+        .post-manage__title {
+            font-weight: 500;
+            color: #1a1a1a;
+
+            &--inactive {
+                opacity: 0.7;
+            }
+        }
+
+        .post-manage__inactive-badge {
+            margin-left: 0.4rem;
+            padding: 0.15rem 0.4rem;
+            font-size: 0.75rem;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .post-manage__preview {
+            display: inline-block;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #666;
+        }
+
+        &__error {
+            margin-bottom: 1rem;
+            padding: 0.5rem 0.75rem;
+            background: #fef2f2;
+            color: #b91c1c;
+            border-radius: 6px;
+        }
+    }
+}

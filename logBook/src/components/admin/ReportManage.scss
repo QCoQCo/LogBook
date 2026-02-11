@@ -1,0 +1,91 @@
+.report-manage {
+    &__description {
+        max-width: 200px;
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    &__status {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+
+        &--pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        &--processed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        &--rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    &__btn {
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: background 0.15s, color 0.15s;
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        &--process {
+            background: #0d9488;
+            color: #fff;
+            border-color: #0d9488;
+
+            &:hover:not(:disabled) {
+                background: #0f766e;
+                border-color: #0f766e;
+            }
+        }
+
+        &--reject {
+            background: #fff;
+            color: #b91c1c;
+            border-color: #b91c1c;
+
+            &:hover:not(:disabled) {
+                background: #fef2f2;
+            }
+        }
+    }
+
+    &__done {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+}
+
+.report-process-modal {
+    max-width: 480px;
+
+    &__textarea {
+        resize: vertical;
+        min-height: 80px;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+}

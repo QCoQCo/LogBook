@@ -1,0 +1,106 @@
+.admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.admin-modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    min-width: 320px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+
+    &__title {
+        margin-bottom: 0.5rem;
+        font-size: 1.15rem;
+    }
+
+    &__user {
+        margin-bottom: 0.5rem;
+        color: #666;
+        font-size: 0.9rem;
+
+        &--inactive {
+            color: #92400e;
+            font-weight: 500;
+        }
+    }
+
+    &__post-info {
+        margin-bottom: 1rem;
+    }
+
+    &__label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    &__input,
+    &__select {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 0.95rem;
+    }
+
+    &__input {
+        margin-top: 0.25rem;
+    }
+
+    &__select {
+        margin-top: 0.25rem;
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    &__btn {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background: #fff;
+        cursor: pointer;
+        font-size: 0.9rem;
+
+        &:hover {
+            background: #f5f5f5;
+        }
+
+        &--primary {
+            background: #1a1a1a;
+            color: #fff;
+            border-color: #1a1a1a;
+
+            &:hover:not(:disabled) {
+                background: #333;
+            }
+
+            &:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
+        }
+
+        &--danger {
+            &:hover {
+                background: #fef2f2;
+                border-color: #b91c1c;
+                color: #b91c1c;
+            }
+        }
+    }
+}
