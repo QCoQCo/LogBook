@@ -611,12 +611,21 @@ const FeedPage = () => {
                     compactType={null}
                     margin={[MARGIN_X, MARGIN_Y]}
                 >
-                    {visiblePosts.map((post) => (
-                        <div key={String(post.postId)} className='post-card'>
+                    {visiblePosts.map((post) => {
+                        const isInactive = post.isActive === false;
+                        return (
+                        <div
+                            key={String(post.postId)}
+                            className={`post-card ${isInactive ? 'post-card--inactive' : ''}`}
+                        >
                             <Link
-                                to={`/post/detail?postId=${post.postId}`}
-                                className='card-link'
+                                to={isInactive ? '#' : `/post/detail?postId=${post.postId}`}
+                                className={`card-link ${isInactive ? 'card-link--disabled' : ''}`}
                                 onClick={(e) => {
+                                    if (isInactive) {
+                                        e.preventDefault();
+                                        return;
+                                    }
                                     if (
                                         dragEnabled &&
                                         String(longPressedId) === String(post.postId)
@@ -712,9 +721,15 @@ const FeedPage = () => {
                                         </div>
                                     </>
                                 )}
+                                {isInactive && (
+                                    <div className='post-card__inactive-overlay'>
+                                        <span className='post-card__inactive-label'>접근 불가</span>
+                                    </div>
+                                )}
                             </Link>
                         </div>
-                    ))}
+                    );
+                    })}
                 </ReactGridLayout>
                 <div ref={loadMoreRef} style={{ height: 1 }} />
             </div>

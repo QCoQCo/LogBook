@@ -20,4 +20,11 @@ public class Post extends BaseDeletedEntity {
 
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
+
+    @Column(name = "isActive", nullable = false, columnDefinition = "tinyint(1) not null default 1")
+    private Boolean isActive = true;
+
+    public void setActive(Boolean active) {
+        this.isActive = active != null ? active : true;
+    }
 }

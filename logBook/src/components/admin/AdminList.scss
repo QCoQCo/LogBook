@@ -12,14 +12,52 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 0.9rem;
+        table-layout: fixed;
     }
 
     &__th {
-        padding: 0.75rem 1rem;
+        padding: 0;
         text-align: left;
         font-weight: 600;
         background: #f0f0f0;
         border-bottom: 2px solid #ddd;
+        position: relative;
+        user-select: none;
+
+        &--actions {
+            width: 1%;
+            white-space: nowrap;
+        }
+
+        .admin-list__th-label {
+            display: block;
+            padding: 0.75rem 1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .admin-list__th-resize {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            height: 100%;
+            border: 3px dashed #858585;
+            cursor: col-resize;
+            background: #858585;
+
+            &:hover {
+                background: rgba(0, 120, 212, 0.15);
+            }
+
+            &:active {
+                background: rgba(0, 120, 212, 0.25);
+            }
+        }
+        &:last-child {
+            width: 150px;
+        }
     }
 
     &__tr {
@@ -28,12 +66,21 @@
         &:hover {
             background: #f9f9f9;
         }
+
+        &--inactive {
+            opacity: 0.65;
+            background: rgba(0, 0, 0, 0.02);
+        }
     }
 
     &__td {
         padding: 0.75rem 1rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
 
         &--actions {
+            width: 1%;
             white-space: nowrap;
         }
     }

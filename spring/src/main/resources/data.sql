@@ -333,11 +333,18 @@ INSERT IGNORE INTO blog (userId, layout, createdAt, updatedAt, deletedAt) VALUES
        NULL
     );
 
--- CommonCodeGroup (Tags)
+-- CommonCodeGroup (Tags, Role)
 INSERT IGNORE INTO commonCodeGroup (groupCode, groupName, description, useYn, modifier, createdAt, updatedAt) VALUES
-('T', '태그', '태그 내용을 설명', 'Y', 'SYSTEM', NOW(), NOW());
+('T', '태그', '태그 내용을 설명', 'Y', 'SYSTEM', NOW(), NOW()),
+('R', '역할', '사용자 권한 역할 (USER, ADMIN, GUEST)', 'Y', 'SYSTEM', NOW(), NOW());
 
--- 1. CommonCode 데이터 삽입
+-- 1. CommonCode 데이터 삽입 (Role)
+INSERT IGNORE INTO commonCode (groupCode, codeValue, codeName, sortOrder, useYn, createdAt, updatedAt) VALUES
+('R', 'USER', '일반회원', 1, 'Y', NOW(), NOW()),
+('R', 'ADMIN', '관리자', 2, 'Y', NOW(), NOW()),
+('R', 'GUEST', '게스트', 3, 'Y', NOW(), NOW());
+
+-- 2. CommonCode 데이터 삽입 (Tags)
 INSERT IGNORE INTO commonCode (groupCode, codeValue, codeName, sortOrder, useYn, createdAt, updatedAt) VALUES
 ('T', 'T1', '도구 및 생산성 (IDE, 도구 모음)', 1, 'Y', NOW(), NOW()),
 ('T', 'T2', '프로그래밍/개발 관련 지식', 2, 'Y', NOW(), NOW()),

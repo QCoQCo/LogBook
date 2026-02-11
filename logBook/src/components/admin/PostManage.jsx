@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import apiClient from '../../utils/apiClient';
 import AdminList from './AdminList';
 import AdminListBtns from './AdminListBtns';
@@ -13,8 +13,14 @@ const POST_COLUMNS = [
         key: 'title',
         label: '제목',
         render: (value, row) => (
-            <Link to={`/post/detail?postId=${row.postId}`} className='post-manage__title-link'>
+            <Link
+                to={`/post/detail?postId=${row.postId}&fromAdmin=1`}
+                className={`post-manage__title-link ${row.isActive === false ? 'post-manage__title-link--inactive' : ''}`}
+            >
                 {value || '-'}
+                {row.isActive === false && (
+                    <span className='post-manage__inactive-badge'>비활성화</span>
+                )}
             </Link>
         ),
     },
@@ -32,7 +38,6 @@ const POST_COLUMNS = [
 ];
 
 const PostManage = () => {
-    const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -46,8 +51,8 @@ const PostManage = () => {
             setLoading(true);
             setError(null);
             const [listRes, countRes] = await Promise.all([
-                apiClient.get('/posts', { params: { page: pageNum, size: PAGE_SIZE } }),
-                apiClient.get('/posts/count'),
+                apiClient.get('/posts', { params: { page: pageNum, size: PAGE_SIZE, includeInactive: true } }),
+                apiClient.get('/posts/count', { params: { includeInactive: true } }),
             ]);
             const list = listRes.data;
             const total = countRes.data?.totalElements ?? 0;
@@ -70,8 +75,19 @@ const PostManage = () => {
         setPage(newPage);
     };
 
-    const handleEdit = (row) => {
-        navigate(`/post/edit?postId=${row.postId}`);
+    const handleDeactivate = async (row) => {
+        if (!row?.postId) return;
+        const action = row.isActive === false ? '활성화' : '비활성화';
+        if (!window.confirm(`"${row.title || '이 게시글'}"을(를) ${action}하시겠습니까?`)) return;
+        try {
+            const endpoint = row.isActive === false
+                ? `/posts/${row.postId}/activate`
+                : `/posts/${row.postId}/deactivate`;
+            await apiClient.patch(endpoint);
+            await fetchPosts(page);
+        } catch (err) {
+            alert(err?.response?.data?.message || `${action}에 실패했습니다.`);
+        }
     };
 
     const handleDelete = async (row) => {
@@ -101,12 +117,13 @@ const PostManage = () => {
                 data={posts}
                 loading={loading}
                 emptyMessage='등록된 게시글이 없습니다.'
+                getRowClassName={(row) => row.isActive === false ? 'admin-list__tr--inactive' : ''}
                 actions={{
                     label: '작업',
                     render: (row) => (
                         <AdminListBtns
                             row={row}
-                            onEdit={handleEdit}
+                            onDeactivate={handleDeactivate}
                             onDelete={handleDelete}
                         />
                     ),

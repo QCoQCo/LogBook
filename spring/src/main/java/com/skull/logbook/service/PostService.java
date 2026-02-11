@@ -28,9 +28,11 @@ public class PostService {
         private final PostTagRepository postTagRepository; // Injected
         private final UserRepository userRepository;
 
-        public List<PostResponseDto> getAllPosts(int page, int size) {
-                // 1. 게시글 목록 우선 조회
-                List<Post> posts = postRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc(PageRequest.of(page, size));
+        public List<PostResponseDto> getAllPosts(int page, int size, boolean includeInactive) {
+                // 1. 게시글 목록 우선 조회 (관리자: 전체, 피드: 활성만)
+                List<Post> posts = includeInactive
+                        ? postRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc(PageRequest.of(page, size))
+                        : postRepository.findAllByDeletedAtIsNullAndIsActiveTrueOrderByCreatedAtDesc(PageRequest.of(page, size));
 
                 if (posts.isEmpty()) {
                         return Collections.emptyList();
@@ -70,13 +72,16 @@ public class PostService {
                                                 post.getContent(),
                                                 post.getCreatedAt().toString(),
                                                 post.getUpdatedAt().toString(),
-                                                tagsMap.getOrDefault(post.getId(), new ArrayList<>()) // tags 필드 추가
+                                                tagsMap.getOrDefault(post.getId(), new ArrayList<>()),
+                                                Boolean.TRUE.equals(post.getIsActive())
                                 ))
                                 .toList();
         }
 
-        public long countAll() {
-                return postRepository.countByDeletedAtIsNull();
+        public long countAll(boolean includeInactive) {
+                return includeInactive
+                        ? postRepository.countByDeletedAtIsNull()
+                        : postRepository.countByDeletedAtIsNullAndIsActiveTrue();
         }
 
         @org.springframework.transaction.annotation.Transactional
@@ -86,11 +91,34 @@ public class PostService {
                 post.softDelete();
         }
 
-        public PostResponseDto getPostDetail(Long postId) {
+        @org.springframework.transaction.annotation.Transactional
+        public void deactivatePost(Long postId) {
+                Post post = postRepository.findById(postId)
+                                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                if (post.isDeleted()) {
+                        throw new IllegalArgumentException("삭제된 게시글입니다.");
+                }
+                post.setActive(false);
+        }
+
+        @org.springframework.transaction.annotation.Transactional
+        public void activatePost(Long postId) {
+                Post post = postRepository.findById(postId)
+                                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                if (post.isDeleted()) {
+                        throw new IllegalArgumentException("삭제된 게시글입니다.");
+                }
+                post.setActive(true);
+        }
+
+        public PostResponseDto getPostDetail(Long postId, boolean includeInactive) {
                 Post post = postRepository.findById(postId)
                                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
                 if (post.isDeleted()) {
                         throw new IllegalArgumentException("삭제된 게시글입니다.");
+                }
+                if (!includeInactive && !Boolean.TRUE.equals(post.getIsActive())) {
+                        throw new IllegalArgumentException("비활성화된 게시글입니다.");
                 }
 
                 // 작성자 닉네임 조회
@@ -106,12 +134,13 @@ public class PostService {
                 return new PostResponseDto(
                                 post.getId(),
                                 String.valueOf(post.getUserId()),
-                                author.getNickName(), // authorName 추가
+                                author.getNickName(),
                                 post.getTitle(),
                                 post.getContent(),
                                 post.getCreatedAt().toString(),
                                 post.getUpdatedAt().toString(),
-                                tags);
+                                tags,
+                                Boolean.TRUE.equals(post.getIsActive()));
         }
 
         public List<UserPostListDto> getPostsByUserId(Long userId, Pageable pageable) {

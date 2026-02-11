@@ -20,14 +20,9 @@ const USER_COLUMNS = [
     },
 ];
 
-const ROLES = [
-    { value: 'USER', label: 'USER' },
-    { value: 'ADMIN', label: 'ADMIN' },
-    { value: 'GUEST', label: 'GUEST' },
-];
-
 const UserManage = () => {
     const [users, setUsers] = useState([]);
+    const [roleOptions, setRoleOptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [editUser, setEditUser] = useState(null);
@@ -35,6 +30,20 @@ const UserManage = () => {
     const [editUserEmail, setEditUserEmail] = useState('');
     const [editRole, setEditRole] = useState('');
     const [submitLoading, setSubmitLoading] = useState(false);
+
+    const fetchRoleOptions = useCallback(async () => {
+        try {
+            const { data } = await apiClient.get('/common-codes', { params: { groupCode: 'R' } });
+            const list = Array.isArray(data) ? data : [];
+            setRoleOptions(list.map((c) => ({ value: c.codeValue, label: c.codeName || c.codeValue })));
+        } catch {
+            setRoleOptions([
+                { value: 'USER', label: '일반회원' },
+                { value: 'ADMIN', label: '관리자' },
+                { value: 'GUEST', label: '게스트' },
+            ]);
+        }
+    }, []);
 
     const fetchUsers = useCallback(async () => {
         try {
@@ -49,6 +58,10 @@ const UserManage = () => {
             setLoading(false);
         }
     }, []);
+
+    useEffect(() => {
+        fetchRoleOptions();
+    }, [fetchRoleOptions]);
 
     useEffect(() => {
         fetchUsers();
@@ -156,7 +169,7 @@ const UserManage = () => {
                             onChange={(e) => setEditRole(e.target.value)}
                             className='admin-modal__select'
                         >
-                            {ROLES.map((r) => (
+                            {roleOptions.map((r) => (
                                 <option key={r.value} value={r.value}>
                                     {r.label}
                                 </option>

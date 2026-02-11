@@ -86,6 +86,20 @@
                 text-decoration: underline;
                 color: #0d9488;
             }
+
+            &--inactive {
+                opacity: 0.7;
+            }
+        }
+
+        .post-manage__inactive-badge {
+            margin-left: 0.4rem;
+            padding: 0.15rem 0.4rem;
+            font-size: 0.75rem;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 4px;
+            font-weight: 500;
         }
 
         .post-manage__preview {

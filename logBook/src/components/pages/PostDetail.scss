@@ -44,7 +44,26 @@ $util-btn-active-bg-color: #ec5983;
 
     .post-wrapper {
         display: flex;
-        padding-right: 200px;
+        flex-direction: column;
+
+        &--inactive {
+            opacity: 0.85;
+        }
+
+        .post-inactive-banner {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .post-wrapper__content {
+            display: flex;
+            padding-right: 200px;
+        }
 
         .sticky-area {
             position: relative;
