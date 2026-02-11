@@ -9,6 +9,8 @@ import AdminListBtns from './AdminListBtns';
  * @param {boolean} [props.loading] - 로딩 여부
  * @param {string} [props.emptyMessage] - 데이터 없을 때 메시지
  * @param {boolean|{ label?: string, render?: (row) => ReactNode }} [props.actions] - 행별 액션 버튼. true면 기본 AdminListBtns 표시
+ * @param {Function} [props.getRowClassName] - (row) => string - 행별 추가 클래스
+ * @param {Function} [props.onRowClick] - (row) => void - 행 클릭 시
  */
 const AdminList = ({
     columns = [],
@@ -16,6 +18,8 @@ const AdminList = ({
     loading = false,
     emptyMessage = '데이터가 없습니다.',
     actions = false,
+    getRowClassName,
+    onRowClick,
 }) => {
     if (loading) {
         return (
@@ -33,13 +37,18 @@ const AdminList = ({
         );
     }
 
-    const actionsConfig = typeof actions === 'object' && actions !== null ? actions : { label: '작업' };
+    const actionsConfig =
+        typeof actions === 'object' && actions !== null ? actions : { label: '작업' };
     const actionsLabel = actionsConfig.label ?? '작업';
     const renderActions = (row) => {
         if (typeof actions === 'boolean' && actions) {
             return <AdminListBtns row={row} />;
         }
-        if (typeof actions === 'object' && actions !== null && typeof actionsConfig.render === 'function') {
+        if (
+            typeof actions === 'object' &&
+            actions !== null &&
+            typeof actionsConfig.render === 'function'
+        ) {
             return actionsConfig.render(row);
         }
         return null;
@@ -56,30 +65,40 @@ const AdminList = ({
                                 {col.label}
                             </th>
                         ))}
-                        {hasActions && (
-                            <th className='admin-list__th'>{actionsLabel}</th>
-                        )}
+                        {hasActions && <th className='admin-list__th'>{actionsLabel}</th>}
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((row, rowIndex) => (
-                        <tr key={row.id ?? rowIndex} className='admin-list__tr'>
-                            {columns.map((col) => {
-                                const value = row[col.key];
-                                const cell = col.render ? col.render(value, row) : value;
-                                return (
-                                    <td key={col.key} className='admin-list__td'>
-                                        {cell}
+                    {data.map((row, rowIndex) => {
+                        const extraClass =
+                            typeof getRowClassName === 'function' ? getRowClassName(row) : '';
+                        return (
+                            <tr
+                                key={row.id ?? rowIndex}
+                                className={`admin-list__tr ${extraClass || ''}`.trim()}
+                                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                                role={onRowClick ? 'button' : undefined}
+                                tabIndex={onRowClick ? 0 : undefined}
+                                onKeyDown={onRowClick ? (e) => e.key === 'Enter' && onRowClick(row) : undefined}
+                                style={onRowClick ? { cursor: 'pointer' } : undefined}
+                            >
+                                {columns.map((col) => {
+                                    const value = row[col.key];
+                                    const cell = col.render ? col.render(value, row) : value;
+                                    return (
+                                        <td key={col.key} className='admin-list__td'>
+                                            {cell}
+                                        </td>
+                                    );
+                                })}
+                                {hasActions && (
+                                    <td className='admin-list__td admin-list__td--actions'>
+                                        {renderActions(row)}
                                     </td>
-                                );
-                            })}
-                            {hasActions && (
-                                <td className='admin-list__td admin-list__td--actions'>
-                                    {renderActions(row)}
-                                </td>
-                            )}
-                        </tr>
-                    ))}
+                                )}
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

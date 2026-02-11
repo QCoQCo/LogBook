@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../../utils/apiClient';
 import AdminList from './AdminList';
-import AdminListBtns from './AdminListBtns';
+import AdminModal from './AdminModal';
 import AdminPagination from './AdminPagination';
 
 const PAGE_SIZE = 10;
@@ -13,9 +13,12 @@ const POST_COLUMNS = [
         key: 'title',
         label: '제목',
         render: (value, row) => (
-            <Link to={`/post/detail?postId=${row.postId}`} className='post-manage__title-link'>
+            <span className={`post-manage__title ${row.isActive === false ? 'post-manage__title--inactive' : ''}`}>
                 {value || '-'}
-            </Link>
+                {row.isActive === false && (
+                    <span className='post-manage__inactive-badge'>비활성화</span>
+                )}
+            </span>
         ),
     },
     { key: 'authorName', label: '작성자' },
@@ -38,6 +41,7 @@ const PostManage = () => {
     const [error, setError] = useState(null);
     const [page, setPage] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
+    const [selectedPost, setSelectedPost] = useState(null);
 
     const totalPages = Math.max(0, Math.ceil(totalElements / PAGE_SIZE));
 
@@ -46,8 +50,8 @@ const PostManage = () => {
             setLoading(true);
             setError(null);
             const [listRes, countRes] = await Promise.all([
-                apiClient.get('/posts', { params: { page: pageNum, size: PAGE_SIZE } }),
-                apiClient.get('/posts/count'),
+                apiClient.get('/posts', { params: { page: pageNum, size: PAGE_SIZE, includeInactive: true } }),
+                apiClient.get('/posts/count', { params: { includeInactive: true } }),
             ]);
             const list = listRes.data;
             const total = countRes.data?.totalElements ?? 0;
@@ -70,15 +74,44 @@ const PostManage = () => {
         setPage(newPage);
     };
 
-    const handleEdit = (row) => {
-        navigate(`/post/edit?postId=${row.postId}`);
+    const handleRowClick = (row) => {
+        setSelectedPost(row);
     };
 
-    const handleDelete = async (row) => {
+    const handleModalClose = () => {
+        setSelectedPost(null);
+    };
+
+    const handleViewPost = () => {
+        if (!selectedPost?.postId) return;
+        navigate(`/post/detail?postId=${selectedPost.postId}&fromAdmin=1`);
+        handleModalClose();
+    };
+
+    const handleDeactivate = async () => {
+        const row = selectedPost;
+        if (!row?.postId) return;
+        const action = row.isActive === false ? '활성화' : '비활성화';
+        if (!window.confirm(`"${row.title || '이 게시글'}"을(를) ${action}하시겠습니까?`)) return;
+        try {
+            const endpoint = row.isActive === false
+                ? `/posts/${row.postId}/activate`
+                : `/posts/${row.postId}/deactivate`;
+            await apiClient.patch(endpoint);
+            handleModalClose();
+            await fetchPosts(page);
+        } catch (err) {
+            alert(err?.response?.data?.message || `${action}에 실패했습니다.`);
+        }
+    };
+
+    const handleDelete = async () => {
+        const row = selectedPost;
         if (!row?.postId) return;
         if (!window.confirm(`"${row.title || '이 게시글'}"을(를) 삭제 처리하시겠습니까?`)) return;
         try {
             await apiClient.delete(`/posts/${row.postId}`);
+            handleModalClose();
             await fetchPosts(page);
         } catch (err) {
             alert(err?.response?.data?.message || '삭제에 실패했습니다.');
@@ -101,17 +134,43 @@ const PostManage = () => {
                 data={posts}
                 loading={loading}
                 emptyMessage='등록된 게시글이 없습니다.'
-                actions={{
-                    label: '작업',
-                    render: (row) => (
-                        <AdminListBtns
-                            row={row}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                        />
-                    ),
-                }}
+                getRowClassName={(row) => row.isActive === false ? 'admin-list__tr--inactive' : ''}
+                onRowClick={handleRowClick}
             />
+            <AdminModal
+                isOpen={!!selectedPost}
+                onClose={handleModalClose}
+                title="게시글 상세"
+                titleId="post-detail-title"
+            >
+                {selectedPost && (
+                    <>
+                        <div className='admin-modal__post-info'>
+                            <p className='admin-modal__user'>ID: {selectedPost.postId}</p>
+                            <p className='admin-modal__user'>제목: {selectedPost.title || '-'}</p>
+                            <p className='admin-modal__user'>작성자: {selectedPost.authorName || '-'}</p>
+                            <p className='admin-modal__user'>작성일: {selectedPost.createdAt || '-'}</p>
+                            {selectedPost.isActive === false && (
+                                <p className='admin-modal__user admin-modal__user--inactive'>상태: 비활성화</p>
+                            )}
+                        </div>
+                        <div className='admin-modal__actions'>
+                            <button type='button' onClick={handleModalClose} className='admin-modal__btn'>
+                                취소
+                            </button>
+                            <button type='button' onClick={handleViewPost} className='admin-modal__btn admin-modal__btn--primary'>
+                                게시글보기
+                            </button>
+                            <button type='button' onClick={handleDeactivate} className='admin-modal__btn'>
+                                {selectedPost.isActive === false ? '활성화' : '비활성화'}
+                            </button>
+                            <button type='button' onClick={handleDelete} className='admin-modal__btn admin-modal__btn--danger'>
+                                삭제
+                            </button>
+                        </div>
+                    </>
+                )}
+            </AdminModal>
             {!loading && totalElements > 0 && (
                 <AdminPagination
                     currentPage={page}

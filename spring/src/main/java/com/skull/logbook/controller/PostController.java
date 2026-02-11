@@ -10,6 +10,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,13 +30,15 @@ public class PostController {
     @GetMapping
     public List<PostResponseDto> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return postService.getAllPosts(page, size);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return postService.getAllPosts(page, size, includeInactive);
     }
 
     @GetMapping("/count")
-    public Map<String, Long> getPostCount() {
-        return Map.of("totalElements", postService.countAll());
+    public Map<String, Long> getPostCount(
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return Map.of("totalElements", postService.countAll(includeInactive));
     }
 
     @DeleteMapping("/{postId}")
@@ -49,8 +52,30 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public PostResponseDto getPostDetail(@PathVariable Long postId) {
-        return postService.getPostDetail(postId);
+    public PostResponseDto getPostDetail(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return postService.getPostDetail(postId, includeInactive);
+    }
+
+    @PatchMapping("/{postId}/deactivate")
+    public ResponseEntity<Map<String, String>> deactivatePost(@PathVariable Long postId) {
+        try {
+            postService.deactivatePost(postId);
+            return ResponseEntity.ok(Map.of("message", "게시글이 비활성화되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{postId}/activate")
+    public ResponseEntity<Map<String, String>> activatePost(@PathVariable Long postId) {
+        try {
+            postService.activatePost(postId);
+            return ResponseEntity.ok(Map.of("message", "게시글이 활성화되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/lists/{userId}")

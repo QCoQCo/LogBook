@@ -59,10 +59,10 @@ public class SmartSearchService {
         this.googleModels = googleModels;
     }
 
-    public SearchResponseDto search(String query, int page, int size, Boolean tagOnly) {
+    public SearchResponseDto search(String query, int page, int size, Boolean tagOnly, Boolean includeInactive) {
         // Tag 전용 검색
         if (Boolean.TRUE.equals(tagOnly)) {
-            return searchByTagOnly(query, page, size);
+            return searchByTagOnly(query, page, size, includeInactive);
         }
 
         // 기존 하이브리드 검색 로직
@@ -96,16 +96,29 @@ public class SmartSearchService {
         Pageable pageable = PageRequest.of(page, size);
 
         // 3. [Hybrid Logic] 확장 검색 수행 & Synonyms Batching
-        allPosts.addAll(postRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(searchTarget,
-                searchTarget, pageable));
-        if (!translatedQuery.equalsIgnoreCase(searchTarget)) {
-            allPosts.addAll(postRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(translatedQuery,
-                    translatedQuery, pageable));
-        }
-
-        for (String syn : synonyms) {
-            allPosts.addAll(
-                    postRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(syn, syn, pageable));
+        boolean incInactive = Boolean.TRUE.equals(includeInactive);
+        if (incInactive) {
+            allPosts.addAll(postRepository.findByDeletedAtIsNullAndTitleContainingOrContentContainingOrderByCreatedAtDesc(
+                    searchTarget, searchTarget, pageable));
+            if (!translatedQuery.equalsIgnoreCase(searchTarget)) {
+                allPosts.addAll(postRepository.findByDeletedAtIsNullAndTitleContainingOrContentContainingOrderByCreatedAtDesc(
+                        translatedQuery, translatedQuery, pageable));
+            }
+            for (String syn : synonyms) {
+                allPosts.addAll(postRepository.findByDeletedAtIsNullAndTitleContainingOrContentContainingOrderByCreatedAtDesc(
+                        syn, syn, pageable));
+            }
+        } else {
+            allPosts.addAll(postRepository.findByDeletedAtIsNullAndIsActiveTrueAndTitleContainingOrContentContainingOrderByCreatedAtDesc(
+                    searchTarget, searchTarget, pageable));
+            if (!translatedQuery.equalsIgnoreCase(searchTarget)) {
+                allPosts.addAll(postRepository.findByDeletedAtIsNullAndIsActiveTrueAndTitleContainingOrContentContainingOrderByCreatedAtDesc(
+                        translatedQuery, translatedQuery, pageable));
+            }
+            for (String syn : synonyms) {
+                allPosts.addAll(postRepository.findByDeletedAtIsNullAndIsActiveTrueAndTitleContainingOrContentContainingOrderByCreatedAtDesc(
+                        syn, syn, pageable));
+            }
         }
 
         // 4. [Bulk Data Fetching] N+1 문제 해결을 위한 일괄 태그 조회
@@ -226,12 +239,14 @@ public class SmartSearchService {
     /**
      * Tag 전용 검색 (AI 분석 없이 정확한 태그 매칭만)
      */
-    private SearchResponseDto searchByTagOnly(String tagName, int page, int size) {
+    private SearchResponseDto searchByTagOnly(String tagName, int page, int size, Boolean includeInactive) {
         System.out.println("[Tag Search] Searching for tag: " + tagName + ", page: " + page);
 
         // postTag JOIN으로 정확한 태그 매칭 (Pageable 적용)
         Pageable pageable = PageRequest.of(page, size);
-        List<Post> posts = postRepository.findByTagName(tagName, pageable);
+        List<Post> posts = Boolean.TRUE.equals(includeInactive)
+                ? postRepository.findByTagNameIncludeInactive(tagName, pageable)
+                : postRepository.findByTagName(tagName, pageable);
 
         System.out.println("[Tag Search] Found posts: " + posts.size());
 
@@ -797,12 +812,13 @@ public class SmartSearchService {
                 .map(post -> new PostResponseDto(
                         post.getId(),
                         String.valueOf(post.getUserId()),
-                        authorNameMap.getOrDefault(post.getUserId(), ""), // authorName 추가
+                        authorNameMap.getOrDefault(post.getUserId(), ""),
                         post.getTitle(),
                         post.getContent(),
                         post.getCreatedAt().toString(),
                         post.getUpdatedAt().toString(),
-                        tagsMap.getOrDefault(post.getId(), new ArrayList<>())))
+                        tagsMap.getOrDefault(post.getId(), new ArrayList<>()),
+                        Boolean.TRUE.equals(post.getIsActive())))
                 .collect(Collectors.toList());
     }
 }

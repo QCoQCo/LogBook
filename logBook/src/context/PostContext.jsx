@@ -28,12 +28,12 @@ export const PostProvider = ({ children }) => {
         setCurrentSearch({ query: queryParam, isTagSearch });
 
         try {
-            let endpoint = '/posts?page=0';
+            let endpoint = '/posts?page=0&includeInactive=true';
             let isSearch = false;
 
             if (queryParam) {
                 // apiClient has baseURL '/api', so we just need '/search/hybrid'
-                endpoint = `/search/hybrid?query=${encodeURIComponent(queryParam)}&page=0`;
+                endpoint = `/search/hybrid?query=${encodeURIComponent(queryParam)}&page=0&includeInactive=true`;
                 if (isTagSearch) {
                     endpoint += '&tagOnly=true';
                 }
@@ -104,12 +104,12 @@ export const PostProvider = ({ children }) => {
         setIsMoreLoading(true);
         try {
             const nextPage = page + 1;
-            let endpoint = `/posts?page=${nextPage}`;
+            let endpoint = `/posts?page=${nextPage}&includeInactive=true`;
             let isSearch = false;
 
             // 저장된 검색 상태 확인
             if (currentSearch.query) {
-                endpoint = `/search/hybrid?query=${encodeURIComponent(currentSearch.query)}&page=${nextPage}`;
+                endpoint = `/search/hybrid?query=${encodeURIComponent(currentSearch.query)}&page=${nextPage}&includeInactive=true`;
                 if (currentSearch.isTagSearch) {
                     endpoint += '&tagOnly=true';
                 }

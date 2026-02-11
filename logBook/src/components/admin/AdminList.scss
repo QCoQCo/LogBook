@@ -26,12 +26,22 @@
         border-bottom: 1px solid #eee;
 
         &:hover {
-            background: #f9f9f9;
+            background: #d1d1d1;
+        }
+
+        &--inactive {
+            opacity: 0.65;
+            background: rgba(0, 0, 0, 0.02);
         }
     }
 
     &__td {
         padding: 0.75rem 1rem;
+        max-width: 100px;
+        min-width: 10px;
+        overflow-x: auto;
+        text-overflow: ellipsis;
+        white-space: nowrap;
 
         &--actions {
             white-space: nowrap;
