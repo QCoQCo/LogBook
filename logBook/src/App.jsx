@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import * as Common from './components/common';
 import * as Pages from './components/pages';
 import {
@@ -45,6 +45,21 @@ const Layout = () => {
     );
 };
 
+const AdminRoute = () => {
+    const { isLogin, effectiveRole, isAuthReady } = useAuth();
+
+    // 아직 토큰/유저 정보 초기화 전이면 아무 것도 렌더링하지 않음 (깜빡임/잘못된 리다이렉트 방지)
+    if (!isAuthReady) {
+        return null;
+    }
+
+    if (!isLogin || effectiveRole !== 'ADMIN') {
+        return <Navigate to="/error" replace />;
+    }
+
+    return <Pages.AdminPage />;
+};
+
 function App() {
     return (
         <AuthProvider>
@@ -86,7 +101,7 @@ function App() {
                                                     />
                                                     <Route
                                                         path='admin'
-                                                        element={<Pages.AdminPage />}
+                                                        element={<AdminRoute />}
                                                     />
                                                     <Route
                                                         path='/oauth2/redirect'

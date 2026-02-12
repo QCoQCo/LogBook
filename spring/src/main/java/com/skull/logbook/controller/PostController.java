@@ -8,6 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,18 +30,35 @@ import lombok.RequiredArgsConstructor;
 public class PostController {
     private final PostService postService;
 
+    private boolean isCurrentUserAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @GetMapping
     public List<PostResponseDto> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "false") boolean includeInactive) {
-        return postService.getAllPosts(page, size, includeInactive);
+        boolean isAdmin = isCurrentUserAdmin();
+        boolean effectiveIncludeInactive = includeInactive && isAdmin;
+        return postService.getAllPosts(page, size, effectiveIncludeInactive);
     }
 
     @GetMapping("/count")
     public Map<String, Long> getPostCount(
             @RequestParam(defaultValue = "false") boolean includeInactive) {
-        return Map.of("totalElements", postService.countAll(includeInactive));
+        boolean isAdmin = isCurrentUserAdmin();
+        boolean effectiveIncludeInactive = includeInactive && isAdmin;
+        return Map.of("totalElements", postService.countAll(effectiveIncludeInactive));
     }
 
     @DeleteMapping("/{postId}")
@@ -55,7 +75,9 @@ public class PostController {
     public PostResponseDto getPostDetail(
             @PathVariable Long postId,
             @RequestParam(defaultValue = "false") boolean includeInactive) {
-        return postService.getPostDetail(postId, includeInactive);
+        boolean isAdmin = isCurrentUserAdmin();
+        boolean effectiveIncludeInactive = includeInactive && isAdmin;
+        return postService.getPostDetail(postId, effectiveIncludeInactive);
     }
 
     @PatchMapping("/{postId}/deactivate")
