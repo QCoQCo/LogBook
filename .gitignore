@@ -63,3 +63,5 @@ bin/
 *.sw?
 
 *.py
+.agent
+.docs
