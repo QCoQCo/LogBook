@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     // 로그인 사용자의 역할을 화면에서만 USER/ADMIN으로 전환 (테스트·데모용)
     const [roleOverride, setRoleOverride] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
 
     const isTokenExpired = useCallback((token) => {
         try {
@@ -99,6 +100,7 @@ export const AuthProvider = ({ children }) => {
             } catch (e) {
                 setCurrentUser(null);
             }
+            setIsAuthReady(true);
         };
 
         initializeUser();
@@ -233,6 +235,7 @@ export const AuthProvider = ({ children }) => {
     const value = {
         currentUser,
         isLogin: !!currentUser,
+        isAuthReady,
         effectiveRole,
         setRoleOverride,
         updateRoleInBackend,
