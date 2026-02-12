@@ -2,7 +2,7 @@ import axios from 'axios';
 import { sendAuthEvent } from './sessionSync';
 
 const apiClient = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: '/api',
 });
 
 // JWT 토큰 만료 시간 확인 함수 (초 단위)
@@ -66,7 +66,7 @@ apiClient.interceptors.request.use(async (config) => {
                         isRefreshing = true;
                         try {
                             const response = await axios.post(
-                                'http://localhost:8080/api/auth/refresh',
+                                '/api/auth/refresh',
                                 {},
                                 {
                                     headers: { Authorization: `Bearer ${user.token}` },

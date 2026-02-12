@@ -52,9 +52,15 @@ export const YTPopupProvider = ({ children }) => {
             title: p.title || '',
             link: p.link || '',
             thumbnail: p.thumbnail || '',
-            contentId: p.contentId || p.id || null,
+            id: String(p.id || p.contentId || ''), // 문자열로 강제 변환하여 전달
             videoId: extractYouTubeID(p.link || ''),
         }));
+
+        console.log('[YTPopupContext] Sending data to popup:', {
+            count: data.length,
+            firstItemId: data[0]?.id,
+            data: data,
+        });
 
         try {
             if (popupWindow && !popupWindow.closed) {
@@ -64,7 +70,7 @@ export const YTPopupProvider = ({ children }) => {
                 try {
                     popupWindow.postMessage(
                         { cmd: 'append', items: data },
-                        window.location.origin || '*'
+                        window.location.origin || '*',
                     );
                 } catch (e) {
                     popupWindow.postMessage({ cmd: 'append', items: data }, '*');
@@ -84,8 +90,8 @@ export const YTPopupProvider = ({ children }) => {
             '/html/playerPopup.html',
             'logbook_yt_popup',
             `width=${width},height=${height},left=${Math.floor(left)},top=${Math.floor(
-                top
-            )},resizable=yes`
+                top,
+            )},resizable=yes`,
         );
         if (!w) {
             alert('팝업이 차단되었습니다. 팝업을 허용해 주세요.');
@@ -114,7 +120,13 @@ export const YTPopupProvider = ({ children }) => {
                 return;
             }
             try {
+                // 데이터 유실 방지: 팝업창 로드 여부에 관계없이 초기 데이터 전송 시도
                 popupWindow.postMessage(initPayload, origin);
+
+                // 전송 성공 시 주기를 늦추거나 검증 로직 추가 가능
+                if (tries > 2) {
+                    popupWindow.postMessage({ cmd: 'ping' }, origin); // 활성화 체크
+                }
             } catch (e) {
                 try {
                     popupWindow.postMessage(initPayload, '*');
