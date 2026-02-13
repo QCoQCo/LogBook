@@ -20,4 +20,5 @@ public class PostResponseDto {
     private String createdAt;
     private String updatedAt;
     private List<String> tags;
+    private Boolean isActive;
 }

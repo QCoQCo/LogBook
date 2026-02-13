@@ -1,5 +1,7 @@
 package com.skull.logbook.security;
 
+import com.skull.logbook.security.oauth2.CustomOAuth2UserService;
+import com.skull.logbook.security.oauth2.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +25,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -43,13 +47,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/search/**").permitAll() // 검색 API 허용
                         .requestMatchers(HttpMethod.GET, "/chat/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts/**").permitAll() // 피드 조회는 누구나 가능
+                        .requestMatchers(HttpMethod.GET, "/stats/**").permitAll() // 통계 (관리자용, 필요시 인증으로 변경)
                         .requestMatchers("/img/**").permitAll() // 이미지 조회 허용
                         .requestMatchers("/error").permitAll() // 에러 메시지 확인을 위해 허용
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated())
                 // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 앞단에)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-                        UsernamePasswordAuthenticationFilter.class);
+                        UsernamePasswordAuthenticationFilter.class)
+                // OAuth2 로그인 설정
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler));
 
         return http.build();
     }

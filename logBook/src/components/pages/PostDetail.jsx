@@ -13,6 +13,7 @@ const PostDetail = () => {
 
     const [searchParam] = useSearchParams();
     const postId = parseInt(searchParam.get('postId'));
+    const fromAdmin = searchParam.get('fromAdmin') === '1';
 
     const [currentPost, setCurrentPost] = useState(null); // post Data
     const [postOwner, setPostOwner] = useState(null); // post Owner Data
@@ -29,7 +30,7 @@ const PostDetail = () => {
 
     useEffect(() => {
         getPostData();
-    }, [postId, userData]);
+    }, [postId, userData, fromAdmin]);
 
     useEffect(() => {
         if (!currentPost || !postOwner) {
@@ -59,7 +60,8 @@ const PostDetail = () => {
 
     const getPostData = async () => {
         try {
-            const res = await apiClient.get(`/posts/${postId}`);
+            const params = fromAdmin ? { includeInactive: true } : {};
+            const res = await apiClient.get(`/posts/${postId}`, { params });
             const post = res.data;
 
             if (post && userData) {
@@ -107,7 +109,13 @@ const PostDetail = () => {
     return (
         <div id='PostDetail'>
             {currentPost && postOwner ? (
-                <div className='post-wrapper'>
+                <div className={`post-wrapper ${currentPost.isActive === false ? 'post-wrapper--inactive' : ''}`}>
+                    {currentPost.isActive === false && (
+                        <div className='post-inactive-banner' role='status'>
+                            비활성화된 글입니다. 관리자 페이지에서만 조회 가능합니다.
+                        </div>
+                    )}
+                    <div className='post-wrapper__content'>
                     <div className='sticky-area'>
                         <Post.PostStickyUtils
                             headerHeight={headerHeight}
@@ -134,6 +142,7 @@ const PostDetail = () => {
                             handleClickFollowBtn={handleClickFollowBtn}
                         />
                         <div className='post-comments'></div>
+                    </div>
                     </div>
                 </div>
             ) : (

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -163,5 +164,35 @@ public class PlaylistService {
 
         PlaylistItem updatedItem = playlistItemRepository.save(item);
         return new PlaylistItemResponseDto(updatedItem);
+    }
+
+    // 9. 플레이리스트 아이템 일괄 수정
+    public void updatePlaylistItemsBatch(Long userId, Long playlistId, List<PlaylistItemRequestDto> requestDtos) {
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
+
+        if (!playlist.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("수정 권한이 없습니다.");
+        }
+
+        // 현재 플레이리스트에 속한 모든 아이템 조회
+        List<PlaylistItem> currentItems = playlistItemRepository.findByPlayIdOrderBySeqAsc(playlistId);
+        Map<Long, PlaylistItem> itemMap = currentItems.stream()
+                .collect(Collectors.toMap(PlaylistItem::getId, item -> item));
+
+        // 정합성 보장 Sequencer: 요청된 데이터의 순서를 0부터 순차적으로 강제 재배열
+        for (int i = 0; i < requestDtos.size(); i++) {
+            PlaylistItemRequestDto dto = requestDtos.get(i);
+            if (dto.getId() == null) continue;
+
+            PlaylistItem item = itemMap.get(dto.getId());
+            if (item != null) {
+                item.setSeq(i); // 순차적 인덱스 강제 부여로 꼬임 방지
+                if (dto.getTitle() != null) item.setTitle(dto.getTitle());
+                if (dto.getLink() != null) item.setLink(dto.getLink());
+                if (dto.getThumbnail() != null) item.setThumbnail(dto.getThumbnail());
+            }
+        }
+        // Dirty Checking에 의해 트랜잭션 종료 시 일괄 저장됨
     }
 }

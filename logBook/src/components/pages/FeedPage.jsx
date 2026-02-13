@@ -2,12 +2,57 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import RGL, { WidthProvider } from 'react-grid-layout';
 import { usePost } from '../../context';
+import FeedPostCard from './FeedPostCard';
 const ReactGridLayout = WidthProvider(RGL);
 import './FeedPage.scss';
+
+// [New] 피드 페이지 공통 설정 관리
+const FEED_CONFIG = {
+    PAGE_SIZE: 20,
+    MARGIN_X: 16,
+    MARGIN_Y: 16,
+    COLS: {
+        WIDE: 4,
+        TABLET: 3,
+        MOBILE: 2,
+        TINY: 1
+    },
+    BREAKPOINTS: {
+        WIDE: 1100,
+        TABLET: 800,
+        MOBILE: 500
+    }
+};
+
+// [New] 스니펫 프리셋 설정
+const SNIPPET_PRESETS = {
+    // 필요 시 추가적인 스니펫 타입별 설정을 이곳에서 관리
+    default: { w: 1, h: 1 }
+};
 
 const FeedPage = () => {
     const { posts, loadMorePosts, hasMore, isMoreLoading, fetchPosts, searchMetadata } = usePost();
     const location = useLocation();
+
+    // [New] 데이터 전처리: 렌더링 루프 내 연산을 최소화하기 위해 메모이제이션 적용
+    const processedPosts = React.useMemo(() => {
+        return posts.map(post => {
+            // 썸네일 추출 로직 상위 이동
+            let displayThumbnail = post.thumbnail;
+            if (!displayThumbnail && post.content) {
+                const match = post.content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
+                displayThumbnail = match ? match[1] : null;
+            }
+            displayThumbnail = displayThumbnail || '/img/logBook_logo.png';
+
+            return {
+                ...post,
+                displayThumbnail,
+                excerptLong: (post.content || '').slice(0, 240) + ((post.content || '').length > 240 ? '…' : ''),
+                excerptShort: (post.content || '').slice(0, 120) + ((post.content || '').length > 120 ? '…' : '')
+            };
+        });
+    }, [posts]);
 
     // URL 검색 파라미터 변경 감지 및 데이터 로드
     useEffect(() => {
@@ -18,9 +63,11 @@ const FeedPage = () => {
 
         // Tag 검색인 경우 isTagSearch=true 전달
         if (tag) {
+            setLastQuery(`#${tag}`);
             fetchPosts(tag, true); // Tag 전용 검색
         } else {
             const searchTerm = query || search;
+            setLastQuery(searchTerm || '');
             fetchPosts(searchTerm, false); // 일반 검색
         }
     }, [location.search, fetchPosts]);
@@ -33,8 +80,8 @@ const FeedPage = () => {
         }
         window.scrollTo(0, 0);
     }, []);
-    const PAGE_SIZE = 20;
-    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+    const [visibleCount, setVisibleCount] = useState(FEED_CONFIG.PAGE_SIZE);
     const loadMoreRef = useRef(null);
     // long-press drag support
     const [dragEnabled, setDragEnabled] = useState(false);
@@ -43,10 +90,8 @@ const FeedPage = () => {
 
     const containerRef = useRef(null);
     const [containerWidth, setContainerWidth] = useState(1200);
-    const [cols, setCols] = useState(4);
-    const [forceCols, setForceCols] = useState(4);
-    const MARGIN_X = 16;
-    const MARGIN_Y = 16;
+    const [cols, setCols] = useState(FEED_CONFIG.COLS.WIDE);
+    const [forceCols, setForceCols] = useState(FEED_CONFIG.COLS.WIDE);
 
     const toggleForce = (val) => {
         setForceCols(val);
@@ -58,10 +103,10 @@ const FeedPage = () => {
     };
 
     const computeCols = (w) => {
-        if (w >= 1100) return 4;
-        if (w >= 800) return 3;
-        if (w >= 500) return 2;
-        return 1;
+        if (w >= FEED_CONFIG.BREAKPOINTS.WIDE) return FEED_CONFIG.COLS.WIDE;
+        if (w >= FEED_CONFIG.BREAKPOINTS.TABLET) return FEED_CONFIG.COLS.TABLET;
+        if (w >= FEED_CONFIG.BREAKPOINTS.MOBILE) return FEED_CONFIG.COLS.MOBILE;
+        return FEED_CONFIG.COLS.TINY;
     };
 
     const collides = (a, b) => {
@@ -115,123 +160,59 @@ const FeedPage = () => {
     };
 
     const rebuildPostsIntoGrid = (currentLayout) => {
-        const current = Array.isArray(currentLayout)
-            ? currentLayout
-            : Array.isArray(gridLayoutRef.current)
-                ? gridLayoutRef.current
-                : [];
-        try {
-            // console.info(
-            //     'rebuildPostsIntoGrid called, current.length=',
-            //     current.length,
-            //     'visiblePosts.length=',
-            //     (visiblePosts || []).length,
-            //     'cols=',
-            //     cols
-            // );
-            // console.info('rebuildPostsIntoGrid current sample:', current.slice(0, 6));
-        } catch (err) { }
+        const current = Array.isArray(currentLayout) ? currentLayout : (gridLayoutRef.current || []);
+        const nextLayout = [];
+        const occupied = new Set();
 
-        const existingPostMap = new Map();
-        current.forEach((it) => {
-            if (!String(it.i).startsWith('snippet-')) {
-                existingPostMap.set(String(it.i), {
-                    i: String(it.i),
-                    x: Math.max(0, Math.min(cols - 1, Number(it.x || 0))),
-                    y: Math.max(0, Number(it.y || 0)),
-                    w: Math.max(1, Math.min(cols, Number(it.w || 1))),
-                    h: Math.max(1, Number(it.h || 1)),
-                    static: true,
-                });
-            }
-        });
-
-        const snippetEntries = current
-            .filter((it) => String(it.i).startsWith('snippet-'))
-            .map((it) => ({
+        // 1. 고정된 스니펫(Snippet) 우선 배치
+        current.filter(it => String(it.i).startsWith('snippet-')).forEach(it => {
+            const item = {
                 ...it,
                 x: Math.max(0, Math.min(cols - 1, Number(it.x || 0))),
                 y: Math.max(0, Number(it.y || 0)),
                 w: Math.max(1, Math.min(cols, Number(it.w || 1))),
                 h: Math.max(1, Number(it.h || 1)),
-            }));
-
-        const occupied = new Set();
-        snippetEntries.forEach((it) => {
-            const sx = Number(it.x || 0);
-            const sy = Number(it.y || 0);
-            const sw = Math.max(1, Number(it.w || 1));
-            const sh = Math.max(1, Number(it.h || 1));
-            for (let dy = 0; dy < sh; dy++) {
-                for (let dx = 0; dx < sw; dx++) {
-                    occupied.add(`${sx + dx}:${sy + dy}`);
+                static: false
+            };
+            nextLayout.push(item);
+            // 점유 영역 기록
+            for (let dy = 0; dy < item.h; dy++) {
+                for (let dx = 0; dx < item.w; dx++) {
+                    occupied.add(`${item.x + dx}:${item.y + dy}`);
                 }
             }
         });
 
-        const postEntries = [];
-        existingPostMap.forEach((it) => {
-            const sx = Number(it.x || 0);
-            const sy = Number(it.y || 0);
-            const sw = Math.max(1, Number(it.w || 1));
-            const sh = Math.max(1, Number(it.h || 1));
-            for (let dy = 0; dy < sh; dy++) {
-                for (let dx = 0; dx < sw; dx++) {
-                    occupied.add(`${sx + dx}:${sy + dy}`);
-                }
-            }
-            postEntries.push(it);
-        });
-
-        const postsArr = visiblePosts || [];
-        let placedCount = postEntries.length;
+        // 2. 일반 포스트 순차 배치
         let row = 0;
-        let idx = 0;
-        while (placedCount < postsArr.length) {
-            for (let col = 0; col < cols && placedCount < postsArr.length; col++) {
-                const key = `${col}:${row}`;
-                if (!occupied.has(key)) {
-                    while (
-                        idx < postsArr.length &&
-                        existingPostMap.has(String(postsArr[idx].postId))
-                    ) {
-                        idx++;
+        let col = 0;
+        visiblePosts.forEach((post, index) => {
+            const postId = String(post.postId);
+            // 이미 배치된 레이아웃에서 위치 정보 찾기 (드래그 상태 유지용)
+            const existing = current.find(it => String(it.i) === postId);
+            
+            if (existing) {
+                const item = { ...existing, static: true };
+                nextLayout.push(item);
+                for (let dy = 0; dy < item.h; dy++) {
+                    for (let dx = 0; dx < item.w; dx++) {
+                        occupied.add(`${item.x + dx}:${item.y + dy}`);
                     }
-                    if (idx >= postsArr.length) break;
-                    const post = postsArr[idx++];
-                    postEntries.push({
-                        i: String(post.postId),
-                        x: col,
-                        y: row,
-                        w: 1,
-                        h: 1,
-                        static: true,
-                    });
-                    occupied.add(key);
-                    placedCount++;
                 }
+            } else {
+                // 비어있는 최적의 공간 찾기
+                while (occupied.has(`${col}:${row}`)) {
+                    col++;
+                    if (col >= cols) { col = 0; row++; }
+                }
+                nextLayout.push({ i: postId, x: col, y: row, w: 1, h: 1, static: true });
+                occupied.add(`${col}:${row}`);
+                col++;
+                if (col >= cols) { col = 0; row++; }
             }
-            row++;
-        }
+        });
 
-        const next = [...snippetEntries, ...postEntries];
-        next.sort((a, b) => (a.y || 0) - (b.y || 0) || (a.x || 0) - (b.x || 0));
-        const final = next.map((it) => ({
-            ...it,
-            static: String(it.i).startsWith('snippet-') ? false : true,
-        }));
-        try {
-            // console.info(
-            //     'rebuildPostsIntoGrid result.len=',
-            //     final.length,
-            //     'snippetEntries.len=',
-            //     snippetEntries.length,
-            //     'postEntries.len=',
-            //     postEntries.length
-            // );
-            // console.info('rebuildPostsIntoGrid final sample:', final.slice(0, 8));
-        } catch (err) { }
-        return final;
+        return nextLayout.sort((a, b) => (a.y - b.y) || (a.x - b.x));
     };
 
     const compareLayoutToDom = (mapped, note) => {
@@ -302,7 +283,10 @@ const FeedPage = () => {
         return () => window.removeEventListener('resize', update);
     }, [forceCols]);
 
-    const visiblePosts = posts.slice(0, visibleCount);
+    const visiblePosts = processedPosts.slice(0, visibleCount);
+
+    // [New] 검색어 추적 (Empty UI 노출용)
+    const [lastQuery, setLastQuery] = useState('');
 
     const [gridLayout, setGridLayout] = useState([]);
 
@@ -341,14 +325,11 @@ const FeedPage = () => {
                     if (entry.isIntersecting) {
                         // 1. 로컬에 더 보여줄게 남았으면 -> visibleCount 증가
                         if (visibleCount < posts.length) {
-                            setVisibleCount((prev) => Math.min(posts.length, prev + PAGE_SIZE));
+                            setVisibleCount((prev) => Math.min(posts.length, prev + FEED_CONFIG.PAGE_SIZE));
                         }
                         // 2. 로컬은 다 보여줬는데 서버에 더 있으면 -> fetch
                         else if (hasMore && !isMoreLoading) {
                             loadMorePosts();
-                            // (선택사항) fetch 직후 visibleCount를 늘려주면 자연스러움
-                            // setVisibleCount(prev => prev + PAGE_SIZE); 
-                            // -> posts가 업데이트되면 이 effect가 다시 돌면서 1번 분기를 탈 것이므로 생략 가능
                         }
                     }
                 });
@@ -596,128 +577,73 @@ const FeedPage = () => {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
-                <ReactGridLayout
-                    key={rglKey}
-                    className='layout'
-                    layout={layout}
-                    cols={cols}
-                    rowHeight={
-                        forceCols == 4 ? Math.max(120, Math.floor(containerWidth / cols)) : 150
-                    }
-                    onLayoutChange={handleLayoutChange}
-                    isDraggable={true}
-                    draggableHandle='.post-card'
-                    isResizable={true}
-                    compactType={null}
-                    margin={[MARGIN_X, MARGIN_Y]}
-                >
-                    {visiblePosts.map((post) => (
-                        <div key={String(post.postId)} className='post-card'>
-                            <Link
-                                to={`/post/detail?postId=${post.postId}`}
-                                className='card-link'
-                                onClick={(e) => {
-                                    if (
-                                        dragEnabled &&
-                                        String(longPressedId) === String(post.postId)
-                                    ) {
-                                        e.preventDefault();
+                                <ReactGridLayout
+                                    key={rglKey}
+                                    className='layout'
+                                    layout={layout}
+                                    cols={cols}
+                                    rowHeight={
+                                        forceCols == 4 ? Math.max(120, Math.floor(containerWidth / cols)) : 150
                                     }
-                                    window.scrollTo(0, 0);
-                                }}
-                            >
-                                {cols === 1 ? (
-                                    <div
-                                        className='card-row'
-                                        style={{
-                                            display: 'flex',
-                                            gap: 12,
-                                            alignItems: 'flex-start',
-                                        }}
-                                    >
-                                        <div
-                                            className='card-thumb'
-                                            style={{
-                                                flex: '0 0 40%',
-                                                maxWidth: 300,
-                                                height: '100%',
-                                            }}
-                                        >
-                                            <img
-                                                src={
-                                                    post.thumbnail ||
-                                                    (() => {
-                                                        if (!post.content) return null;
-                                                        const match = post.content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
-                                                        return match ? match[1] : null;
-                                                    })() ||
-                                                    '/img/logBook_logo.png'
-                                                }
-                                                alt={post.title || 'thumbnail'}
-                                                loading='lazy'
-                                                style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'cover',
-                                                    borderRadius: 6,
-                                                }}
-                                                onError={(e) => {
-                                                    e.currentTarget.onerror = null;
-                                                    e.currentTarget.src = '/img/logBook_logo.png';
-                                                }}
-                                            />
-                                        </div>
-                                        <div className='card-body' style={{ flex: 1 }}>
-                                            {post.authorName && (
-                                                <span className='card-author'>{post.authorName}</span>
-                                            )}
-                                            <h3 className='card-title'>{post.title}</h3>
-                                            <p className='card-excerpt'>
-                                                {(post.content || '').slice(0, 240)}
-                                                {(post.content || '').length > 240 ? '…' : ''}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className='card-thumb'>
-                                            <img
-                                                src={
-                                                    post.thumbnail ||
-                                                    (() => {
-                                                        if (!post.content) return null;
-                                                        const match = post.content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
-                                                        return match ? match[1] : null;
-                                                    })() ||
-                                                    '/img/logBook_logo.png'
-                                                }
-                                                alt={post.title || 'thumbnail'}
-                                                loading='lazy'
-                                                onError={(e) => {
-                                                    // fallback to local image on error
-                                                    e.currentTarget.onerror = null;
-                                                    e.currentTarget.src = '/img/logBook_logo.png';
-                                                }}
-                                            />
-                                        </div>
-                                        <div className='card-body'>
-                                            {post.authorName && (
-                                                <span className='card-author'>{post.authorName}</span>
-                                            )}
-                                            <h3 className='card-title'>{post.title}</h3>
-                                            <p className='card-excerpt'>
-                                                {(post.content || '').slice(0, 120)}
-                                                {(post.content || '').length > 120 ? '…' : ''}
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
-                            </Link>
-                        </div>
-                    ))}
-                </ReactGridLayout>
-                <div ref={loadMoreRef} style={{ height: 1 }} />
-            </div>
+                                    onLayoutChange={handleLayoutChange}
+                                    isDraggable={true}
+                                    draggableHandle='.post-card'
+                                                        isResizable={true}
+                                                        compactType={null}
+                                                        margin={[FEED_CONFIG.MARGIN_X, FEED_CONFIG.MARGIN_Y]}
+                                                    >
+                                                        {layout.filter(l => !l.i.startsWith('snippet-')).map((l) => {
+                                                            const post = visiblePosts.find(p => String(p.postId) === String(l.i));
+                                                            if (!post) return null;
+                                                            return (
+                                                                <div key={l.i}>
+                                                                    <FeedPostCard 
+                                                                        post={post} 
+                                                                        cols={cols} 
+                                                                        dragEnabled={dragEnabled} 
+                                                                        longPressedId={longPressedId} 
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </ReactGridLayout>
+                                    
+                                                    {/* [New] Empty State UI */}
+                                                    {!isMoreLoading && processedPosts.length === 0 && (
+                                                        <div className="empty-state">
+                                                            <div className="empty-icon">🔍</div>
+                                                            <p className="empty-text">
+                                                                {lastQuery ? `"${lastQuery}"에 대한 검색 결과가 없습니다.` : '등록된 게시글이 없습니다.'}
+                                                            </p>
+                                                            <p className="empty-subtext">검색어를 변경하거나 다른 태그를 탐색해 보세요.</p>
+                                                        </div>
+                                                    )}
+                                    
+                                                    {/* [New] Skeleton Loading UI */}
+                                                    {isMoreLoading && (
+                                                        <div className="skeleton-container" style={{ 
+                                                            display: 'grid', 
+                                                            gridTemplateColumns: `repeat(${cols}, 1fr)`, 
+                                                            gap: FEED_CONFIG.MARGIN_X,
+                                                            marginTop: FEED_CONFIG.MARGIN_Y 
+                                                        }}>
+                                                            {[1, 2, 3, 4].map(i => (
+                                                                <div key={i} className="skeleton-card">
+                                                                    <div className="skeleton-thumb"></div>
+                                                                    <div className="skeleton-body">
+                                                                        <div className="skeleton-line title"></div>
+                                                                        <div className="skeleton-line text"></div>
+                                                                        <div className="skeleton-line text short"></div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                    
+                                        
+                                                        <div ref={loadMoreRef} style={{ height: 1 }} />
+                                                    </div>
+                                        
         </div>
     );
 };

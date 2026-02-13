@@ -14,7 +14,15 @@ const getRoleFromToken = (token) => {
         if (!token) return null;
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(atob(base64));
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                })
+                .join(''),
+        );
+        const payload = JSON.parse(jsonPayload);
         const auth = payload.auth;
         if (!auth) return null;
         // Spring Security는 "ROLE_ADMIN", "ROLE_USER" 형태로 저장
@@ -40,13 +48,22 @@ export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     // 로그인 사용자의 역할을 화면에서만 USER/ADMIN으로 전환 (테스트·데모용)
     const [roleOverride, setRoleOverride] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
 
     const isTokenExpired = useCallback((token) => {
         try {
             if (!token) return true;
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const payload = JSON.parse(atob(base64));
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split('')
+                    .map(function (c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    })
+                    .join(''),
+            );
+            const payload = JSON.parse(jsonPayload);
             const now = Math.floor(Date.now() / 1000);
             return payload.exp ? payload.exp < now : true;
         } catch (e) {
@@ -83,6 +100,7 @@ export const AuthProvider = ({ children }) => {
             } catch (e) {
                 setCurrentUser(null);
             }
+            setIsAuthReady(true);
         };
 
         initializeUser();
@@ -107,7 +125,7 @@ export const AuthProvider = ({ children }) => {
                         const userWithRole = ensureUserRole(data.payload);
                         sessionStorage.setItem(
                             'logbook_current_user',
-                            JSON.stringify(userWithRole)
+                            JSON.stringify(userWithRole),
                         );
                         setCurrentUser(userWithRole);
                     }
@@ -184,7 +202,10 @@ export const AuthProvider = ({ children }) => {
                 setRoleOverride(role);
                 return { ok: false, message: '역할 변경은 관리자만 가능합니다.' };
             }
-            return { ok: false, message: err?.response?.data?.message || '역할 변경에 실패했습니다.' };
+            return {
+                ok: false,
+                message: err?.response?.data?.message || '역할 변경에 실패했습니다.',
+            };
         }
     }, []);
 
@@ -214,6 +235,7 @@ export const AuthProvider = ({ children }) => {
     const value = {
         currentUser,
         isLogin: !!currentUser,
+        isAuthReady,
         effectiveRole,
         setRoleOverride,
         updateRoleInBackend,

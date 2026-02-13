@@ -20,7 +20,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // ID 목록으로 조회
     List<Post> findAllByIdIn(List<Long> ids);
 
-    // userId로 유저의 모든 게시글을 조회
+    // userId로 유저의 모든 게시글을 조회 (활성만)
     @Query("""
     select new com.skull.logbook.dto.UserPostListDto(
             p.id,
@@ -29,7 +29,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             p.createdAt
         )
         from Post p
-        where p.userId = :userId
+        where p.userId = :userId and p.deletedAt is null and p.isActive = true
         order by p.createdAt desc
     """)
     List<UserPostListDto> findPostListByUserId(
@@ -39,15 +39,36 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
 	List<Post> findAllByDeletedAtIsNullOrderByCreatedAtDesc(Pageable pageable);
 
+	List<Post> findAllByDeletedAtIsNullAndIsActiveTrueOrderByCreatedAtDesc(Pageable pageable);
+
 	long countByDeletedAtIsNull();
+
+	long countByDeletedAtIsNullAndIsActiveTrue();
 
 	List<Post> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String title, String content,
 					Pageable pageable);
 
+	List<Post> findByDeletedAtIsNullAndIsActiveTrueAndTitleContainingOrContentContainingOrderByCreatedAtDesc(
+			String title, String content, Pageable pageable);
+
+	List<Post> findByDeletedAtIsNullAndTitleContainingOrContentContainingOrderByCreatedAtDesc(
+			String title, String content, Pageable pageable);
+
 	@Query("SELECT DISTINCT p FROM Post p " +
 					"JOIN PostTag pt ON p.id = pt.post.id " +
 					"JOIN CommonCode cc ON pt.tagId = cc.codeValue " +
-					"WHERE cc.codeName = :tagName " +
+					"WHERE cc.codeName = :tagName AND p.deletedAt IS NULL AND p.isActive = true " +
 					"ORDER BY p.createdAt DESC")
 	List<Post> findByTagName(@Param("tagName") String tagName, Pageable pageable);
+
+	@Query("SELECT DISTINCT p FROM Post p " +
+					"JOIN PostTag pt ON p.id = pt.post.id " +
+					"JOIN CommonCode cc ON pt.tagId = cc.codeValue " +
+					"WHERE cc.codeName = :tagName AND p.deletedAt IS NULL " +
+					"ORDER BY p.createdAt DESC")
+	List<Post> findByTagNameIncludeInactive(@Param("tagName") String tagName, Pageable pageable);
+
+    @Query("SELECT p.userId, COUNT(p.id) FROM Post p " +
+            "WHERE p.deletedAt IS NULL GROUP BY p.userId ORDER BY COUNT(p.id) DESC")
+    List<Object[]> countPostsByUserId();
 }

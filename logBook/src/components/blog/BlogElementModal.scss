@@ -20,7 +20,8 @@
         overflow: hidden;
         animation: slide-up 0.3s ease-out;
 
-        &.is-post-modal {
+        &.is-post-modal,
+        &.is-image-modal {
             height: 500px;
         }
 
@@ -235,6 +236,52 @@
                 flex-shrink: 0;
             }
 
+            .image-modal-area {
+                display: flex;
+                justify-content: center;
+                margin-top: 20px;
+                height: 300px;
+
+                .image-drop-zone {
+                    flex: 1;
+                    border: 2px dashed #bbb;
+                    border-radius: 16px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    position: relative;
+                    overflow: hidden;
+                    background-color: #fafafa;
+
+                    &.dragging {
+                        border-color: #111;
+                        background-color: #f0f0f0;
+                    }
+
+                    .placeholder {
+                        text-align: center;
+                        color: #888;
+                        font-size: 16px;
+                    }
+
+                    .image-preview {
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+
+                        img {
+                            max-width: 100%;
+                            max-height: 100%;
+                            object-fit: contain;
+                        }
+                    }
+                }
+            }
+
             .modal-content-area {
                 input {
                     width: 60%;
@@ -245,7 +292,6 @@
                 }
 
                 .empty-content-alert {
-                    display: none;
                     transform: translateX(-20%);
                     color: #d80000;
                 }

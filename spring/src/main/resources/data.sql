@@ -333,22 +333,29 @@ INSERT IGNORE INTO blog (userId, layout, createdAt, updatedAt, deletedAt) VALUES
        NULL
     );
 
--- CommonCodeGroup (Tags)
+-- CommonCodeGroup (Tags, Role)
 INSERT IGNORE INTO commonCodeGroup (groupCode, groupName, description, useYn, modifier, createdAt, updatedAt) VALUES
-('T', '태그', '태그 내용을 설명', 'Y', 'SYSTEM', NOW(), NOW());
+('T', '태그', '태그 내용을 설명', 'Y', 'SYSTEM', NOW(), NOW()),
+('R', '역할', '사용자 권한 역할 (USER, ADMIN, GUEST)', 'Y', 'SYSTEM', NOW(), NOW());
 
--- 1. CommonCode 데이터 삽입
+-- 1. CommonCode 데이터 삽입 (Role)
 INSERT IGNORE INTO commonCode (groupCode, codeValue, codeName, sortOrder, useYn, createdAt, updatedAt) VALUES
-('T', 'T1', '도구 및 생산성 (IDE, 도구 모음)', 1, 'Y', NOW(), NOW()),
-('T', 'T2', '프로그래밍/개발 관련 지식', 2, 'Y', NOW(), NOW()),
-('T', 'T3', '서버/인프라 (AWS, Linux, Docker)', 3, 'Y', NOW(), NOW()),
-('T', 'T4', '데이터베이스 (MySQL, RDB, NoSQL)', 4, 'Y', NOW(), NOW()),
-('T', 'T5', '프레임워크/라이브러리 (Spring, React)', 5, 'Y', NOW(), NOW()),
-('T', 'T6', '보안/인증 (JWT, OAuth, Security)', 6, 'Y', NOW(), NOW()),
+('R', 'USER', '일반회원', 1, 'Y', NOW(), NOW()),
+('R', 'ADMIN', '관리자', 2, 'Y', NOW(), NOW()),
+('R', 'GUEST', '게스트', 3, 'Y', NOW(), NOW());
+
+-- 2. CommonCode 데이터 삽입 (Tags)
+INSERT IGNORE INTO commonCode (groupCode, codeValue, codeName, sortOrder, useYn, createdAt, updatedAt) VALUES
+('T', 'T1', '도구 및 생산성', 1, 'Y', NOW(), NOW()),
+('T', 'T2', '프로그래밍/개발', 2, 'Y', NOW(), NOW()),
+('T', 'T3', '서버/인프라', 3, 'Y', NOW(), NOW()),
+('T', 'T4', '데이터베이스', 4, 'Y', NOW(), NOW()),
+('T', 'T5', '프레임워크/라이브러리', 5, 'Y', NOW(), NOW()),
+('T', 'T6', '보안/인증', 6, 'Y', NOW(), NOW()),
 ('T', 'T7', '에러 해결/트러블슈팅/버그', 7, 'Y', NOW(), NOW()),
-('T', 'T8', '네트워크/통신 (HTTP, REST API)', 8, 'Y', NOW(), NOW()),
-('T', 'T9', '테스트/배포/DevOps (CI/CD)', 9, 'Y', NOW(), NOW()),
-('T', 'T10', 'OS/시스템 (Windows, Mac)', 10, 'Y', NOW(), NOW()),
+('T', 'T8', '네트워크/통신', 8, 'Y', NOW(), NOW()),
+('T', 'T9', '테스트/배포/DevOps', 9, 'Y', NOW(), NOW()),
+('T', 'T10', 'OS/시스템', 10, 'Y', NOW(), NOW()),
 ('T', 'T11', '성능 최적화/리팩토링', 11, 'Y', NOW(), NOW()),
 ('T', 'T12', '알고리즘/자료구조', 12, 'Y', NOW(), NOW()),
 ('T', 'T13', '기타 개발 관련', 13, 'Y', NOW(), NOW()),

@@ -20,7 +20,8 @@ public class SmartSearchController {
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "20") int size,
-            @RequestParam(required = false, defaultValue = "false") Boolean tagOnly) {
-        return smartSearchService.search(query, page, size, tagOnly);
+            @RequestParam(required = false, defaultValue = "false") Boolean tagOnly,
+            @RequestParam(required = false, defaultValue = "false") Boolean includeInactive) {
+        return smartSearchService.search(query, page, size, tagOnly, includeInactive);
     }
 }

@@ -8,6 +8,7 @@ import PostEdit from './PostEdit';
 import PostDetail from './PostDetail';
 import ErrorPage from './ErrorPage';
 import AdminPage from './AdminPage';
+import OAuth2RedirectHandler from './OAuth2RedirectHandler';
 
 export {
     FeedPage,
@@ -20,5 +21,6 @@ export {
     PostDetail,
     ErrorPage,
     AdminPage,
+    OAuth2RedirectHandler,
 };
 // 파일명과 일치하게

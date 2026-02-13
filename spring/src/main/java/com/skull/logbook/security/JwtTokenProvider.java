@@ -44,12 +44,22 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
+        Claims claims = Jwts.claims().setSubject(authentication.getName());
+        claims.put("auth", authorities);
+
+        // PrincipalDetails 인 경우 추가 정보 포함
+        if (authentication.getPrincipal() instanceof PrincipalDetails principal) {
+            claims.put("email", principal.getUser().getUserEmail());
+            claims.put("nickName", principal.getUser().getNickName());
+            claims.put("profilePhoto", principal.getUser().getProfilePhoto());
+            claims.put("userId", principal.getUser().getId());
+        }
+
         long now = (new Date()).getTime();
         Date validity = new Date(now + tokenValidityInMilliseconds);
 
         return Jwts.builder()
-                .setSubject(authentication.getName())
-                .claim("auth", authorities)
+                .setClaims(claims)
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
