@@ -177,6 +177,14 @@
             .ctrl-btn:active {
                 transform: scale(0.92);
             }
+            .playlist-controls {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                max-width: 640px;
+                width: 100%;
+                justify-content: flex-end;
+            }
             .playlist-controls .ctrl-btn {
                 width: 32px;
                 height: 32px;
@@ -188,6 +196,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                height: 50px;
             }
             /* Volume: 구조화된 스타일 (중복 제거) */
             .volume-wrap {
@@ -228,6 +237,7 @@
             .playlist-title {
                 font-weight: 700;
                 color: var(--text-color);
+                width: 100%;
             }
             .plist {
                 overflow: auto;
@@ -546,6 +556,7 @@
             let _repeat = 'off';
             let _volume = 100;
             let _curIndex = 0;
+            let _progressTimer = null; // [안정성] 타이머 변수 명시화
 
             /** 1. 데이터 정규화: id 필드 누락 방지 */
             function normalizeItem(it) {
@@ -1052,7 +1063,7 @@
             });
 
             // Progress Bar Logic
-            setInterval(() => {
+            _progressTimer = setInterval(() => {
                 if (!player || !_playerReady) return;
                 const cur = player.getCurrentTime();
                 const dur = player.getDuration();
@@ -1062,8 +1073,12 @@
                 document.getElementById('time').textContent = `${fmt(cur)} / ${fmt(dur)}`;
             }, 500);
 
-            // 창 닫기 시 시간 기록 (1분 세션용)
+            // [안정성] 창 닫기 시 자원 명시적 해제
             window.addEventListener('beforeunload', () => {
+                if (_progressTimer) clearInterval(_progressTimer);
+                if (player && typeof player.destroy === 'function') {
+                    player.destroy();
+                }
                 localStorage.setItem(STORAGE_CLOSED_AT_KEY, String(Date.now()));
             });
         </script>
