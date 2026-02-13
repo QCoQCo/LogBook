@@ -114,4 +114,16 @@ public class PlaylistController {
         User user = userService.getUserByLoginId(principal.getName());
         return ResponseEntity.ok(playlistService.updatePlaylistItem(user.getId(), itemId, requestDto));
     }
+
+    // 8. 플레이리스트 아이템 일괄 수정 (순서 및 정보)
+    @PatchMapping("/{playlistId}/items/batch")
+    public ResponseEntity<?> updatePlaylistItemsBatch(@PathVariable Long playlistId,
+            @RequestBody java.util.List<PlaylistItemRequestDto> requestDtos,
+            Principal principal) {
+        if (principal == null)
+            return ResponseEntity.status(401).body("Unauthorized");
+        User user = userService.getUserByLoginId(principal.getName());
+        playlistService.updatePlaylistItemsBatch(user.getId(), playlistId, requestDtos);
+        return ResponseEntity.ok(Map.of("message", "Batch update successful"));
+    }
 }

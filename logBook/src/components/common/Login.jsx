@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Login.scss';
 import { loginClient } from '../../utils/auth';
 import { useAuth } from '../../context';
+import apiClient from '../../utils/apiClient';
 
 const Login = ({ onClose = () => {}, onFindAccount = () => {} }) => {
     const { login } = useAuth();
@@ -50,19 +51,14 @@ const Login = ({ onClose = () => {}, onFindAccount = () => {} }) => {
         }
 
         try {
-            // [백엔드 API 호출]
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    loginId: userId,
-                    password: password,
-                }),
+            // [백엔드 API 호출 - apiClient 사용]
+            const response = await apiClient.post('/auth/login', {
+                loginId: userId,
+                password: password,
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                const { token, user } = data; // 백엔드에서 보낸 token, user 받기
+            if (response.status === 200) {
+                const { token, user } = response.data; // apiClient는 response.data에 결과가 담김
 
                 // Context에 저장할 데이터 구성
                 const payload = {
@@ -79,7 +75,11 @@ const Login = ({ onClose = () => {}, onFindAccount = () => {} }) => {
             }
         } catch (err) {
             console.error(err);
-            setError('로그인 중 문제가 발생했습니다.');
+            if (err.response && err.response.status === 401) {
+                setError('아이디 또는 비밀번호가 일치하지 않습니다.');
+            } else {
+                setError('로그인 중 문제가 발생했습니다.');
+            }
         }
     };
 
