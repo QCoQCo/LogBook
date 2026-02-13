@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class PlaylistItemRequestDto {
+    private Long id; // 아이템 식별용
     private String title;
     private String link;
     private String thumbnail;

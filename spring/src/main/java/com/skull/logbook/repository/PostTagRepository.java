@@ -20,4 +20,11 @@ public interface PostTagRepository extends JpaRepository<PostTag, Long> {
     // 태그 이름(유사)으로 게시글 ID 조회
     @Query("SELECT DISTINCT pt.post.id FROM PostTag pt JOIN CommonCode c ON pt.tagId = c.codeValue WHERE c.codeName IN :tagNames")
     List<Long> findPostIdsByTagNames(@Param("tagNames") List<String> tagNames);
+
+    @Query("SELECT c.codeName, COUNT(pt.post.id) FROM PostTag pt " +
+            "JOIN CommonCode c ON pt.tagId = c.codeValue " +
+            "JOIN Post p ON pt.post.id = p.id " +
+            "WHERE p.deletedAt IS NULL " +
+            "GROUP BY c.codeName ORDER BY COUNT(pt.post.id) DESC")
+    List<Object[]> countPostsByTagName();
 }
