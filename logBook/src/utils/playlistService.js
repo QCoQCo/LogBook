@@ -51,3 +51,10 @@ export const updatePlaylistItem = async (itemId, itemData) => {
     const response = await apiClient.patch(`/playlists/items/${itemId}`, itemData);
     return response.data;
 };
+
+// 9. 플레이리스트 아이템 일괄 수정 (순서 등)
+export const updatePlaylistItemsBatch = async (playlistId, items) => {
+    // items: [{ id, seq, title, link, thumbnail }, ...]
+    const response = await apiClient.patch(`/playlists/${playlistId}/items/batch`, items);
+    return response.data;
+};

@@ -67,4 +67,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 					"WHERE cc.codeName = :tagName AND p.deletedAt IS NULL " +
 					"ORDER BY p.createdAt DESC")
 	List<Post> findByTagNameIncludeInactive(@Param("tagName") String tagName, Pageable pageable);
+
+    @Query("SELECT p.userId, COUNT(p.id) FROM Post p " +
+            "WHERE p.deletedAt IS NULL GROUP BY p.userId ORDER BY COUNT(p.id) DESC")
+    List<Object[]> countPostsByUserId();
 }
