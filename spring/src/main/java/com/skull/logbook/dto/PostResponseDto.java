@@ -21,4 +21,6 @@ public class PostResponseDto {
     private String updatedAt;
     private List<String> tags;
     private Boolean isActive;
+    private Long likeCount;
+    private Boolean isLiked;
 }

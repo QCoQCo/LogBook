@@ -5,6 +5,7 @@ import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
 import com.skull.logbook.service.BlogService;
+import com.skull.logbook.service.UserFollowService;
 import com.skull.logbook.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -23,6 +24,7 @@ public class UserController {
 
     private final UserService userService;
     private final BlogService blogService;
+    private final UserFollowService userFollowService;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
@@ -129,6 +131,39 @@ public class UserController {
             return ResponseEntity.ok(Map.of("message", "회원이 삭제 처리되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /** 현재 로그인 사용자가 대상 유저를 팔로우 중인지 조회 */
+    @GetMapping("/{userId}/follow/status")
+    public ResponseEntity<?> getFollowStatus(@PathVariable Long userId) {
+        boolean following = userFollowService.isFollowing(userId);
+        return ResponseEntity.ok(Map.of("following", following));
+    }
+
+    /** 대상 유저 팔로우 */
+    @PostMapping("/{userId}/follow")
+    public ResponseEntity<?> followUser(@PathVariable Long userId) {
+        try {
+            userFollowService.follow(userId);
+            return ResponseEntity.ok(Map.of("message", "팔로우했습니다.", "following", true));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /** 대상 유저 언팔로우 */
+    @DeleteMapping("/{userId}/follow")
+    public ResponseEntity<?> unfollowUser(@PathVariable Long userId) {
+        try {
+            userFollowService.unfollow(userId);
+            return ResponseEntity.ok(Map.of("message", "언팔로우했습니다.", "following", false));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
         }
     }
 }

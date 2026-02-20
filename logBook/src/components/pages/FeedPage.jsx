@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import RGL, { WidthProvider } from 'react-grid-layout';
-import { usePost } from '../../context';
+import { usePost, useAuth } from '../../context';
 import FeedPostCard from './FeedPostCard';
 const ReactGridLayout = WidthProvider(RGL);
 import './FeedPage.scss';
@@ -31,8 +31,10 @@ const SNIPPET_PRESETS = {
 };
 
 const FeedPage = () => {
-    const { posts, loadMorePosts, hasMore, isMoreLoading, fetchPosts, searchMetadata } = usePost();
+    const { posts, loadMorePosts, hasMore, isMoreLoading, fetchPosts, searchMetadata, feedFilter, setFeedFilter } = usePost();
+    const { currentUser } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
 
     // [New] 데이터 전처리: 렌더링 루프 내 연산을 최소화하기 위해 메모이제이션 적용
     const processedPosts = React.useMemo(() => {
@@ -68,9 +70,9 @@ const FeedPage = () => {
         } else {
             const searchTerm = query || search;
             setLastQuery(searchTerm || '');
-            fetchPosts(searchTerm, false); // 일반 검색
+            fetchPosts(searchTerm, false, feedFilter); // 일반 검색 또는 필터 피드
         }
-    }, [location.search, fetchPosts]);
+    }, [location.search, fetchPosts, feedFilter]);
     const skipRebuildRef = useRef(false);
 
     // [New] 새로고침 시 스크롤 최상단 강제 이동
@@ -520,8 +522,42 @@ const FeedPage = () => {
         }
     };
 
+    const handleFilterChange = (filter) => {
+        setFeedFilter(filter);
+        // URL에 검색 파라미터가 있으면 제거하고 피드로 이동
+        const params = new URLSearchParams(location.search);
+        if (params.get('tag') || params.get('search') || params.get('query')) {
+            navigate('/feed', { replace: true });
+        }
+    };
+
+    const isFilterActive = (filter) => feedFilter === filter;
+
     return (
         <div id='FeedPage'>
+            <div className='feed-filter-tabs'>
+                <button
+                    type='button'
+                    className={`filter-tab ${isFilterActive('all') ? 'active' : ''}`}
+                    onClick={() => handleFilterChange('all')}
+                >
+                    전체
+                </button>
+                <button
+                    type='button'
+                    className={`filter-tab ${isFilterActive('follow') ? 'active' : ''}`}
+                    onClick={() => handleFilterChange('follow')}
+                >
+                    팔로우
+                </button>
+                <button
+                    type='button'
+                    className={`filter-tab ${isFilterActive('liked') ? 'active' : ''}`}
+                    onClick={() => handleFilterChange('liked')}
+                >
+                    좋아요
+                </button>
+            </div>
             <div className='columns-wrapper'>
                 <div className='columns-controls'>
                     <button
@@ -611,11 +647,27 @@ const FeedPage = () => {
                                                     {/* [New] Empty State UI */}
                                                     {!isMoreLoading && processedPosts.length === 0 && (
                                                         <div className="empty-state">
-                                                            <div className="empty-icon">🔍</div>
+                                                            <div className="empty-icon">
+                                                                {feedFilter === 'follow' || feedFilter === 'liked' ? '👤' : '🔍'}
+                                                            </div>
                                                             <p className="empty-text">
-                                                                {lastQuery ? `"${lastQuery}"에 대한 검색 결과가 없습니다.` : '등록된 게시글이 없습니다.'}
+                                                                {feedFilter === 'follow' && !currentUser
+                                                                    ? '로그인하면 팔로우한 사용자의 게시글을 확인할 수 있습니다.'
+                                                                    : feedFilter === 'liked' && !currentUser
+                                                                    ? '로그인하면 좋아요한 게시글을 확인할 수 있습니다.'
+                                                                    : feedFilter === 'follow'
+                                                                    ? '팔로우한 사용자의 게시글이 없습니다.'
+                                                                    : feedFilter === 'liked'
+                                                                    ? '좋아요한 게시글이 없습니다.'
+                                                                    : lastQuery
+                                                                    ? `"${lastQuery}"에 대한 검색 결과가 없습니다.`
+                                                                    : '등록된 게시글이 없습니다.'}
                                                             </p>
-                                                            <p className="empty-subtext">검색어를 변경하거나 다른 태그를 탐색해 보세요.</p>
+                                                            <p className="empty-subtext">
+                                                                {feedFilter === 'follow' || feedFilter === 'liked'
+                                                                    ? '다른 사용자를 팔로우하거나 게시글에 좋아요를 눌러보세요.'
+                                                                    : '검색어를 변경하거나 다른 태그를 탐색해 보세요.'}
+                                                            </p>
                                                         </div>
                                                     )}
                                     

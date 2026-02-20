@@ -15,11 +15,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.skull.logbook.dto.PostResponseDto;
+import com.skull.logbook.service.PostLikeService;
 import com.skull.logbook.service.PostService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final PostLikeService postLikeService;
 
     private boolean isCurrentUserAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -47,10 +50,11 @@ public class PostController {
     public List<PostResponseDto> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "false") boolean includeInactive) {
+            @RequestParam(defaultValue = "false") boolean includeInactive,
+            @RequestParam(required = false) String filter) {
         boolean isAdmin = isCurrentUserAdmin();
         boolean effectiveIncludeInactive = includeInactive && isAdmin;
-        return postService.getAllPosts(page, size, effectiveIncludeInactive);
+        return postService.getAllPosts(page, size, effectiveIncludeInactive, filter);
     }
 
     @GetMapping("/count")
@@ -78,6 +82,38 @@ public class PostController {
         boolean isAdmin = isCurrentUserAdmin();
         boolean effectiveIncludeInactive = includeInactive && isAdmin;
         return postService.getPostDetail(postId, effectiveIncludeInactive);
+    }
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Map<String, Object>> likePost(@PathVariable Long postId) {
+        try {
+            postLikeService.like(postId);
+            long likeCount = postLikeService.countLikes(postId);
+            return ResponseEntity.ok(Map.of(
+                    "message", "좋아요를 눌렀습니다.",
+                    "likeCount", likeCount,
+                    "isLiked", true));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{postId}/like")
+    public ResponseEntity<Map<String, Object>> unlikePost(@PathVariable Long postId) {
+        try {
+            postLikeService.unlike(postId);
+            long likeCount = postLikeService.countLikes(postId);
+            return ResponseEntity.ok(Map.of(
+                    "message", "좋아요를 취소했습니다.",
+                    "likeCount", likeCount,
+                    "isLiked", false));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PatchMapping("/{postId}/deactivate")
