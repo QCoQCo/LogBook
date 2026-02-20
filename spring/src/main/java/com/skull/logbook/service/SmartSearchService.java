@@ -6,7 +6,6 @@ import com.skull.logbook.dto.PostResponseDto;
 import com.skull.logbook.dto.SearchResponseDto;
 import com.skull.logbook.entity.Post;
 import com.skull.logbook.entity.SearchMetadata;
-import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.CommonCodeRepository;
 import com.skull.logbook.repository.PostLikeRepository;
 import com.skull.logbook.repository.PostRepository;
@@ -809,8 +808,11 @@ public class SmartSearchService {
 
         // 2. 작성자 닉네임 조회
         List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
-        Map<Long, String> authorNameMap = userRepository.findAllById(userIds).stream()
-                .collect(Collectors.toMap(User::getId, User::getNickName, (a, b) -> a));
+        Map<Long, String> authorNameMap = userRepository.findIdAndNickNameByIdIn(userIds).stream()
+                .collect(Collectors.toMap(
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameProjection::getId,
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameProjection::getNickName,
+                        (a, b) -> a));
 
         // 3. 좋아요 수 조회
         Map<Long, Long> likeCountMap = Collections.emptyMap();

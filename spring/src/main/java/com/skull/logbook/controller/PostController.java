@@ -50,10 +50,11 @@ public class PostController {
     public List<PostResponseDto> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "false") boolean includeInactive) {
+            @RequestParam(defaultValue = "false") boolean includeInactive,
+            @RequestParam(required = false) String filter) {
         boolean isAdmin = isCurrentUserAdmin();
         boolean effectiveIncludeInactive = includeInactive && isAdmin;
-        return postService.getAllPosts(page, size, effectiveIncludeInactive);
+        return postService.getAllPosts(page, size, effectiveIncludeInactive, filter);
     }
 
     @GetMapping("/count")

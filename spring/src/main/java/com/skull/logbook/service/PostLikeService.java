@@ -13,6 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class PostLikeService {
@@ -41,6 +45,19 @@ public class PostLikeService {
         } catch (AccessDeniedException e) {
             return false;
         }
+    }
+
+    /**
+     * 배치 조회: 주어진 postIds 중 현재 사용자가 좋아요한 postId 목록 반환.
+     * N+1 방지를 위해 목록 조회 시 사용.
+     */
+    @Transactional(readOnly = true)
+    public Set<Long> getLikedPostIds(User user, List<Long> postIds) {
+        if (user == null || postIds == null || postIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+        List<Long> liked = postLikeRepository.findPostIdsByUserAndPostIdIn(user, postIds);
+        return Set.copyOf(liked);
     }
 
     @Transactional(readOnly = true)
