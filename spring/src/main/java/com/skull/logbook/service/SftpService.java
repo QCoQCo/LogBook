@@ -8,7 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
+import java.util.Vector;
 
 @Slf4j
 @Service
@@ -29,7 +31,12 @@ public class SftpService {
     @Value("${file.upload.uploadPath}")
     private String uploadPath;
 
-    public String uploadFile(MultipartFile file, String subFolder, String userId) throws IOException {
+    public String uploadFile(
+            MultipartFile file,
+            String subFolder,
+            String userId,
+            String... extraPaths
+    ) throws IOException {
         Session session = null;
         ChannelSftp channelSftp = null;
 
@@ -40,7 +47,24 @@ public class SftpService {
         }
         String savedFilename = java.util.UUID.randomUUID().toString() + extension;
         // SFTP 서버 상의 저장 경로: uploadPath/{subFolder}/{userId}/
-        String remoteDir = uploadPath + "/" + subFolder + "/" + userId;
+
+        StringBuilder remoteDirBuilder = new StringBuilder();
+        remoteDirBuilder.append(uploadPath)
+                .append("/")
+                .append(subFolder)
+                .append("/")
+                .append(userId);
+
+        if (extraPaths != null) {
+            for (String path : extraPaths) {
+                if (path != null && !path.isBlank()) {
+                    remoteDirBuilder.append("/").append(path);
+                }
+            }
+        }
+
+        String remoteDir = remoteDirBuilder.toString();
+
         String remoteFilePath = remoteDir + "/" + savedFilename;
 
         System.out.println("=== SftpService.uploadFile Started ===");
@@ -67,7 +91,7 @@ public class SftpService {
             // uploadPath + subFolder + userId 순서로 진입
             // "/"로 분리하여 한 단계씩 cd 시도 -> 실패 시 mkdir -> cd 반복
 
-            String targetFullPath = uploadPath + "/" + subFolder + "/" + userId;
+            String targetFullPath = remoteDir;
             // 경로 구분자 통일
             targetFullPath = targetFullPath.replace("\\", "/");
             String[] pathParts = targetFullPath.split("/");
@@ -109,7 +133,19 @@ public class SftpService {
             // 예: https://{host}/images/profile/{userId}/{filename}
             // 임시로 DB에는 파일명만 저장하거나, 규칙에 따른 URL을 저장해야 함.
             // 프론트엔드/백엔드 Context Path(/api) 일치를 위해 /api 추가
-            return "/api/img/" + subFolder + "/" + userId + "/" + savedFilename;
+            if (extraPaths != null && extraPaths.length > 0) {
+                return "/api/img/"
+                        + subFolder + "/"
+                        + userId + "/"
+                        + String.join("/", extraPaths)
+                        + "/"
+                        + savedFilename;
+            } else {
+                return "/api/img/"
+                        + subFolder + "/"
+                        + userId + "/"
+                        + savedFilename;
+            }
 
         } catch (JSchException | SftpException e) {
             log.error("SFTP Upload Failure", e);
@@ -124,13 +160,17 @@ public class SftpService {
         }
     }
 
-    public byte[] downloadFile(String subFolder, String userId, String filename) throws IOException {
+    public byte[] downloadFileWithPath(
+            String subFolder,
+            String userId,
+            String relativePath
+    ) throws IOException {
         Session session = null;
         ChannelSftp channelSftp = null;
         byte[] fileContent = null;
 
         // 경로: uploadPath/{subFolder}/{userId}/{filename}
-        String targetFullPath = uploadPath + "/" + subFolder + "/" + userId + "/" + filename;
+        String targetFullPath = uploadPath + "/" + subFolder + "/" + userId + "/" + relativePath;
         targetFullPath = targetFullPath.replace("\\", "/");
 
         try {
@@ -163,5 +203,112 @@ public class SftpService {
             }
         }
         return fileContent;
+    }
+
+    public void moveTempSessionFiles(
+            String subFolder,
+            String userId,
+            String editId,
+            List<String> files
+    ) throws IOException {
+
+        Session session = null;
+        ChannelSftp channelSftp = null;
+
+        try {
+            // uploadPath는 반드시 서버의 절대경로여야 함
+            // 예: /home/ubuntu/images
+            String basePath = uploadPath + "/" + subFolder + "/" + userId;
+            String tempSessionPath = basePath + "/temp/" + editId;
+            String finalDir = basePath;
+
+            // 절대경로 보장 (앞에 / 없으면 붙이기)
+            
+            if (!basePath.startsWith("/")) basePath = "/" + basePath;
+            if (!tempSessionPath.startsWith("/")) tempSessionPath = "/" + tempSessionPath;
+            if (!finalDir.startsWith("/")) finalDir = "/" + finalDir;
+
+            JSch jsch = new JSch();
+            session = jsch.getSession(username, host, port);
+            session.setPassword(password);
+
+            Properties config = new Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+            session.connect();
+
+            channelSftp = (ChannelSftp) session.openChannel("sftp");
+            channelSftp.connect();
+
+            log.info("==== MOVE TEMP SESSION START ====");
+            log.info("tempSessionPath: {}", tempSessionPath);
+            log.info("finalDir: {}", finalDir);
+            log.info("files: {}", files);
+
+            // tempSession 존재 확인 (cd 쓰지 않음)
+            try {
+                channelSftp.lstat(tempSessionPath);
+            } catch (SftpException e) {
+                log.warn("Temp session folder not found: {}", tempSessionPath);
+                return;
+            }
+
+            for (String filename : files) {
+
+                String from = tempSessionPath + "/" + filename;
+                String to = finalDir + "/" + filename;
+
+                try {
+                    log.info("FROM: {}", from);
+                    log.info("TO: {}", to);
+
+                    // 파일 존재 확인
+                    channelSftp.lstat(from);
+
+                    // 동일 파일 존재 시 삭제 (충돌 방지)
+                    try {
+                        channelSftp.lstat(to);
+                        channelSftp.rm(to);
+                        log.info("Existing file removed: {}", to);
+                    } catch (SftpException ignored) {
+                        // 존재하지 않으면 무시
+                    }
+
+                    // 절대경로 rename
+                    channelSftp.rename(from, to);
+
+                    log.info("파일 이동 성공: {}", filename);
+
+                } catch (SftpException e) {
+                    log.error("파일 이동 실패: {}", filename, e);
+                    throw new IOException("파일 이동 실패: " + filename, e);
+                }
+            }
+
+            // ===============================
+            // temp 폴더 정리
+            // ===============================
+
+            Vector<ChannelSftp.LsEntry> remainingFiles = channelSftp.ls(tempSessionPath);
+
+            for (ChannelSftp.LsEntry entry : remainingFiles) {
+                String name = entry.getFilename();
+                if (!name.equals(".") && !name.equals("..")) {
+                    channelSftp.rm(tempSessionPath + "/" + name);
+                }
+            }
+
+            channelSftp.rmdir(tempSessionPath);
+
+            log.info("Temp session moved and cleaned: {}", editId);
+            log.info("==== MOVE TEMP SESSION END ====");
+
+        } catch (Exception e) {
+            log.error("Temp 세션 이동 실패", e);
+            throw new IOException("Temp 세션 이동 실패", e);
+        } finally {
+            if (channelSftp != null) channelSftp.disconnect();
+            if (session != null) session.disconnect();
+        }
     }
 }

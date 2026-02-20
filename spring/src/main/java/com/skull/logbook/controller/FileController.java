@@ -1,6 +1,8 @@
 package com.skull.logbook.controller;
 
+import com.skull.logbook.dto.ImageConfirmRequestDto;
 import com.skull.logbook.service.SftpService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/img")
@@ -18,16 +21,27 @@ public class FileController {
 
     private final SftpService sftpService;
 
-    @GetMapping("/{subFolder}/{userId}/{filename}")
+    @GetMapping("/{subFolder}/{userId}/**")
     public ResponseEntity<Resource> getImage(
             @PathVariable String subFolder,
             @PathVariable String userId,
-            @PathVariable String filename) {
+            HttpServletRequest request
+    ) {
         try {
-            byte[] fileContent = sftpService.downloadFile(subFolder, userId, filename);
+            String fullPath = request.getRequestURI();
+
+            // "/img/" 이후 경로만 추출
+            String basePath = "/img/" + subFolder + "/" + userId + "/";
+            String filename = fullPath.substring(fullPath.indexOf(basePath) + basePath.length());
+
+            byte[] fileContent = sftpService.downloadFileWithPath(
+                    subFolder,
+                    userId,
+                    filename
+            );
+
             ByteArrayResource resource = new ByteArrayResource(fileContent);
 
-            // 파일 확장자에 따라 MediaType 결정 (간단하게 구현)
             MediaType mediaType = MediaType.IMAGE_JPEG;
             if (filename.toLowerCase().endsWith(".png")) {
                 mediaType = MediaType.IMAGE_PNG;
@@ -48,7 +62,8 @@ public class FileController {
     @PostMapping("/blogItems/{userId}")
     public ResponseEntity<?> uploadImage(
             @PathVariable String userId,
-            @RequestParam("file") MultipartFile file
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("editId") String editId
     ) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("파일이 비어있습니다.");
@@ -69,7 +84,7 @@ public class FileController {
         }
 
         try {
-            String uploadedPath = sftpService.uploadFile(file, "blogItems", userId);
+            String uploadedPath = sftpService.uploadFile(file, "blogItems", userId, "temp", editId);
 
             return ResponseEntity.ok(uploadedPath);
         } catch (IOException e) {
@@ -78,4 +93,25 @@ public class FileController {
         }
     }
 
+    // 블로그 grid layout item 이미지 temp 이동 처리
+    @PatchMapping("/blogItems/{userId}")
+    public ResponseEntity<?> confirmImages(
+            @PathVariable String userId,
+            @RequestBody ImageConfirmRequestDto request
+    ) {
+        try {
+            sftpService.moveTempSessionFiles(
+                    "blogItems",
+                    userId,
+                    request.getEditId(),
+                    request.getFiles()
+            );
+            System.out.println("에디트: " + request.getEditId());
+
+            return ResponseEntity.ok("이미지 파일 이동 완료");
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError()
+                    .body("이미지 파일 이동 실패: " + e.getMessage());
+        }
+    }
 }

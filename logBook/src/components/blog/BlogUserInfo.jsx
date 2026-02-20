@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import apiClient from '../../utils/apiClient';
 import UserInfoModal from '../chat/UserInfoModal';
 
-const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
+const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
     const [introText, setIntroText] = useState('');
     const [nickName, setNickName] = useState('');
     const [originalNickName, setOriginalNickName] = useState('');
@@ -29,6 +29,8 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
         isBlogEditing,
         setisBlogEditing,
         activeTab,
+        editingSessionId,
+        setEditingSessionId,
     } = useBlog();
     const { currentUser, updateCurrentUser } = useAuth();
     const { updateUserInCache } = useUserData();
@@ -69,6 +71,8 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
     };
 
     const handleClickEditBlog = () => {
+        setEditingSessionId(crypto.randomUUID());
+
         // 깊은 복사 -> 얕은 복사를 하면 layout / elements 가 변할 때 같이 변해버림
         setOriginLayout(JSON.parse(JSON.stringify(layout)));
         setOriginElements(JSON.parse(JSON.stringify(elements)));
@@ -82,11 +86,72 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
         }
 
         try {
+            const userId = blogOwnerData.id;
+
+            // ================================
+            // temp 이미지 목록 추출
+            // ================================
+            const tempElements = elements.filter((el) => el.meta?.tempSrc);
+
+            console.log(editingSessionId);
+            console.log('adfas ' + userId);
+
+            const extractFileName = (url) => {
+                if (!url) return null;
+                const parts = url.split('/');
+
+                console.log(parts[parts.length - 1]);
+
+                return parts[parts.length - 1];
+            };
+
+            const tempFileNames = tempElements
+                .map((el) => extractFileName(el.content))
+                .filter(Boolean);
+
+            // ================================
+            // 서버에 temp 이동 요청
+            // ================================
+            if (tempFileNames.length > 0) {
+                await apiClient.patch(`/img/blogItems/${userId}`, {
+                    editId: editingSessionId,
+                    files: tempFileNames,
+                });
+            }
+
+            // ================================
+            // elements에서 temp 제거
+            // ================================
+            const updatedElements = elements.map((el) => {
+                if (el.meta?.tempSrc) {
+                    const newContent = el.content.replace(
+                        `/api/img/blogItems/${userId}/temp/${editingSessionId}/`,
+                        `/api/img/blogItems/${userId}/`,
+                    );
+
+                    console.log('before: ' + el.content);
+                    console.log('after: ' + newContent);
+                    return {
+                        ...el,
+                        content: newContent,
+                        meta: {
+                            tempSrc: false,
+                        },
+                    };
+                }
+                return el;
+            });
+
+            setElements(updatedElements);
+
+            // ================================
+            // 프로필 + 레이아웃 저장
+            // ================================
             const formData = new FormData();
 
             const layoutJson = {
                 layout: layout,
-                elements: elements,
+                elements: updatedElements,
             };
 
             formData.append('introduction', introText);
@@ -116,11 +181,12 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
                 await onUpdate();
             }
             setisBlogEditing(false);
+            setEditingSessionId(null);
             setSelectedFile(null);
             setPreviewUrl(null);
         } catch (error) {
-            console.error('Failed to update profile:', error);
-            alert('프로필 수정에 실패했습니다.');
+            console.error('저장 실패:', error);
+            alert('블로그 저장에 실패했습니다.');
         }
     };
 
@@ -175,115 +241,121 @@ const BlogUserInfo = ({ userId, blogOwnerData, isOwnBlog, onUpdate }) => {
     } else {
         return (
             <>
-            <div className="user-info-area">
-                <div className="profile-photo-wrapper">
-                    <div className="profile-photo">
-                        <img
-                            id="user-profile-photo"
-                            src={previewUrl || getProfileImageUrl(blogOwnerData.profilePhoto)}
-                            alt=""
-                        />
+                <div className="user-info-area">
+                    <div className="profile-photo-wrapper">
+                        <div className="profile-photo">
+                            <img
+                                id="user-profile-photo"
+                                src={previewUrl || getProfileImageUrl(blogOwnerData.profilePhoto)}
+                                alt=""
+                            />
+                        </div>
                     </div>
-                </div>
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    accept="image/*"
-                    onChange={handleFileChange}
-                />
-                {isBlogEditing && (
-                    <button
-                        className="edit-profile-photo"
-                        onClick={() => fileInputRef.current.click()}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        onChange={handleFileChange}
+                    />
+                    {isBlogEditing && (
+                        <button
+                            className="edit-profile-photo"
+                            onClick={() => fileInputRef.current.click()}
+                        >
+                            <img src="/img/logbook-edit.png" />
+                        </button>
+                    )}
+                    <div className="user-nickname-wrapper">
+                        {isBlogEditing ? (
+                            <>
+                                <div className="nickname-input-group">
+                                    <input
+                                        type="text"
+                                        value={nickName}
+                                        onChange={handleChangeNickName}
+                                        className="edit-nickname-input"
+                                    />
+                                    <button
+                                        className="check-nickname-btn"
+                                        onClick={handleCheckNickName}
+                                        disabled={nickName === originalNickName}
+                                    >
+                                        중복확인
+                                    </button>
+                                </div>
+                                {nickNameMessage && (
+                                    <span
+                                        className={`nickname-message ${
+                                            isNickNameChecked ? 'success' : 'error'
+                                        }`}
+                                    >
+                                        {nickNameMessage}
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <div className="user-nickname">{blogOwnerData.nickName}</div>
+                        )}
+                    </div>
+                    <div
+                        className={
+                            isBlogEditing
+                                ? 'user-introduction is-editting'
+                                : isOwnBlog
+                                  ? 'user-introduction is-my-blog'
+                                  : 'user-introduction'
+                        }
                     >
-                        <img src="/img/logbook-edit.png" />
-                    </button>
-                )}
-                <div className="user-nickname-wrapper">
-                    {isBlogEditing ? (
-                        <>
-                            <div className="nickname-input-group">
-                                <input
-                                    type="text"
-                                    value={nickName}
-                                    onChange={handleChangeNickName}
-                                    className="edit-nickname-input"
-                                />
-                                <button
-                                    className="check-nickname-btn"
-                                    onClick={handleCheckNickName}
-                                    disabled={nickName === originalNickName}
-                                >
-                                    중복확인
-                                </button>
-                            </div>
-                            {nickNameMessage && (
-                                <span
-                                    className={`nickname-message ${
-                                        isNickNameChecked ? 'success' : 'error'
-                                    }`}
-                                >
-                                    {nickNameMessage}
-                                </span>
-                            )}
-                        </>
-                    ) : (
-                        <div className="user-nickname">{blogOwnerData.nickName}</div>
+                        <textarea
+                            ref={introTextRef}
+                            onChange={handleChangeIntroText}
+                            value={introText}
+                            readOnly={isBlogEditing ? '' : 'readonly'}
+                        ></textarea>
+                    </div>
+                    {isBlogEditing && activeTab === 1 && (
+                        <div className="user-info-btns">
+                            <button className="save-btn" onClick={handleClickConfirmBtn}>
+                                저 장
+                            </button>
+                            <button className="cancel-btn" onClick={handleClickCancelBtn}>
+                                취 소
+                            </button>
+                        </div>
+                    )}
+                    {!isBlogEditing && isOwnBlog && activeTab === 1 && (
+                        <button className="edit-btn" onClick={handleClickEditBlog}>
+                            내 블로그 수정하기
+                        </button>
+                    )}
+                    {!isBlogEditing && !isOwnBlog && activeTab === 1 && (
+                        <button
+                            className="edit-btn profile-view-btn"
+                            onClick={() => setShowProfileModal(true)}
+                        >
+                            프로필 보기
+                        </button>
                     )}
                 </div>
-                <div
-                    className={
-                        isBlogEditing
-                            ? 'user-introduction is-editting'
-                            : isOwnBlog
-                              ? 'user-introduction is-my-blog'
-                              : 'user-introduction'
-                    }
-                >
-                    <textarea
-                        ref={introTextRef}
-                        onChange={handleChangeIntroText}
-                        value={introText}
-                        readOnly={isBlogEditing ? '' : 'readonly'}
-                    ></textarea>
-                </div>
-                {isBlogEditing && activeTab === 1 && (
-                    <div className="user-info-btns">
-                        <button className="save-btn" onClick={handleClickConfirmBtn}>
-                            저 장
-                        </button>
-                        <button className="cancel-btn" onClick={handleClickCancelBtn}>
-                            취 소
-                        </button>
-                    </div>
-                )}
-                {!isBlogEditing && isOwnBlog && activeTab === 1 && (
-                    <button className="edit-btn" onClick={handleClickEditBlog}>
-                        내 블로그 수정하기
-                    </button>
-                )}
-                {!isBlogEditing && !isOwnBlog && activeTab === 1 && (
-                    <button className="edit-btn profile-view-btn" onClick={() => setShowProfileModal(true)}>
-                        프로필 보기
-                    </button>
-                )}
-            </div>
 
-            {/* 타인 블로그일 때 프로필 보기 모달 */}
-            {blogOwnerData && (
-                <UserInfoModal
-                    isOpen={showProfileModal}
-                    onClose={() => setShowProfileModal(false)}
-                    userInfo={{
-                        ...blogOwnerData,
-                        userId: blogOwnerData.loginId ?? blogOwnerData.userId ?? String(blogOwnerData.id),
-                        profilePhoto: getProfileImageUrl(blogOwnerData.profilePhoto),
-                    }}
-                    currentUserId={currentUser?.id}
-                    isOwnProfile={false}
-                />
-            )}
+                {/* 타인 블로그일 때 프로필 보기 모달 */}
+                {blogOwnerData && (
+                    <UserInfoModal
+                        isOpen={showProfileModal}
+                        onClose={() => setShowProfileModal(false)}
+                        userInfo={{
+                            ...blogOwnerData,
+                            userId:
+                                blogOwnerData.loginId ??
+                                blogOwnerData.userId ??
+                                String(blogOwnerData.id),
+                            profilePhoto: getProfileImageUrl(blogOwnerData.profilePhoto),
+                        }}
+                        currentUserId={currentUser?.id}
+                        isOwnProfile={false}
+                    />
+                )}
             </>
         );
     }

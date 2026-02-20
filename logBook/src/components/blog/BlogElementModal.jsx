@@ -9,7 +9,7 @@ import ImageInputArea from './ImageInputArea';
 import { getCurrentUserId } from '../../utils/auth';
 
 const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
-    const { elements, setElements } = useBlog();
+    const { elements, setElements, editingSessionId } = useBlog();
 
     const currentContent = item ? elements.find((element) => element.i === item.i)?.content : '';
 
@@ -115,6 +115,7 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
 
                 const formData = new FormData();
                 formData.append('file', state.imageFile);
+                formData.append('editId', editingSessionId);
 
                 const res = await apiClient.post(`/img/blogItems/${userId}`, formData, {
                     headers: {
@@ -130,6 +131,9 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                             ? {
                                   ...element,
                                   content: uploadedUrl,
+                                  meta: {
+                                      tempSrc: true,
+                                  },
                               }
                             : element,
                     ),

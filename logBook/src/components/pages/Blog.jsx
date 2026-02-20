@@ -14,8 +14,7 @@ const Blog = () => {
     const userId = searchParam.get('userId');
 
     // Blog, UserData Context 사용
-    const { clickedItem, isBlogEditing, setisBlogEditing, activeTab, setActiveTab } = useBlog();
-    const { userData } = useUserData();
+    const { clickedItem, isBlogEditing, activeTab, setActiveTab } = useBlog();
     const { currentUser, isLogin } = useAuth();
 
     // States
