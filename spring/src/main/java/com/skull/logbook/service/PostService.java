@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.skull.logbook.dto.PostResponseDto;
 import com.skull.logbook.entity.Post;
 import com.skull.logbook.entity.User;
+import com.skull.logbook.repository.PostLikeRepository;
 import com.skull.logbook.repository.PostRepository;
 import com.skull.logbook.repository.UserRepository;
 
@@ -25,8 +26,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostService {
         private final PostRepository postRepository;
-        private final PostTagRepository postTagRepository; // Injected
+        private final PostTagRepository postTagRepository;
         private final UserRepository userRepository;
+        private final PostLikeRepository postLikeRepository;
+        private final PostLikeService postLikeService;
 
         public List<PostResponseDto> getAllPosts(int page, int size, boolean includeInactive) {
                 // 1. 게시글 목록 우선 조회 (관리자: 전체, 피드: 활성만)
@@ -53,16 +56,16 @@ public class PostService {
                 Map<Long, String> authorNameMap = userRepository.findAllById(userIds).stream()
                                 .collect(Collectors.toMap(User::getId, User::getNickName, (a, b) -> a));
 
-                for (Post post : posts) {
-                        System.out.println("postId: " + post.getId());
-                        System.out.println("title: " + post.getTitle());
-                        System.out.println("content: " + post.getContent());
-                        System.out.println("createdAt: " + post.getCreatedAt());
-                        System.out.println("updatedAt: " + post.getUpdatedAt());
-                        System.out.println("tags: " + tagsMap.getOrDefault(post.getId(), new ArrayList<>()));
+                // 5. 좋아요 수 조회
+                Map<Long, Long> likeCountMap = Collections.emptyMap();
+                List<Object[]> likeCountData = postLikeRepository.countLikesByPostIds(postIds);
+                if (!likeCountData.isEmpty()) {
+                        likeCountMap = likeCountData.stream()
+                                        .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1], (a, b) -> a));
                 }
 
-                // 5. DTO 변환 (태그, 작성자명 주입)
+                // 6. DTO 변환 (태그, 작성자명, 좋아요 수 주입)
+                Map<Long, Long> finalLikeCountMap = likeCountMap;
                 return posts.stream()
                                 .map(post -> new PostResponseDto(
                                                 post.getId(),
@@ -73,7 +76,9 @@ public class PostService {
                                                 post.getCreatedAt().toString(),
                                                 post.getUpdatedAt().toString(),
                                                 tagsMap.getOrDefault(post.getId(), new ArrayList<>()),
-                                                Boolean.TRUE.equals(post.getIsActive())
+                                                Boolean.TRUE.equals(post.getIsActive()),
+                                                finalLikeCountMap.getOrDefault(post.getId(), 0L),
+                                                false
                                 ))
                                 .toList();
         }
@@ -131,6 +136,9 @@ public class PostService {
                                 .map(data -> (String) data[1])
                                 .collect(Collectors.toList());
 
+                long likeCount = postLikeService.countLikes(postId);
+                boolean isLiked = postLikeService.isLiked(postId);
+
                 return new PostResponseDto(
                                 post.getId(),
                                 String.valueOf(post.getUserId()),
@@ -140,7 +148,9 @@ public class PostService {
                                 post.getCreatedAt().toString(),
                                 post.getUpdatedAt().toString(),
                                 tags,
-                                Boolean.TRUE.equals(post.getIsActive()));
+                                Boolean.TRUE.equals(post.getIsActive()),
+                                likeCount,
+                                isLiked);
         }
 
         public List<UserPostListDto> getPostsByUserId(Long userId, Pageable pageable) {
