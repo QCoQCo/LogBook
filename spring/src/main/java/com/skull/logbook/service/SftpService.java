@@ -34,7 +34,7 @@ public class SftpService {
     public String uploadFile(
             MultipartFile file,
             String subFolder,
-            String userId,
+            Long userId,
             String... extraPaths
     ) throws IOException {
         Session session = null;
@@ -160,9 +160,102 @@ public class SftpService {
         }
     }
 
+    public void deleteImages(List<String> files, Long userId, String sessionId) {
+        Session session = null;
+        ChannelSftp channelSftp = null;
+
+        try {
+            JSch jsch = new JSch();
+            session = jsch.getSession(username, host, port);
+            session.setPassword(password);
+
+            Properties config = new Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+            session.connect();
+
+            channelSftp = (ChannelSftp) session.openChannel("sftp");
+            channelSftp.connect();
+
+            // 1. 파일 삭제
+            for (String fileUrl : files) {
+                // 1-1. "/api/img" 제거
+                String relativePath = fileUrl.replaceFirst("^/api/img", "");
+                relativePath = relativePath.replace("\\", "/"); // 윈도우 경로 대응
+
+                // 1-2. 경로를 분해하여 서버에서 userId 검증 후 재조합
+                // 예시 경로: /blogItems/{userId}/... (temp/final 모두 대응)
+                String[] parts = relativePath.split("/");
+                if (parts.length < 3) { // 최소 blogItems/userId/filename
+                    log.warn("잘못된 파일 경로: {}", relativePath);
+                    continue;
+                }
+
+                // server-side userId 검증
+                String pathUserIdStr = parts[2]; // 2번째 인덱스가 항상 userId
+                try {
+                    Long pathUserId = Long.parseLong(pathUserIdStr);
+                    if (!pathUserId.equals(userId)) {
+                        log.warn("사용자 ID 위조 가능성 발견: {} vs {}", pathUserId, userId);
+                        continue; // 삭제하지 않음
+                    }
+                } catch (NumberFormatException e) {
+                    log.warn("경로 내 userId가 숫자가 아님: {}", pathUserIdStr);
+                    continue;
+                }
+
+                // 안전하게 server-side userId로 재조합
+                StringBuilder safePathBuilder = new StringBuilder();
+                safePathBuilder.append(uploadPath);
+                for (int i = 0; i < parts.length; i++) {
+                    if (i == 2) { // userId 부분은 서버값으로 교체
+                        safePathBuilder.append("/").append(userId);
+                    } else {
+                        safePathBuilder.append("/").append(parts[i]);
+                    }
+                }
+
+                String fullPath = safePathBuilder.toString();
+                if (!fullPath.startsWith("/")) fullPath = "/" + fullPath;
+
+                try {
+                    channelSftp.lstat(fullPath);
+                    channelSftp.rm(fullPath);
+                    log.info("파일 삭제 성공: {}", fullPath);
+                } catch (SftpException ignored) {
+                    log.warn("삭제할 파일이 존재하지 않음: {}", fullPath);
+                }
+            }
+
+            // 2. temp/sessionId 폴더 삭제
+            String tempFolder = uploadPath + "/blogItems/" + userId + "/temp/" + sessionId;
+            if (!tempFolder.startsWith("/")) tempFolder = "/" + tempFolder;
+
+            try {
+                Vector<ChannelSftp.LsEntry> remainingFiles = channelSftp.ls(tempFolder);
+                for (ChannelSftp.LsEntry entry : remainingFiles) {
+                    String name = entry.getFilename();
+                    if (!name.equals(".") && !name.equals("..")) {
+                        channelSftp.rm(tempFolder + "/" + name);
+                    }
+                }
+                channelSftp.rmdir(tempFolder);
+                log.info("Temp 세션 폴더 삭제 완료: {}", tempFolder);
+            } catch (SftpException e) {
+                log.warn("Temp 세션 폴더가 존재하지 않거나 삭제 실패: {}", tempFolder);
+            }
+
+        } catch (Exception e) {
+            log.error("deleteImages 중 오류 (무시됨)", e); // throw 하지 않음
+        } finally {
+            if (channelSftp != null) channelSftp.disconnect();
+            if (session != null) session.disconnect();
+        }
+    }
+
     public byte[] downloadFileWithPath(
             String subFolder,
-            String userId,
+            Long userId,
             String relativePath
     ) throws IOException {
         Session session = null;
@@ -207,7 +300,7 @@ public class SftpService {
 
     public void moveTempSessionFiles(
             String subFolder,
-            String userId,
+            Long userId,
             String editId,
             List<String> files
     ) throws IOException {

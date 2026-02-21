@@ -1,6 +1,7 @@
 package com.skull.logbook.controller;
 
 import com.skull.logbook.dto.ImageConfirmRequestDto;
+import com.skull.logbook.dto.ImageDeleteRequestDto;
 import com.skull.logbook.service.SftpService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +26,7 @@ public class FileController {
     @GetMapping("/{subFolder}/{userId}/**")
     public ResponseEntity<Resource> getImage(
             @PathVariable String subFolder,
-            @PathVariable String userId,
+            @PathVariable Long userId,
             HttpServletRequest request
     ) {
         try {
@@ -60,8 +62,9 @@ public class FileController {
 
     // 블로그 grid layout item 이미지 업로드 전용
     @PostMapping("/blogItems/{userId}")
+    @PreAuthorize("#userId == principal.id")
     public ResponseEntity<?> uploadImage(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("editId") String editId
     ) {
@@ -76,10 +79,10 @@ public class FileController {
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null ||
-                !(originalFilename.endsWith(".jpg") ||
-                        originalFilename.endsWith(".jpeg") ||
-                        originalFilename.endsWith(".png") ||
-                        originalFilename.endsWith(".gif"))) {
+                !(originalFilename.toLowerCase().endsWith(".jpg") ||
+                        originalFilename.toLowerCase().endsWith(".jpeg") ||
+                        originalFilename.toLowerCase().endsWith(".png") ||
+                        originalFilename.toLowerCase().endsWith(".gif"))) {
             return ResponseEntity.badRequest().body("허용되지 않는 확장자입니다.");
         }
 
@@ -95,10 +98,12 @@ public class FileController {
 
     // 블로그 grid layout item 이미지 temp 이동 처리
     @PatchMapping("/blogItems/{userId}")
+    @PreAuthorize("#userId == principal.id")
     public ResponseEntity<?> confirmImages(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @RequestBody ImageConfirmRequestDto request
     ) {
+
         try {
             sftpService.moveTempSessionFiles(
                     "blogItems",
@@ -113,5 +118,17 @@ public class FileController {
             return ResponseEntity.internalServerError()
                     .body("이미지 파일 이동 실패: " + e.getMessage());
         }
+    }
+
+    @DeleteMapping("/blogItems/{userId}")
+    @PreAuthorize("#userId == principal.id")
+    public ResponseEntity<?> deleteImages(
+            @PathVariable Long userId,
+            @RequestBody ImageDeleteRequestDto request
+            ) {
+
+        sftpService.deleteImages(request.getFiles(), userId, request.getSessionId());
+
+        return ResponseEntity.ok("이미지 파일 삭제 완료");
     }
 }

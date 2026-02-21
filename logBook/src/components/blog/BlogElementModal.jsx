@@ -140,6 +140,11 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                 );
             } catch (error) {
                 console.error('이미지 업로드 실패', error);
+                if (error.response.data === '허용되지 않는 확장자입니다.') {
+                    alert(error.response.data);
+                } else {
+                    alert('이미지 업로드에 실패했습니다.');
+                }
                 return;
             }
         } else {

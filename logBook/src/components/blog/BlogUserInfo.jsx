@@ -2,6 +2,7 @@ import { useBlog, useAuth, useUserData } from '../../context';
 import { useEffect, useRef, useState } from 'react';
 import apiClient from '../../utils/apiClient';
 import UserInfoModal from '../chat/UserInfoModal';
+import { getCurrentUserId } from '../../utils/auth';
 
 const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
     const [introText, setIntroText] = useState('');
@@ -31,6 +32,8 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
         activeTab,
         editingSessionId,
         setEditingSessionId,
+        deletedImagesUrl,
+        setDeletedImagesUrl,
     } = useBlog();
     const { currentUser, updateCurrentUser } = useAuth();
     const { updateUserInCache } = useUserData();
@@ -93,14 +96,9 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
             // ================================
             const tempElements = elements.filter((el) => el.meta?.tempSrc);
 
-            console.log(editingSessionId);
-            console.log('adfas ' + userId);
-
             const extractFileName = (url) => {
                 if (!url) return null;
                 const parts = url.split('/');
-
-                console.log(parts[parts.length - 1]);
 
                 return parts[parts.length - 1];
             };
@@ -110,7 +108,7 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
                 .filter(Boolean);
 
             // ================================
-            // 서버에 temp 이동 요청
+            // 1. 서버에 temp 이동 요청
             // ================================
             if (tempFileNames.length > 0) {
                 await apiClient.patch(`/img/blogItems/${userId}`, {
@@ -119,9 +117,9 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
                 });
             }
 
-            // ================================
-            // elements에서 temp 제거
-            // ================================
+            // ===================================
+            // 2. elements의 img src에서 temp 제거
+            // ===================================
             const updatedElements = elements.map((el) => {
                 if (el.meta?.tempSrc) {
                     const newContent = el.content.replace(
@@ -129,8 +127,6 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
                         `/api/img/blogItems/${userId}/`,
                     );
 
-                    console.log('before: ' + el.content);
-                    console.log('after: ' + newContent);
                     return {
                         ...el,
                         content: newContent,
@@ -145,7 +141,7 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
             setElements(updatedElements);
 
             // ================================
-            // 프로필 + 레이아웃 저장
+            // 3. 프로필 + 레이아웃 저장
             // ================================
             const formData = new FormData();
 
@@ -161,7 +157,7 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
                 formData.append('file', selectedFile);
             }
 
-            // [수정] userId(String, loginId) 대신 blogOwnerData.id(Long, PK) 사용
+            // formData 형태의 requestBody를 가지고 apiClient를 통해 put method call
             const { data } = await apiClient.put(`/users/${blogOwnerData.id}`, formData);
 
             // 헤더·프로필 모달에 즉시 반영 (UserDataContext + AuthContext 갱신)
@@ -177,6 +173,18 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
                 }
             }
 
+            // ========================================================
+            // 4. deletedImagesUrl state를 context에서 가져와 삭제 요청
+            // ========================================================
+            if (deletedImagesUrl.length > 0) {
+                await apiClient.delete(`/img/blogItems/${userId}`, {
+                    data: {
+                        files: deletedImagesUrl,
+                        sessionId: editingSessionId,
+                    },
+                });
+            }
+
             if (onUpdate) {
                 await onUpdate();
             }
@@ -184,13 +192,34 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
             setEditingSessionId(null);
             setSelectedFile(null);
             setPreviewUrl(null);
+            setDeletedImagesUrl([]);
         } catch (error) {
             console.error('저장 실패:', error);
             alert('블로그 저장에 실패했습니다.');
         }
     };
 
-    const handleClickCancelBtn = () => {
+    const handleClickCancelBtn = async () => {
+        const userId = getCurrentUserId();
+
+        // content 값만 추출
+        const tempFilesUrl = elements
+            .filter((el) => el.meta?.tempSrc) // tempSrc 있는 것만
+            .map((el) => el.content) // content만 추출
+            .filter(Boolean); // undefined/null 제거
+
+        // =====================================================
+        // 취소 시 서버로 전송된 temp 속성 이미지 파일들 삭제 수행
+        // =====================================================
+        if (tempFilesUrl.length > 0) {
+            await apiClient.delete(`/img/blogItems/${userId}`, {
+                data: {
+                    files: tempFilesUrl,
+                    sessionId: editingSessionId,
+                }, // 문자열 배열 전송
+            });
+        }
+
         if (originLayout && originElements) {
             setLayout(originLayout);
             setElements(originElements);
@@ -203,6 +232,7 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
         setNickNameMessage('');
         setSelectedFile(null);
         setPreviewUrl(null);
+        setDeletedImagesUrl([]);
     };
 
     const handleFileChange = (e) => {

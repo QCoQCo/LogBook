@@ -47,12 +47,12 @@ public class JwtTokenProvider {
         Claims claims = Jwts.claims().setSubject(authentication.getName());
         claims.put("auth", authorities);
 
-        // PrincipalDetails 인 경우 추가 정보 포함
-        if (authentication.getPrincipal() instanceof PrincipalDetails principal) {
-            claims.put("email", principal.getUser().getUserEmail());
-            claims.put("nickName", principal.getUser().getNickName());
-            claims.put("profilePhoto", principal.getUser().getProfilePhoto());
-            claims.put("userId", principal.getUser().getId());
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof PrincipalDetails pd) {
+            claims.put("userId", pd.getId());
+        } else {
+            throw new RuntimeException("PrincipalDetails가 아닙니다. 로그인 로직 확인 필요.");
         }
 
         long now = (new Date()).getTime();
@@ -70,16 +70,26 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String accessToken) {
         Claims claims = parseClaims(accessToken);
 
-        if (claims.get("auth") == null) {
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(claims.get("auth").toString().split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+        Long userId = claims.get("userId", Long.class);
+        if (userId == null) {
+            throw new RuntimeException("userId가 없는 JWT입니다. 재로그인이 필요합니다.");
         }
 
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+        String username = claims.getSubject();
 
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+        PrincipalDetails principal =
+                new PrincipalDetails(userId, username, authorities);
+
+        return new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                authorities
+        );
     }
 
     // 3. 토큰 유효성 검사 (필터에서 호출)
