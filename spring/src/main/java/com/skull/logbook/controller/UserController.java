@@ -4,12 +4,16 @@ import com.skull.logbook.constant.Role;
 import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
+import com.skull.logbook.security.PrincipalDetails;
 import com.skull.logbook.service.BlogService;
 import com.skull.logbook.service.UserFollowService;
 import com.skull.logbook.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,8 +42,11 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @Transactional
     @PutMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("#userId == principal.id")
     public ResponseEntity<?> updateProfile(
+            @AuthenticationPrincipal PrincipalDetails principal,
             @PathVariable Long userId,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestPart(value = "introduction", required = false) String introduction,
@@ -49,7 +56,7 @@ public class UserController {
         try {
             User updatedUser = userService.updateUserProfile(userId, file, introduction, nickName);
 
-            Blog updatedBlog = blogService.updateBlogLayout(userId, layout);
+            Blog updatedBlog = blogService.updateBlogLayout(userId, layout, principal);
 
             return ResponseEntity.ok(Map.of(
                     "message", "프로필이 수정되었습니다.",
