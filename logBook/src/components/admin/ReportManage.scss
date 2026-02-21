@@ -1,4 +1,19 @@
 .report-manage {
+    &__detail {
+        margin-bottom: 1rem;
+    }
+
+    &__description-full {
+        margin: 0.25rem 0 1rem;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
     &__description {
         max-width: 200px;
         display: inline-block;

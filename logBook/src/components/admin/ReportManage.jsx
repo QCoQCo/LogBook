@@ -68,7 +68,7 @@ const ReportManage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [actionLoadingId, setActionLoadingId] = useState(null);
-    const [processModalOpen, setProcessModalOpen] = useState(false);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [selectedReport, setSelectedReport] = useState(null);
     const [processType, setProcessType] = useState('warning');
     const [processNote, setProcessNote] = useState('');
@@ -88,16 +88,16 @@ const ReportManage = () => {
         }
     }, []);
 
-    const handleOpenProcessModal = useCallback((report) => {
+    const handleRowClick = useCallback((report) => {
         setSelectedReport(report);
         setProcessType('warning');
         setProcessNote('');
         setSuspendDays('3');
-        setProcessModalOpen(true);
+        setDetailModalOpen(true);
     }, []);
 
-    const handleCloseProcessModal = useCallback(() => {
-        setProcessModalOpen(false);
+    const handleCloseModal = useCallback(() => {
+        setDetailModalOpen(false);
         setSelectedReport(null);
         setProcessType('warning');
         setProcessNote('');
@@ -119,20 +119,21 @@ const ReportManage = () => {
                 suspendDays: processType === 'suspend' ? Number(suspendDays) : undefined,
             });
             await fetchReports();
-            handleCloseProcessModal();
+            handleCloseModal();
             alert('신고가 처리되었습니다.');
         } catch (err) {
             alert(err?.response?.data?.message || '신고 처리에 실패했습니다.');
         } finally {
             setActionLoadingId(null);
         }
-    }, [selectedReport, processType, processNote, suspendDays, fetchReports, handleCloseProcessModal]);
+    }, [selectedReport, processType, processNote, suspendDays, fetchReports, handleCloseModal]);
 
-    const handleUpdateStatus = useCallback(async (reportId, status) => {
+    const handleUpdateStatus = useCallback(async (reportId, status, onSuccess) => {
         setActionLoadingId(reportId);
         try {
             await apiClient.patch(`/reports/${reportId}`, { status });
             await fetchReports();
+            onSuccess?.();
         } catch (err) {
             alert(err?.response?.data?.message || '상태 변경에 실패했습니다.');
         } finally {
@@ -143,37 +144,6 @@ const ReportManage = () => {
     useEffect(() => {
         fetchReports();
     }, [fetchReports]);
-
-    const reportActions = {
-        label: '처리',
-        render: (row) => {
-            const isPending = (row.status || 'PENDING') === 'PENDING';
-            const loading = actionLoadingId === row.id;
-            if (!isPending) {
-                return <span className="report-manage__done">완료</span>;
-            }
-            return (
-                <div className="report-manage__actions">
-                    <button
-                        type="button"
-                        className="report-manage__btn report-manage__btn--process"
-                        disabled={loading}
-                        onClick={() => handleOpenProcessModal(row)}
-                    >
-                        {loading ? '처리 중…' : '처리'}
-                    </button>
-                    <button
-                        type="button"
-                        className="report-manage__btn report-manage__btn--reject"
-                        disabled={loading}
-                        onClick={() => handleUpdateStatus(row.id, 'REJECTED')}
-                    >
-                        반려
-                    </button>
-                </div>
-            );
-        },
-    };
 
     if (error) {
         return (
@@ -193,24 +163,58 @@ const ReportManage = () => {
                 data={reports}
                 loading={loading}
                 emptyMessage='접수된 신고가 없습니다.'
-                actions={reportActions}
+                onRowClick={handleRowClick}
             />
 
-            {/* 신고 처리 모달 */}
+            {/* 신고 상세 및 처리 모달 */}
             <AdminModal
-                isOpen={processModalOpen && !!selectedReport}
-                onClose={handleCloseProcessModal}
-                title="신고 처리"
+                isOpen={detailModalOpen && !!selectedReport}
+                onClose={handleCloseModal}
+                title="신고 상세"
                 className="report-process-modal"
             >
                 {selectedReport && (
                     <>
-                        <p className='admin-modal__user'>
-                            피신고자: {selectedReport.reportedUserNickName} (@{selectedReport.reportedUserLoginId})
-                        </p>
-                        <p className='admin-modal__user' style={{ marginTop: '-0.5rem', fontSize: '0.85rem' }}>
-                            신고 사유: {REPORT_REASON_LABELS[selectedReport.reason] ?? selectedReport.reason}
-                        </p>
+                        <div className='report-manage__detail'>
+                            <p className='admin-modal__user'>
+                                <strong>신고자:</strong> {selectedReport.reporterLoginId}
+                            </p>
+                            <p className='admin-modal__user'>
+                                <strong>피신고자:</strong> {selectedReport.reportedUserNickName} (@{selectedReport.reportedUserLoginId})
+                            </p>
+                            <p className='admin-modal__user'>
+                                <strong>신고 사유:</strong> {REPORT_REASON_LABELS[selectedReport.reason] ?? selectedReport.reason}
+                            </p>
+                            <p className='admin-modal__user'>
+                                <strong>상세 설명:</strong>
+                            </p>
+                            <p className='report-manage__description-full'>
+                                {selectedReport.description || '(없음)'}
+                            </p>
+                            <p className='admin-modal__user'>
+                                <strong>상태:</strong>{' '}
+                                <span className={`report-manage__status report-manage__status--${(selectedReport.status || 'PENDING').toLowerCase()}`}>
+                                    {REPORT_STATUS_LABELS[selectedReport.status] ?? selectedReport.status ?? '대기'}
+                                </span>
+                            </p>
+                            {selectedReport.processType && (
+                                <p className='admin-modal__user'>
+                                    <strong>처리 방식:</strong> {selectedReport.processType === 'warning' ? '경고' : selectedReport.processType === 'suspend' ? '일시정지' : selectedReport.processType === 'delete' ? '계정삭제' : selectedReport.processType}
+                                </p>
+                            )}
+                            {selectedReport.processNote && (
+                                <p className='admin-modal__user'>
+                                    <strong>처리 메모:</strong> {selectedReport.processNote}
+                                </p>
+                            )}
+                            {selectedReport.createdAt && (
+                                <p className='admin-modal__user' style={{ fontSize: '0.85rem', color: '#888' }}>
+                                    신고 일시: {new Date(selectedReport.createdAt).toLocaleString('ko-KR')}
+                                </p>
+                            )}
+                        </div>
+
+                        {(selectedReport.status || 'PENDING') === 'PENDING' && (
                         <form onSubmit={handleProcessSubmit}>
                             <label className='admin-modal__label'>
                                 처리 방식
@@ -256,7 +260,15 @@ const ReportManage = () => {
                             <div className='admin-modal__actions'>
                                 <button 
                                     type='button' 
-                                    onClick={handleCloseProcessModal} 
+                                    onClick={() => handleUpdateStatus(selectedReport.id, 'REJECTED', handleCloseModal)} 
+                                    className='admin-modal__btn admin-modal__btn--danger'
+                                    disabled={actionLoadingId === selectedReport.id}
+                                >
+                                    반려
+                                </button>
+                                <button 
+                                    type='button' 
+                                    onClick={handleCloseModal} 
                                     className='admin-modal__btn'
                                     disabled={actionLoadingId === selectedReport.id}
                                 >
@@ -271,6 +283,14 @@ const ReportManage = () => {
                                 </button>
                             </div>
                         </form>
+                        )}
+                        {(selectedReport.status || 'PENDING') !== 'PENDING' && (
+                            <div className='admin-modal__actions'>
+                                <button type='button' onClick={handleCloseModal} className='admin-modal__btn admin-modal__btn--primary'>
+                                    닫기
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
             </AdminModal>

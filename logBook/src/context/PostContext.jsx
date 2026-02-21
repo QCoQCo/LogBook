@@ -19,17 +19,24 @@ export const PostProvider = ({ children }) => {
     });
 
     // 현재 검색 상태 저장 (무한 스크롤용)
-    const [currentSearch, setCurrentSearch] = useState({ query: null, isTagSearch: false });
+    const [currentSearch, setCurrentSearch] = useState({ query: null, isTagSearch: false, filter: null });
+
+    // 피드 필터: 'all' | 'follow' | 'liked'
+    const [feedFilter, setFeedFilter] = useState('all');
 
     // 통합 데이터 로드 함수
-    const fetchPosts = useCallback(async (queryParam, isTagSearch = false) => {
+    const fetchPosts = useCallback(async (queryParam, isTagSearch = false, filter = null) => {
         setIsMoreLoading(true);
-        // 새로운 검색이 시작되면 검색 상태 업데이트
-        setCurrentSearch({ query: queryParam, isTagSearch });
+        const effectiveFilter = filter ?? feedFilter;
+        setCurrentSearch({ query: queryParam, isTagSearch, filter: effectiveFilter });
 
         try {
             let endpoint = '/posts?page=0&includeInactive=true';
             let isSearch = false;
+
+            if (effectiveFilter === 'follow' || effectiveFilter === 'liked') {
+                endpoint += `&filter=${effectiveFilter}`;
+            }
 
             if (queryParam) {
                 // apiClient has baseURL '/api', so we just need '/search/hybrid'
@@ -82,7 +89,7 @@ export const PostProvider = ({ children }) => {
         } finally {
             setIsMoreLoading(false);
         }
-    }, []);
+    }, [feedFilter]);
 
     useEffect(() => {
         // 초기 로딩 시 URL 파라미터 확인
@@ -106,6 +113,10 @@ export const PostProvider = ({ children }) => {
             const nextPage = page + 1;
             let endpoint = `/posts?page=${nextPage}&includeInactive=true`;
             let isSearch = false;
+
+            if (currentSearch.filter === 'follow' || currentSearch.filter === 'liked') {
+                endpoint += `&filter=${currentSearch.filter}`;
+            }
 
             // 저장된 검색 상태 확인
             if (currentSearch.query) {
@@ -159,11 +170,13 @@ export const PostProvider = ({ children }) => {
             posts,
             setPosts,
             loadMorePosts,
-            fetchPosts, // 노출
+            fetchPosts,
             hasMore,
-            isMoreLoading
+            isMoreLoading,
+            feedFilter,
+            setFeedFilter
         }),
-        [posts, setPosts, loadMorePosts, fetchPosts, hasMore, isMoreLoading]
+        [posts, setPosts, loadMorePosts, fetchPosts, hasMore, isMoreLoading, feedFilter, setFeedFilter]
     );
 
     // Post Editor 관련 값들
