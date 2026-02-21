@@ -3,6 +3,42 @@
     padding: 48px 24px;
     position: relative;
 
+    /* Feed Filter Tabs (전체 | 팔로우 | 좋아요) */
+    .feed-filter-tabs {
+        display: flex;
+        gap: 4px;
+        margin: 0 auto 24px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        width: fit-content;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid #eee;
+    }
+
+    .filter-tab {
+        border: none;
+        background: transparent;
+        padding: 10px 24px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 150ms ease;
+
+        &:hover {
+            background: rgba(0, 120, 212, 0.06);
+            color: #0078d4;
+        }
+
+        &.active {
+            background: #0078d4;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 120, 212, 0.25);
+        }
+    }
+
     .container {
         margin: 0 auto;
         position: relative;
@@ -548,7 +584,99 @@
         background: #fafafa;
         border: 1px solid #eee;
         border-radius: 6px;
-        cursor: grab;
-        user-select: none;
-    }
-}
+                cursor: grab;
+                user-select: none;
+            }
+        
+            /* Skeleton Loading UI */
+            .skeleton-card {
+                background: #fff;
+                border: 1px solid #eee;
+                border-radius: 12px;
+                overflow: hidden;
+                height: 240px;
+                display: flex;
+                flex-direction: column;
+        
+                .skeleton-thumb {
+                    height: 120px;
+                    background: #f2f2f2;
+                    position: relative;
+                    overflow: hidden;
+        
+                    &::after {
+                        content: "";
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                        animation: skeleton-shimmer 1.5s infinite;
+                    }
+                }
+        
+                .skeleton-body {
+                    padding: 12px 14px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+        
+                    .skeleton-line {
+                        height: 12px;
+                        background: #f2f2f2;
+                        border-radius: 4px;
+                        position: relative;
+                        overflow: hidden;
+        
+                        &::after {
+                            content: "";
+                            position: absolute;
+                            inset: 0;
+                            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                            animation: skeleton-shimmer 1.5s infinite;
+                        }
+        
+                        &.title { width: 80%; height: 16px; }
+                        &.text { width: 100%; }
+                        &.short { width: 60%; }
+                    }
+                }
+            }
+        
+            @keyframes skeleton-shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+        
+            /* Empty State UI */
+            .empty-state {
+                grid-column: 1 / -1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 80px 20px;
+                text-align: center;
+                background: #fafafa;
+                border-radius: 16px;
+                border: 2px dashed #eee;
+                margin: 20px 0;
+        
+                .empty-icon {
+                    font-size: 48px;
+                    margin-bottom: 16px;
+                    opacity: 0.5;
+                }
+        
+                .empty-text {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #666;
+                    margin-bottom: 8px;
+                }
+        
+                .empty-subtext {
+                    font-size: 14px;
+                    color: #999;
+                }
+            }
+        }
+        

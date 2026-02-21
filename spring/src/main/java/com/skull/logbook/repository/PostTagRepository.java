@@ -10,11 +10,11 @@ import java.util.List;
 
 @Repository
 public interface PostTagRepository extends JpaRepository<PostTag, Long> {
-    @Query("SELECT pt.post.id, c.codeName " +
+    @Query("SELECT DISTINCT pt.post.id, c.codeName " +
             "FROM PostTag pt " +
             "JOIN CommonCode c ON pt.tagId = c.codeValue " +
             "WHERE pt.post.id IN :postIds " +
-            "ORDER BY c.sortOrder ASC")
+            "ORDER BY pt.post.id, c.codeName ASC")
     List<Object[]> findTagsByPostIds(@Param("postIds") List<Long> postIds);
 
     // 태그 이름(유사)으로 게시글 ID 조회

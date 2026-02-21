@@ -74,8 +74,8 @@ const PostDetailHeader = forwardRef(
                         )}
                     </div>
                     <div className='post-tags'>
-                        {currentPost.tags.map((tag) => (
-                            <button className='tag-button' onClick={() => {}} key={tag}>
+                        {[...new Set(currentPost.tags || [])].map((tag, index) => (
+                            <button className='tag-button' onClick={() => {}} key={`${tag}-${index}`}>
                                 {tag}
                             </button>
                         ))}

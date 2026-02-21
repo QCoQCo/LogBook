@@ -6,6 +6,7 @@ import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.BlogRepository;
 import com.skull.logbook.repository.UserRepository;
+import com.skull.logbook.security.PrincipalDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,13 @@ public class BlogService {
     private final BlogRepository blogRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+
+    private static final String DEFAULT_LAYOUT = """
+            {
+              "layout": [],
+              "elements": []
+            }
+            """;
 
     public BlogLayoutDto getBlogData(String loginId) {
         User user = userRepository.findByLoginId(loginId)
@@ -73,15 +81,24 @@ public class BlogService {
 
     public Blog updateBlogLayout(
             Long userId,
-            String layout
+            String layout,
+            PrincipalDetails principal
     ) {
-        Blog blog = blogRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 유저의 블로그가 존재하지 않습니다."));
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
 
+        Blog blog = blogRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Blog newBlog = Blog.builder()
+                            .user(user)
+                            .layout(DEFAULT_LAYOUT)
+                            .build();
+                    return blogRepository.save(newBlog);
+                });
+
+        // 기존 블로그든 새 블로그든 layout 업데이트
         blog.updateLayout(layout);
 
         return blog;
     }
-
-
 }
