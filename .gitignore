@@ -65,3 +65,5 @@ bin/
 *.py
 .agent
 .docs
+
+temp/ad/

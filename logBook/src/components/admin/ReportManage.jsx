@@ -78,7 +78,7 @@ const ReportManage = () => {
         try {
             setLoading(true);
             setError(null);
-            const { data } = await apiClient.get('/reports');
+            const { data } = await apiClient.get('/admin/reports');
             setReports(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(err?.response?.data?.message || '신고 목록을 불러오는데 실패했습니다.');
@@ -112,7 +112,7 @@ const ReportManage = () => {
         try {
             // TODO: 처리 방식에 따른 실제 액션 (경고, 정지, 삭제)
             // 현재는 신고 상태만 PROCESSED로 변경
-            await apiClient.patch(`/reports/${selectedReport.id}`, { 
+            await apiClient.patch(`/admin/reports/${selectedReport.id}`, { 
                 status: 'PROCESSED',
                 processType,
                 processNote: processNote.trim() || undefined,
@@ -131,7 +131,7 @@ const ReportManage = () => {
     const handleUpdateStatus = useCallback(async (reportId, status, onSuccess) => {
         setActionLoadingId(reportId);
         try {
-            await apiClient.patch(`/reports/${reportId}`, { status });
+            await apiClient.patch(`/admin/reports/${reportId}`, { status });
             await fetchReports();
             onSuccess?.();
         } catch (err) {

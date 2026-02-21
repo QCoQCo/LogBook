@@ -70,7 +70,7 @@ const ChatroomManage = () => {
         try {
             setLoading(true);
             setError(null);
-            const { data } = await apiClient.get('/chat/chat-rooms');
+            const { data } = await apiClient.get('/admin/chat/chat-rooms');
             const list = data?.chatRooms ?? data;
             setChatRooms(Array.isArray(list) ? list : []);
         } catch (err) {

@@ -32,7 +32,7 @@ const UserManage = () => {
 
     const fetchRoleOptions = useCallback(async () => {
         try {
-            const { data } = await apiClient.get('/common-codes', { params: { groupCode: 'R' } });
+            const { data } = await apiClient.get('/admin/common-codes', { params: { groupCode: 'R' } });
             const list = Array.isArray(data) ? data : [];
             setRoleOptions(list.map((c) => ({ value: c.codeValue, label: c.codeName || c.codeValue })));
         } catch {
@@ -48,7 +48,7 @@ const UserManage = () => {
         try {
             setLoading(true);
             setError(null);
-            const { data } = await apiClient.get('/users');
+            const { data } = await apiClient.get('/admin/users');
             setUsers(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(err?.response?.data?.message || '유저 목록을 불러오는데 실패했습니다.');
@@ -85,7 +85,7 @@ const UserManage = () => {
         if (!editUser?.id) return;
         setSubmitLoading(true);
         try {
-            await apiClient.patch(`/users/${editUser.id}`, {
+            await apiClient.patch(`/admin/users/${editUser.id}`, {
                 nickName: editNickName.trim() || undefined,
                 userEmail: editUserEmail.trim() || undefined,
                 role: editRole,
@@ -104,7 +104,7 @@ const UserManage = () => {
         const message = `"${row.nickName || row.loginId}" 회원을 삭제 처리하시겠습니까?`;
         if (!window.confirm(message)) return;
         try {
-            await apiClient.delete(`/users/${row.id}`);
+            await apiClient.delete(`/admin/users/${row.id}`);
             handleEditClose();
             await fetchUsers();
         } catch (err) {
