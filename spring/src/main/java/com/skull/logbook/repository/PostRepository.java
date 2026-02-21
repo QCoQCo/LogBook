@@ -3,6 +3,7 @@ package com.skull.logbook.repository;
 import java.util.List;
 
 import com.skull.logbook.dto.UserPostListDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +21,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByIdIn(List<Long> ids);
 
     // userId로 유저의 모든 게시글을 조회 (활성만)
-    @Query("""
+	@Query("""
     select new com.skull.logbook.dto.UserPostListDto(
             p.id,
             p.title,
@@ -29,12 +30,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         )
         from Post p
         where p.userId = :userId and p.deletedAt is null and p.isActive = true
-        order by p.createdAt desc
-    """)
-    List<UserPostListDto> findPostListByUserId(
-            @Param("userId") Long userId,
-            Pageable pageable
-    );
+	    order by p.createdAt desc, p.id desc
+	""")
+	Page<UserPostListDto> findPostListByUserId(
+			@Param("userId") Long userId,
+			Pageable pageable
+	);
 
 	List<Post> findAllByDeletedAtIsNullOrderByCreatedAtDesc(Pageable pageable);
 

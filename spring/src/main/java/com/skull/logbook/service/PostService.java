@@ -1,6 +1,7 @@
 package com.skull.logbook.service;
 
 import com.skull.logbook.dto.UserPostListDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -214,7 +215,7 @@ public class PostService {
                                 isLiked);
         }
 
-        public List<UserPostListDto> getPostsByUserId(Long userId, Pageable pageable) {
+        public Page<UserPostListDto> getPostsByUserId(Long userId, Pageable pageable) {
                 return postRepository.findPostListByUserId(userId, pageable);
         }
 }

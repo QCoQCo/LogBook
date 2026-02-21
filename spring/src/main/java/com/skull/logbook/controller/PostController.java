@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.skull.logbook.dto.UserPostListDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -137,11 +138,15 @@ public class PostController {
     }
 
     @GetMapping("/lists/{userId}")
-    public List<UserPostListDto> getPostsByUserId(
+    public ResponseEntity<Page<UserPostListDto>> getPostsByUserId(
             @PathVariable Long userId,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable
+            @PageableDefault(
+                    size = 20,
+                    sort = {"createdAt", "id"}, // createdAt이 같으면 id 역순으로 정렬
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
     ) {
-        return postService.getPostsByUserId(userId, pageable);
+        Page<UserPostListDto> posts = postService.getPostsByUserId(userId, pageable);
+        return ResponseEntity.ok(posts);
     }
 }
