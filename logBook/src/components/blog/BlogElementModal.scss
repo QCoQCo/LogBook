@@ -21,7 +21,8 @@
         animation: slide-up 0.3s ease-out;
 
         &.is-post-modal,
-        &.is-image-modal {
+        &.is-image-modal,
+        &.is-map-modal {
             height: 500px;
         }
 

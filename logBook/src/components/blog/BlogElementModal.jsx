@@ -7,6 +7,7 @@ import './BlogElementModal.scss';
 import PostListArea from './PostListArea';
 import ImageInputArea from './ImageInputArea';
 import { getCurrentUserId } from '../../utils/auth';
+import MapInputArea from './MapInputArea';
 
 const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     const { elements, setElements, editingSessionId } = useBlog();
@@ -200,7 +201,15 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     return (
         <div
             id="BlogElementModal"
-            className={type === 'post' ? 'is-post-modal' : type === 'image' ? 'is-image-modal' : ''}
+            className={
+                type === 'post'
+                    ? 'is-post-modal'
+                    : type === 'image'
+                      ? 'is-image-modal'
+                      : type === 'map'
+                        ? 'is-map-modal'
+                        : ''
+            }
             onClick={(e) => e.stopPropagation()}
         >
             <div className="modal-top">
@@ -226,7 +235,7 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                         placeholder="게시글 검색어를 입력해주세요"
                     />
                 ) : (
-                    <h1>{title}</h1>
+                    type !== 'map' && <h1>{title}</h1>
                 )}
 
                 {type === 'post' && <PostListArea type={type} state={state} dispatch={dispatch} />}
@@ -239,6 +248,10 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                         isEmptyError={state.isEmptyError}
                         dispatch={dispatch}
                     />
+                )}
+
+                {type === 'map' && (
+                    <MapInputArea dispatch={dispatch} currentContent={state.modalContent} />
                 )}
 
                 {['title', 'link'].includes(type) && (
