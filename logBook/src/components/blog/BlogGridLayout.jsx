@@ -1,15 +1,24 @@
 import axios from 'axios';
+import apiClient from '../../utils/apiClient';
 import ReactGridLayout from 'react-grid-layout';
 import { useEffect, useState } from 'react';
 import { useBlog } from '../../context';
+import { getCurrentUserId } from '../../utils/auth';
 import BlogLayoutItem from './BlogLayoutItem';
-import apiClient from '../../utils/apiClient';
 
 import './BlogGridLayout.scss';
 
 const BlogGridLayout = ({ userId, enableModal }) => {
     const [newItemCounter, setNewItemCounter] = useState(0);
-    const { layout, setLayout, draggingItem, setElements, isBlogEditing } = useBlog();
+    const {
+        layout,
+        setLayout,
+        draggingItem,
+        elements,
+        setElements,
+        isBlogEditing,
+        setDeletedImagesUrl,
+    } = useBlog();
 
     useEffect(() => {
         getUserBlogData();
@@ -44,8 +53,16 @@ const BlogGridLayout = ({ userId, enableModal }) => {
         }
     };
 
-    const handleClickDelete = (i) => {
+    const handleClickDelete = async (i) => {
+        const type = i.split('-')[0];
+
+        const deletedItem = elements.find((item) => item.i === i);
+
         setLayout((prev) => prev.filter((item) => item.i !== i));
+
+        if (type === 'image' && deletedItem.content) {
+            setDeletedImagesUrl((prev) => [...prev, String(deletedItem.content)]);
+        }
     };
 
     const onLayoutChange = (newLayout) => {
