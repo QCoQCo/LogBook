@@ -70,9 +70,16 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String accessToken) {
         Claims claims = parseClaims(accessToken);
 
+        // JWT auth 클레임이 "ADMIN" 또는 "ROLE_ADMIN" 형태일 수 있음. hasRole()은 "ROLE_" 접두사 필요
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get("auth").toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
+                        .map(s -> {
+                            String auth = s.trim();
+                            if (!auth.startsWith("ROLE_")) {
+                                auth = "ROLE_" + auth;
+                            }
+                            return new SimpleGrantedAuthority(auth);
+                        })
                         .collect(Collectors.toList());
 
         Long userId = claims.get("userId", Long.class);

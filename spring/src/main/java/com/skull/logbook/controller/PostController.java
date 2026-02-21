@@ -65,16 +65,6 @@ public class PostController {
         return Map.of("totalElements", postService.countAll(effectiveIncludeInactive));
     }
 
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Map<String, String>> deletePost(@PathVariable Long postId) {
-        try {
-            postService.softDeletePost(postId);
-            return ResponseEntity.ok(Map.of("message", "게시글이 삭제 처리되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
-    }
-
     @GetMapping("/{postId}")
     public PostResponseDto getPostDetail(
             @PathVariable Long postId,
@@ -113,26 +103,6 @@ public class PostController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (org.springframework.security.access.AccessDeniedException e) {
             return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
-        }
-    }
-
-    @PatchMapping("/{postId}/deactivate")
-    public ResponseEntity<Map<String, String>> deactivatePost(@PathVariable Long postId) {
-        try {
-            postService.deactivatePost(postId);
-            return ResponseEntity.ok(Map.of("message", "게시글이 비활성화되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
-    }
-
-    @PatchMapping("/{postId}/activate")
-    public ResponseEntity<Map<String, String>> activatePost(@PathVariable Long postId) {
-        try {
-            postService.activatePost(postId);
-            return ResponseEntity.ok(Map.of("message", "게시글이 활성화되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 

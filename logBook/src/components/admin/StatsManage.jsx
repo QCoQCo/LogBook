@@ -22,7 +22,7 @@ const StatsManage = () => {
         try {
             setLoading(true);
             setError(null);
-            const { data } = await apiClient.get('/stats');
+            const { data } = await apiClient.get('/admin/stats');
             setStats({
                 totalPosts: data.totalPosts ?? 0,
                 userCount: data.userCount ?? 0,

@@ -197,7 +197,7 @@ const Header = () => {
                             <p>프로젝트 소개</p>
                         </Link>
                     </div>
-                    {isLogin && (
+                    {isLogin && [1, 2, 3, 7, 8, 265, 266, 271, 272, 273, 274].includes(currentUser?.id) && (
                         <div className='role-toggle' role='group' aria-label='역할 전환'>
                             <button
                                 type='button'
