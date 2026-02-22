@@ -39,6 +39,8 @@ const MapGridContent = ({ element }) => {
                         gestureHandling: 'none',
                         draggable: false,
                         keyboardShortcuts: false,
+                        clickableIcons: false,
+                        scrollwheel: false,
                     }}
                 >
                     <Marker position={{ lat: mapData.lat, lng: mapData.lng }} />
