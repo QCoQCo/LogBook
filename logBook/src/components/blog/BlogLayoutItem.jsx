@@ -1,24 +1,46 @@
 import { useBlog } from '../../context';
+import { useMemo } from 'react';
 
 import LinkGridContent from './LinkGridContent';
+import MapGridContent from './MapGridContent';
 import PostGridContent from './PostGridContent';
 
-const GridItemTop = ({ item, type, handleClickDelete }) => {
+const GridItemTop = ({ item, type, element, handleClickDelete }) => {
     const { setElements, isBlogEditing } = useBlog();
+
+    // 상단 바에 표시할 제목(디스플레이 네임) 계산
+    const displayTitle = useMemo(() => {
+        if (!element.content) return null;
+
+        if (type === 'link') {
+            const data = element.meta;
+            return data.title; // 링크 제목
+        }
+        if (type === 'post') {
+            const data = element.content;
+            return data.title;
+        }
+        if (type === 'map') {
+            const data = JSON.parse(element.content);
+            return data.name; // 장소명
+        }
+        return null;
+    }, [element.content, type]);
 
     return (
         <div className="grid-item-top">
-            {
-                <div className="grid-item-text">
-                    <img src={`/img/icon-${type}.png`} alt="" draggable={false} />
-                </div>
-            }
+            <div className="grid-item-text">
+                <img src={`/img/icon-${type}.png`} alt="" draggable={false} />
+                {/* 계산된 제목이 있을 때만 p 태그 렌더링 */}
+                {displayTitle && <p>{displayTitle}</p>}
+            </div>
+
             {isBlogEditing && (
                 <button
                     className="grid-item-delete"
                     onClick={(e) => {
                         e.stopPropagation();
-                        setElements((prev) => prev.filter((element) => element.i !== item.i));
+                        setElements((prev) => prev.filter((el) => el.i !== item.i));
                         handleClickDelete(item.i);
                     }}
                 ></button>
@@ -44,6 +66,8 @@ const GridContent = ({ type, item, element }) => {
             return <LinkGridContent element={element} />;
         case 'post':
             return <PostGridContent item={item} element={element} />;
+        case 'map':
+            return <MapGridContent element={element} />;
 
         default:
             return element.content ? (
@@ -63,7 +87,12 @@ const BlogLayoutItem = ({ item, handleClickDelete, enableModal }) => {
 
     return (
         <div className={isBlogEditing ? `${item.i} is-editting` : `${item.i}`}>
-            <GridItemTop item={item} type={itemType} handleClickDelete={handleClickDelete} />
+            <GridItemTop
+                item={item}
+                type={itemType}
+                element={element}
+                handleClickDelete={handleClickDelete}
+            />
             <div
                 className={`grid-${itemType}-content`}
                 onClick={() => {

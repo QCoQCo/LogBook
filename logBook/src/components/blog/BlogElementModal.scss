@@ -1,3 +1,23 @@
+/* Google Maps Autocomplete Dropdown - 모달 위로 표시되도록 설정 */
+.pac-container {
+    z-index: 10000 !important; /* 모달의 1600보다 높게 */
+    border-radius: 8px;
+    border-top: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    margin-top: 5px;
+    background-color: #ffffff;
+    font-family: inherit;
+
+    /* 내부 검색 항목 스타일 조정 (필요 시) */
+    .pac-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        &:hover {
+            background-color: #f8f9fa;
+        }
+    }
+}
+
 .modal-overlay {
     display: flex;
     justify-content: center;
@@ -21,9 +41,12 @@
         animation: slide-up 0.3s ease-out;
 
         &.is-post-modal,
-        &.is-image-modal,
-        &.is-map-modal {
+        &.is-image-modal {
             height: 500px;
+        }
+
+        &.is-map-modal {
+            height: 600px;
         }
 
         .modal-top {
