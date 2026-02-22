@@ -186,7 +186,7 @@ const PostEditor = ({ isEdit }) => {
     };
 
     const handleSavePost = async () => {
-        // 밸리데이션 체크
+        // 밸리데이션 체크 (프론트 & 백엔드 모두 수행)
         if (!postTitle.trim() || !markdown.trim()) {
             alert('제목과 내용을 입력해주세요.');
             return;
@@ -196,13 +196,7 @@ const PostEditor = ({ isEdit }) => {
             title: postTitle,
             content: markdown,
             tags: postTags,
-            userId: userIdRef.current,
         };
-
-        if (!requestBody.userId) {
-            alert('사용자 정보를 확인 중입니다. 잠시 후 다시 시도해주세요.');
-            return;
-        }
 
         try {
             // apiClient 사용 (자동으로 Authorization 헤더 삽입 및 토큰 갱신 수행)
@@ -218,6 +212,36 @@ const PostEditor = ({ isEdit }) => {
         } catch (error) {
             console.error('저장 중 오류 발생:', error);
             alert('저장에 실패했습니다.');
+        }
+    };
+
+    const handleUpdatePost = async () => {
+        // 밸리데이션 체크 (프론트 & 백엔드 모두 수행)
+        if (!postTitle.trim() || !markdown.trim()) {
+            alert('제목과 내용을 입력해주세요.');
+            return;
+        }
+
+        const requestBody = {
+            title: postTitle,
+            content: markdown,
+            tags: postTags, // 현재 에디터에 있는 최종 태그 배열
+        };
+
+        try {
+            // 수정 요청
+            const response = await apiClient.put(`/posts/${postId}`, requestBody);
+
+            if (response.status === 200) {
+                setMarkdown('');
+                setPostTitle('');
+                setPostTags([]);
+                alert('수정되었습니다.');
+                navigate(`/post/detail?postId=${postId}`); // 상세 페이지 등으로 이동
+            }
+        } catch (error) {
+            console.error('수정 중 오류 발생:', error);
+            alert('수정에 실패했습니다.');
         }
     };
 
@@ -462,7 +486,10 @@ const PostEditor = ({ isEdit }) => {
                 <div className="mirror-div" ref={mirrorRef}></div>
             </div>
             <div className="post-editor-btns">
-                <button className="post-save-btn" onClick={handleSavePost}>
+                <button
+                    className="post-save-btn"
+                    onClick={isEdit ? handleUpdatePost : handleSavePost}
+                >
                     저 장
                 </button>
                 <button className="post-cancel-btn" onClick={handleClickCancelBtn}>

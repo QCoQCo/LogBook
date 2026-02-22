@@ -22,7 +22,4 @@ public class PostRequestDto {
     private String content;
 
     private List<String> tags;
-
-    @NotNull(message = "사용자 ID는 필수입니다.")
-    private Long userId;
 }

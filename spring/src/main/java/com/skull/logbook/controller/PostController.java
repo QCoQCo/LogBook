@@ -6,6 +6,7 @@ import java.util.Map;
 import com.skull.logbook.dto.PostDeleteRequestDto;
 import com.skull.logbook.dto.PostRequestDto;
 import com.skull.logbook.dto.UserPostListDto;
+import com.skull.logbook.security.PrincipalDetails;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,10 +48,23 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<Long> createPost(
-            @Valid @RequestBody PostRequestDto dto
+            @Valid @RequestBody PostRequestDto dto,
+            @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
-        Long postId = postService.createPost(dto);
+        // principalDetails.getId()를 호출하여 안전한 PK 값을 전달
+        Long postId = postService.createPost(dto, principalDetails.getId());
         return ResponseEntity.ok(postId);
+    }
+
+    @PutMapping("/{postId}")
+    @PreAuthorize("@postSecurity.isOwner(#postId, principal.id)")
+    public ResponseEntity<Void> updatePost(
+            @PathVariable Long postId,
+            @Valid @RequestBody PostRequestDto requestDto,
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        postService.updatePost(postId, requestDto, principalDetails.getId());
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping

@@ -2,8 +2,7 @@ package com.skull.logbook.service;
 
 import com.skull.logbook.dto.PostRequestDto;
 import com.skull.logbook.dto.UserPostListDto;
-import com.skull.logbook.entity.CommonCode;
-import com.skull.logbook.entity.PostTag;
+import com.skull.logbook.entity.*;
 import com.skull.logbook.repository.*;
 import com.skull.logbook.security.PrincipalDetails;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.skull.logbook.dto.PostResponseDto;
-import com.skull.logbook.entity.Post;
-import com.skull.logbook.entity.User;
 
 import lombok.RequiredArgsConstructor;
 
@@ -55,42 +52,94 @@ public class PostService {
     }
 
     @Transactional
-    public Long createPost(PostRequestDto dto) {
+    public Long createPost(PostRequestDto dto, Long userId) {
         // 1. 게시글 본문 저장
         Post post = Post.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
-                .userId(dto.getUserId())
+                .userId(userId)
                 .isActive(true)
                 .build();
         postRepository.save(post);
 
-        // 2. 태그 처리
+        // 2. 태그 처리 (공통 메서드 재사용)
         if (dto.getTags() != null) {
             for (String tagName : dto.getTags()) {
-                // (1) 공통 코드에서 태그 명칭으로 조회
-                CommonCode tagCode = commonCodeRepository.findByCodeName(tagName)
-                        .orElseGet(() -> {
-                            // (2) 없으면 신규 코드 생성 (T + 숫자 채번)
-                            String newCodeValue = generateNextTagCode();
-                            return commonCodeRepository.save(CommonCode.builder()
-                                    .codeGroup(commonCodeGroupRepository.findById("T")
-                                            .orElseThrow(() -> new RuntimeException("공통코드 그룹 'T'(태그)가 DB에 존재하지 않습니다.")))
-                                    .codeValue(newCodeValue)
-                                    .codeName(tagName)
-                                    .useYn("Y")
-                                    .build());
-                        });
+                // 재사용 메서드 호출
+                CommonCode tagCode = getOrCreateTagCode(tagName);
 
-                // (3) PostTag 매핑 테이블에 저장
+                // PostTag 매핑 객체 생성 및 리스트에 추가
                 PostTag postTag = PostTag.builder()
                         .post(post)
-                        .tagId(tagCode.getCodeValue()) // T001 등의 코드값 저장
+                        .tagId(tagCode.getCodeValue())
                         .build();
-                postTagRepository.save(postTag);
+
+                // Post 엔티티 내부의 List<PostTag>에 추가 (CascadeType.ALL로 인해 자동 저장)
+                post.getPostTags().add(postTag);
             }
         }
         return post.getId();
+    }
+
+    @Transactional
+    public void updatePost(Long postId, PostRequestDto dto, Long userId) {
+        // 1. 게시글 조회 및 기본 정보 수정
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        post.update(dto.getTitle(), dto.getContent());
+
+        // 2. 태그 업데이트 (핵심)
+        updatePostTags(post, dto.getTags());
+    }
+
+    private void updatePostTags(Post post, List<String> newTagNames) {
+        // 1) 기존 이 게시글에 등록된 PostTag 리스트 가져오기
+        List<PostTag> currentPostTags = post.getPostTags();
+
+        // 2) 삭제된 태그 처리
+        // 화면에서 넘어온 newTagNames에 없는 기존 태그는 삭제
+        currentPostTags.removeIf(postTag -> {
+            // PostTag의 tagId를 이용해 CommonCode의 Name을 찾거나, 직접 대조
+            CommonCode code = commonCodeRepository.findById(postTag.getTagId()).orElse(null);
+            return code == null || !newTagNames.contains(code.getCodeName());
+        });
+
+        // 3) 추가된 태그 처리
+        List<String> currentTagNames = currentPostTags.stream()
+                .map(pt -> commonCodeRepository.findById(pt.getTagId()).map(CommonCode::getCodeName).orElse(""))
+                .toList();
+
+        for (String tagName : newTagNames) {
+            if (!currentTagNames.contains(tagName)) {
+                // 신규 태그라면 CommonCode 조회/생성 (Create 로직 재사용)
+                CommonCode tagCode = getOrCreateTagCode(tagName);
+
+                // PostTag 매핑 생성
+                PostTag newPostTag = PostTag.builder()
+                        .post(post)
+                        .tagId(tagCode.getCodeValue())
+                        .build();
+                currentPostTags.add(newPostTag); // orphanRemoval에 의해 관리됨
+            }
+        }
+    }
+
+    // 태그 조회 및 생성 로직 분리 (재사용성)
+    private CommonCode getOrCreateTagCode(String tagName) {
+        return commonCodeRepository.findByCodeName(tagName)
+                .orElseGet(() -> {
+                    String newCodeValue = generateNextTagCode();
+                    CommonCodeGroup group = commonCodeGroupRepository.findById("T")
+                            .orElseThrow(() -> new RuntimeException("태그 그룹이 없습니다."));
+
+                    return commonCodeRepository.save(CommonCode.builder()
+                            .codeGroup(group)
+                            .codeValue(newCodeValue)
+                            .codeName(tagName)
+                            .useYn("Y")
+                            .build());
+                });
     }
 
     // 채번 로직: DB에서 현재 가장 큰 T값을 가져와 +1 함
