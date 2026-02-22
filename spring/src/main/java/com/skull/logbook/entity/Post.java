@@ -43,6 +43,11 @@ public class Post extends BaseDeletedEntity {
         }
     }
 
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     public void setActive(Boolean active) {
         this.isActive = active != null ? active : true;
     }
