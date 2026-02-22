@@ -160,11 +160,17 @@ public class UserService {
                 user.getRole() != null ? user.getRole().name() : null);
     }
 
-    /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만, 삭제 제외) */
+    /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만, 삭제 제외, Blog N+1 방지) */
     public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(u -> !u.isDeleted())
-                .map(UserResponseDto::from)
+        return userRepository.findAllForUserList().stream()
+                .map(p -> new UserResponseDto(
+                        p.getId(),
+                        p.getLoginId(),
+                        p.getNickName(),
+                        p.getUserEmail(),
+                        p.getProfilePhoto(),
+                        p.getIntroduction(),
+                        p.getRole() != null ? p.getRole().name() : null))
                 .collect(Collectors.toList());
     }
 

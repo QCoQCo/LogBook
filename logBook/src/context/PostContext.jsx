@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
 import { useEffect } from 'react';
 import apiClient from '../utils/apiClient';
 
@@ -24,8 +24,12 @@ export const PostProvider = ({ children }) => {
     // 피드 필터: 'all' | 'follow' | 'liked'
     const [feedFilter, setFeedFilter] = useState('all');
 
+    // loadMore 중복 호출 방지 (setState 비동기로 인한 race condition 대응)
+    const loadMoreInProgressRef = useRef(false);
+
     // 통합 데이터 로드 함수
     const fetchPosts = useCallback(async (queryParam, isTagSearch = false, filter = null) => {
+        loadMoreInProgressRef.current = false; // 새 검색/필터 시 loadMore 가드 해제
         setIsMoreLoading(true);
         const effectiveFilter = filter ?? feedFilter;
         setCurrentSearch({ query: queryParam, isTagSearch, filter: effectiveFilter });
@@ -91,23 +95,12 @@ export const PostProvider = ({ children }) => {
         }
     }, [feedFilter]);
 
-    useEffect(() => {
-        // 초기 로딩 시 URL 파라미터 확인
-        const params = new URLSearchParams(window.location.search);
-        const search = params.get('search');
-        // tag 검색은 FeedPage에서 처리하므로 여기서는 search만 확인
-        if (search) {
-            fetchPosts(search);
-        } else if (!params.get('tag') && !params.get('query')) {
-            // 아무 파라미터도 없으면 기본 포스트 로드
-            fetchPosts(null);
-        }
-    }, [fetchPosts]);
+    // 초기 로딩은 FeedPage useEffect에서만 수행 (중복 요청 방지)
 
     // 추가 로드 함수 (무한 스크롤용 - 검색 모드가 아닐 때만 동작 -> 검색 모드에서도 동작하도록 수정)
     const loadMorePosts = useCallback(async () => {
-        if (isMoreLoading || !hasMore) return;
-
+        if (isMoreLoading || !hasMore || loadMoreInProgressRef.current) return;
+        loadMoreInProgressRef.current = true;
         setIsMoreLoading(true);
         try {
             const nextPage = page + 1;
@@ -155,6 +148,7 @@ export const PostProvider = ({ children }) => {
         } catch (err) {
             console.error("Failed to load more posts:", err);
         } finally {
+            loadMoreInProgressRef.current = false;
             setIsMoreLoading(false);
         }
     }, [page, hasMore, isMoreLoading, currentSearch]);

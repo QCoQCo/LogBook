@@ -1,6 +1,7 @@
 package com.skull.logbook.service;
 
 import com.skull.logbook.dto.UserPostListDto;
+import com.skull.logbook.security.PrincipalDetails;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,31 +38,34 @@ public class PostService {
         private final PostLikeService postLikeService;
         private final UserFollowRepository userFollowRepository;
 
-        private User getCurrentUserOrNull() {
+        /**
+         * JWT PrincipalDetails에서 userId 추출. DB 조회 없음.
+         */
+        private Long getCurrentUserIdOrNull() {
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+                if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof PrincipalDetails pd)) {
                         return null;
                 }
-                return userRepository.findByLoginId(auth.getName()).orElse(null);
+                return pd.getId();
         }
 
         public List<PostResponseDto> getAllPosts(int page, int size, boolean includeInactive, String filter) {
                 if ("follow".equals(filter) || "liked".equals(filter)) {
-                        User currentUser = getCurrentUserOrNull();
-                        if (currentUser == null) {
+                        Long currentUserId = getCurrentUserIdOrNull();
+                        if (currentUserId == null) {
                                 return Collections.emptyList();
                         }
                         if ("follow".equals(filter)) {
-                                return getPostsByFollowedUsers(currentUser, page, size);
+                                return getPostsByFollowedUsers(currentUserId, page, size);
                         }
-                        return getPostsLikedByUser(currentUser, page, size);
+                        return getPostsLikedByUser(currentUserId, page, size);
                 }
 
                 List<Post> posts = includeInactive
                         ? postRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc(PageRequest.of(page, size))
                         : postRepository.findAllByDeletedAtIsNullAndIsActiveTrueOrderByCreatedAtDesc(PageRequest.of(page, size));
 
-                return toPostResponseDtoList(posts, getCurrentUserOrNull());
+                return toPostResponseDtoList(posts, getCurrentUserIdOrNull());
         }
 
         public long countAll(boolean includeInactive) {
@@ -74,28 +78,28 @@ public class PostService {
                 if (!"follow".equals(filter) && !"liked".equals(filter)) {
                         return countAll(false);
                 }
-                User currentUser = getCurrentUserOrNull();
-                if (currentUser == null) return 0;
+                Long currentUserId = getCurrentUserIdOrNull();
+                if (currentUserId == null) return 0;
                 if ("follow".equals(filter)) {
-                        List<Long> followingIds = userFollowRepository.findFollowingIdsByFollower(currentUser);
+                        List<Long> followingIds = userFollowRepository.findFollowingIdsByFollowerId(currentUserId);
                         if (followingIds.isEmpty()) return 0;
                         return postRepository.countByUserIdInAndDeletedAtIsNullAndIsActiveTrue(followingIds);
                 }
-                return postLikeRepository.countByUser(currentUser);
+                return postLikeRepository.countByUserId(currentUserId);
         }
 
-        private List<PostResponseDto> getPostsByFollowedUsers(User currentUser, int page, int size) {
-                List<Long> followingIds = userFollowRepository.findFollowingIdsByFollower(currentUser);
+        private List<PostResponseDto> getPostsByFollowedUsers(Long currentUserId, int page, int size) {
+                List<Long> followingIds = userFollowRepository.findFollowingIdsByFollowerId(currentUserId);
                 if (followingIds.isEmpty()) {
                         return Collections.emptyList();
                 }
                 List<Post> posts = postRepository.findByUserIdInAndDeletedAtIsNullAndIsActiveTrueOrderByCreatedAtDesc(
                         followingIds, PageRequest.of(page, size));
-                return toPostResponseDtoList(posts, currentUser);
+                return toPostResponseDtoList(posts, currentUserId);
         }
 
-        private List<PostResponseDto> getPostsLikedByUser(User currentUser, int page, int size) {
-                List<Long> postIds = postLikeRepository.findPostIdsByUser(currentUser, PageRequest.of(page, size));
+        private List<PostResponseDto> getPostsLikedByUser(Long currentUserId, int page, int size) {
+                List<Long> postIds = postLikeRepository.findPostIdsByUserId(currentUserId, PageRequest.of(page, size));
                 if (postIds.isEmpty()) {
                         return Collections.emptyList();
                 }
@@ -106,10 +110,10 @@ public class PostService {
                         orderMap.put(postIds.get(i), i);
                 }
                 posts.sort((a, b) -> orderMap.getOrDefault(a.getId(), 999) - orderMap.getOrDefault(b.getId(), 999));
-                return toPostResponseDtoList(posts, currentUser);
+                return toPostResponseDtoList(posts, currentUserId);
         }
 
-        private List<PostResponseDto> toPostResponseDtoList(List<Post> posts, User currentUser) {
+        private List<PostResponseDto> toPostResponseDtoList(List<Post> posts, Long currentUserId) {
                 if (posts.isEmpty()) return Collections.emptyList();
 
                 List<Long> postIds = posts.stream().map(Post::getId).toList();
@@ -132,7 +136,7 @@ public class PostService {
                                 .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1], (a, b) -> a));
                 }
 
-                Set<Long> likedPostIds = postLikeService.getLikedPostIds(currentUser, postIds);
+                Set<Long> likedPostIds = postLikeService.getLikedPostIds(currentUserId, postIds);
                 Map<Long, Long> finalLikeCountMap = likeCountMap;
                 return posts.stream()
                         .map(post -> new PostResponseDto(
