@@ -3,23 +3,20 @@ package com.skull.logbook.controller;
 import java.util.List;
 import java.util.Map;
 
+import com.skull.logbook.dto.PostDeleteRequestDto;
+import com.skull.logbook.dto.PostRequestDto;
 import com.skull.logbook.dto.UserPostListDto;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.skull.logbook.dto.PostResponseDto;
 import com.skull.logbook.service.PostLikeService;
@@ -45,6 +42,23 @@ public class PostController {
             }
         }
         return false;
+    }
+
+    @PostMapping
+    public ResponseEntity<Long> createPost(
+            @Valid @RequestBody PostRequestDto dto
+    ) {
+        Long postId = postService.createPost(dto);
+        return ResponseEntity.ok(postId);
+    }
+
+    @DeleteMapping
+    @PreAuthorize("@postSecurity.isOwner(#requestDto.postId, principal.id)")
+    public ResponseEntity<Void> deletePost(
+            @RequestBody PostDeleteRequestDto requestDto
+    ) {
+        postService.softDeletePost(requestDto.getPostId());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping

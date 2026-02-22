@@ -1,8 +1,10 @@
+import apiClient from '../../utils/apiClient';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { usePost } from '../../context';
 import PostToolBar from './PostToolbar';
 import PostEditorModal from './PostEditorModal';
+import { getCurrentUserId } from '../../utils/auth';
 
 const PostEditor = ({ isEdit }) => {
     // useContext
@@ -15,6 +17,10 @@ const PostEditor = ({ isEdit }) => {
     // params
     const [searchParam] = useSearchParams();
     const postId = isEdit ? parseInt(searchParam.get('postId')) : null;
+
+    useEffect(() => {
+        userIdRef.current = getCurrentUserId();
+    });
 
     // fetch post Data & set
     useEffect(() => {
@@ -41,6 +47,7 @@ const PostEditor = ({ isEdit }) => {
     const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
 
     // refs management
+    const userIdRef = useRef(null);
     const tagInputRef = useRef(null);
     const markdownRef = useRef(null);
     const mirrorRef = useRef(null);
@@ -61,7 +68,7 @@ const PostEditor = ({ isEdit }) => {
                 break;
             case 'h3-btn':
                 toolBarFunction(() => {
-                    insertMarkdown('## ');
+                    insertMarkdown('### ');
                 });
                 break;
             case 'bold-btn':
@@ -178,7 +185,46 @@ const PostEditor = ({ isEdit }) => {
         releaseModal();
     };
 
+    const handleSavePost = async () => {
+        // 밸리데이션 체크
+        if (!postTitle.trim() || !markdown.trim()) {
+            alert('제목과 내용을 입력해주세요.');
+            return;
+        }
+
+        const requestBody = {
+            title: postTitle,
+            content: markdown,
+            tags: postTags,
+            userId: userIdRef.current,
+        };
+
+        if (!requestBody.userId) {
+            alert('사용자 정보를 확인 중입니다. 잠시 후 다시 시도해주세요.');
+            return;
+        }
+
+        try {
+            // apiClient 사용 (자동으로 Authorization 헤더 삽입 및 토큰 갱신 수행)
+            const response = await apiClient.post('/posts', requestBody);
+
+            if (response.status === 200 || response.status === 201) {
+                setMarkdown('');
+                setPostTitle('');
+                setPostTags([]);
+                alert('성공적으로 저장되었습니다.');
+                navigate('/feed');
+            }
+        } catch (error) {
+            console.error('저장 중 오류 발생:', error);
+            alert('저장에 실패했습니다.');
+        }
+    };
+
     const handleClickCancelBtn = () => {
+        setMarkdown('');
+        setPostTitle('');
+        setPostTags([]);
         navigate(-1);
     };
 
@@ -351,21 +397,21 @@ const PostEditor = ({ isEdit }) => {
     };
 
     return (
-        <div className='post-editor'>
+        <div className="post-editor">
             <div className={hideTitle ? 'post-title-area hidden-title' : 'post-title-area'}>
                 <input
-                    type='text'
-                    className='post-title-input'
+                    type="text"
+                    className="post-title-input"
                     value={postTitle}
                     onChange={handleChangeTitleInput}
-                    placeholder='제목을 입력해 주세요'
+                    placeholder="제목을 입력해 주세요"
                 />
             </div>
             <div className={hideTags ? 'post-tags-area hidden-tags' : 'post-tags-area'}>
                 {postTags.map((item, i) => (
-                    <div className='tag-item' key={i}>
+                    <div className="tag-item" key={i}>
                         <button
-                            className='tag-button'
+                            className="tag-button"
                             onClick={() => {
                                 handleClickTagBtn(item);
                             }}
@@ -375,15 +421,15 @@ const PostEditor = ({ isEdit }) => {
                     </div>
                 ))}
                 <input
-                    type='text'
+                    type="text"
                     value={tagInput}
                     ref={tagInputRef}
-                    className='post-tag-input'
+                    className="post-tag-input"
                     onChange={handleChangeTagInput}
                     onKeyDown={handleKeyDown}
                     onFocus={handleFocusBlurTagInput}
                     onBlur={handleFocusBlurTagInput}
-                    placeholder='태그를 입력해 주세요'
+                    placeholder="태그를 입력해 주세요"
                 />
                 <i className={showToolTip ? '' : 'tooltip-hidden'}>
                     <p>쉼표 혹은 엔터를 입력하여 태그를 등록 할 수 있습니다.</p>
@@ -391,17 +437,17 @@ const PostEditor = ({ isEdit }) => {
                 </i>
             </div>
             <PostToolBar hideTitle={hideTitle} handleOnClick={handleClickToolBar} />
-            <div className='textarea-wrapper'>
+            <div className="textarea-wrapper">
                 <textarea
                     className={
                         hideTitle ? 'markdown-textarea markdown-top-position' : 'markdown-textarea'
                     }
                     value={markdown}
                     ref={markdownRef}
-                    spellCheck='false'
+                    spellCheck="false"
                     onChange={handleChangeTextarea}
                     onScroll={handelScrollTextarea}
-                    placeholder='여기에 게시글 내용을 작성해 주세요'
+                    placeholder="여기에 게시글 내용을 작성해 주세요"
                 />
                 {modalIsOpen && (
                     <PostEditorModal
@@ -413,11 +459,13 @@ const PostEditor = ({ isEdit }) => {
                         releaseModal={releaseModal}
                     />
                 )}
-                <div className='mirror-div' ref={mirrorRef}></div>
+                <div className="mirror-div" ref={mirrorRef}></div>
             </div>
-            <div className='post-editor-btns'>
-                <button className='post-save-btn'>저 장</button>
-                <button className='post-cancel-btn' onClick={handleClickCancelBtn}>
+            <div className="post-editor-btns">
+                <button className="post-save-btn" onClick={handleSavePost}>
+                    저 장
+                </button>
+                <button className="post-cancel-btn" onClick={handleClickCancelBtn}>
                     취 소
                 </button>
             </div>
