@@ -7,6 +7,7 @@ import './BlogElementModal.scss';
 import PostListArea from './PostListArea';
 import ImageInputArea from './ImageInputArea';
 import { getCurrentUserId } from '../../utils/auth';
+import MapInputArea from './MapInputArea';
 
 const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     const { elements, setElements, editingSessionId } = useBlog();
@@ -20,31 +21,22 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
 
     const inputRef = useRef(null);
     const postInputRef = useRef(null);
-
     const type = item?.i.split('-')[0];
 
-    /* =========================
-       썸네일 추출
-    ========================== */
     useEffect(() => {
         if (!state.selectedPost) return;
 
         const match = state.selectedPost.content?.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
-
         dispatch({
             type: 'SET_POST_THUMBNAIL',
             payload: match ? match[1] : '/img/logBook_logo.png',
         });
     }, [state.selectedPost]);
 
-    /* =========================
-       포커스 & 키 이벤트
-    ========================== */
     useEffect(() => {
         if (isBlogEditing && ['title', 'link'].includes(type)) {
             inputRef.current?.focus();
         }
-
         if (isBlogEditing && type === 'post') {
             postInputRef.current?.focus();
         }
@@ -52,108 +44,54 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
                 releaseModal();
-            } else if (e.key === 'Enter') {
+            } else if (e.key === 'Enter' && isBlogEditing) {
                 handleClickConfirm();
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isBlogEditing, type]);
+    }, [isBlogEditing, type, state.modalContent]);
 
-    /* =========================
-       Confirm
-    ========================== */
     const handleClickConfirm = async () => {
         if (['title', 'link', 'map'].includes(type) && !state.modalContent?.toString().trim()) {
             dispatch({ type: 'SET_EMPTY_ERROR' });
-
-            if (type !== 'image') {
+            if (type !== 'image' && type !== 'map') {
                 inputRef.current?.focus();
             }
             return;
         }
 
-        if (type === 'link') {
-            setElements((prev) =>
-                prev.map((element) =>
-                    element.i === item.i
-                        ? {
-                              ...element,
-                              content: state.modalContent,
-                              meta: {
-                                  title: null,
-                                  thumbnail: null,
-                                  status: 'loading',
-                              },
-                          }
-                        : element,
-                ),
-            );
-        } else if (type === 'post') {
-            setElements((prev) =>
-                prev.map((element) =>
-                    element.i === item.i
-                        ? {
-                              ...element,
-                              content: state.modalContent,
-                              meta: {
-                                  thumbnail: state.postThumbnail,
-                              },
-                          }
-                        : element,
-                ),
-            );
-        } else if (type === 'image') {
-            if (!state.imageFile) {
-                console.log('이미지 없음');
-                return;
-            }
+        let finalContent = state.modalContent;
+        let meta = null;
 
+        if (type === 'link') {
+            meta = { title: null, thumbnail: null, status: 'loading' };
+        } else if (type === 'post') {
+            meta = { thumbnail: state.postThumbnail };
+        } else if (type === 'image') {
+            if (!state.imageFile) return;
             try {
                 const userId = getCurrentUserId();
-
                 const formData = new FormData();
                 formData.append('file', state.imageFile);
                 formData.append('editId', editingSessionId);
-
                 const res = await apiClient.post(`/img/blogItems/${userId}`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
+                    headers: { 'Content-Type': 'multipart/form-data' },
                 });
-
-                const uploadedUrl = res.data;
-
-                setElements((prev) =>
-                    prev.map((element) =>
-                        element.i === item.i
-                            ? {
-                                  ...element,
-                                  content: uploadedUrl,
-                                  meta: {
-                                      tempSrc: true,
-                                  },
-                              }
-                            : element,
-                    ),
-                );
+                finalContent = res.data;
+                meta = { tempSrc: true };
             } catch (error) {
-                console.error('이미지 업로드 실패', error);
-                if (error.response.data === '허용되지 않는 확장자입니다.') {
-                    alert(error.response.data);
-                } else {
-                    alert('이미지 업로드에 실패했습니다.');
-                }
+                alert('이미지 업로드에 실패했습니다.');
                 return;
             }
-        } else {
-            setElements((prev) =>
-                prev.map((element) =>
-                    element.i === item.i ? { ...element, content: state.modalContent } : element,
-                ),
-            );
         }
+
+        setElements((prev) =>
+            prev.map((el) =>
+                el.i === item.i ? { ...el, content: finalContent, ...(meta && { meta }) } : el,
+            ),
+        );
 
         dispatch({ type: 'RESET' });
         releaseModal();
@@ -164,52 +102,64 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
         releaseModal();
     };
 
+    // 보기 모드 분기 (수정 중이 아닐 때)
+    if (!isBlogEditing) {
+        return (
+            <div
+                id="BlogElementModal"
+                className="is-viewer-modal"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="modal-top">
+                    <img className="modal-icon" src={`/img/icon-${type}.png`} alt="아이콘" />
+                    <button className="close-modal-btn" onClick={releaseModal}>
+                        닫기
+                    </button>
+                </div>
+                <div className="modal-inner">
+                    {type === 'image' && (
+                        <div className="blog-image-viewer">
+                            <img src={currentContent} alt="크게 보기" style={{ width: '100%' }} />
+                        </div>
+                    )}
+                    {type === 'map' && (
+                        <div className="blog-map-viewer">
+                            <MapInputArea currentContent={currentContent} readOnly={true} />
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // 편집 모드 (기존 UI)
     const modalData = {
-        title: {
-            title: '제목 블럭의 내용을 입력해 주세요',
-            placeholder: '제목을 입력하세요',
-        },
+        title: { title: '제목 블럭의 내용을 입력해 주세요', placeholder: '제목을 입력하세요' },
         post: {
             title: '포스트 블럭의 내용을 입력해 주세요',
             placeholder: '포스트 내용을 입력하세요',
         },
         link: {
             title: '블럭에 추가하시려는 링크를 입력해 주세요',
-            placeholder: '링크를 입력하세요 (예: https://example.com)',
+            placeholder: 'https://example.com',
         },
-        image: {
-            title: '추가하려는 이미지를 첨부해 주세요',
-            placeholder: '이미지 URL을 입력하세요',
-        },
-        map: {
-            title: '지도를 첨부해 주세요',
-            placeholder: '지도 정보를 입력하세요',
-        },
+        image: { title: '추가하려는 이미지를 첨부해 주세요', placeholder: '' },
+        map: { title: '지도를 첨부해 주세요', placeholder: '' },
     };
-
     const { title, placeholder } = modalData[type] || {};
-
-    if (!isBlogEditing) {
-        return (
-            <div className="blog-image-modal">
-                <img src={currentContent} alt="이미지 크게보기" />
-            </div>
-        );
-    }
 
     return (
         <div
             id="BlogElementModal"
-            className={type === 'post' ? 'is-post-modal' : type === 'image' ? 'is-image-modal' : ''}
+            className={`is-${type}-modal`}
             onClick={(e) => e.stopPropagation()}
         >
             <div className="modal-top">
-                <img className="modal-icon" src={`/img/icon-${type}.png`} alt="모달 아이콘" />
+                <img className="modal-icon" src={`/img/icon-${type}.png`} alt="아이콘" />
                 <button className="close-modal-btn" onClick={handleClickCancel}>
                     모달 닫기
                 </button>
             </div>
-
             <div className="modal-inner">
                 {type === 'post' ? (
                     <input
@@ -218,19 +168,15 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                         ref={postInputRef}
                         value={state.searchKeyword}
                         onChange={(e) =>
-                            dispatch({
-                                type: 'SET_SEARCH_KEYWORD',
-                                payload: e.target.value,
-                            })
+                            dispatch({ type: 'SET_SEARCH_KEYWORD', payload: e.target.value })
                         }
                         placeholder="게시글 검색어를 입력해주세요"
                     />
                 ) : (
-                    <h1>{title}</h1>
+                    type !== 'map' && <h1>{title}</h1>
                 )}
 
                 {type === 'post' && <PostListArea type={type} state={state} dispatch={dispatch} />}
-
                 {type === 'image' && (
                     <ImageInputArea
                         type={type}
@@ -240,6 +186,9 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                         dispatch={dispatch}
                     />
                 )}
+                {type === 'map' && (
+                    <MapInputArea dispatch={dispatch} currentContent={state.modalContent} />
+                )}
 
                 {['title', 'link'].includes(type) && (
                     <div className="modal-content-area">
@@ -248,10 +197,7 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
                             type="text"
                             value={state.modalContent}
                             onChange={(e) =>
-                                dispatch({
-                                    type: 'SET_CONTENT',
-                                    payload: e.target.value,
-                                })
+                                dispatch({ type: 'SET_CONTENT', payload: e.target.value })
                             }
                             ref={inputRef}
                             placeholder={placeholder}
