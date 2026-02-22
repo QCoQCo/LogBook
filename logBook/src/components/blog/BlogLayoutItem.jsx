@@ -25,7 +25,7 @@ const GridItemTop = ({ item, type, element, handleClickDelete }) => {
             return data.name; // 장소명
         }
         return null;
-    }, [element.content, type]);
+    }, [element, type]);
 
     return (
         <div className="grid-item-top">
