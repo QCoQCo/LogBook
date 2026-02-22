@@ -148,16 +148,16 @@ public class UserService {
     }
 
     public UserResponseDto getBlogOwner(String loginId) {
-        User user = getUserByLoginId(loginId);
-
-        return new UserResponseDto(
-                user.getId(),
-                user.getLoginId(),
-                user.getNickName(),
-                user.getUserEmail(),
-                user.getProfilePhoto(),
-                user.getIntroduction(),
-                user.getRole() != null ? user.getRole().name() : null);
+        return userRepository.findForUserResponseByLoginId(loginId)
+                .map(p -> new UserResponseDto(
+                        p.getId(),
+                        p.getLoginId(),
+                        p.getNickName(),
+                        p.getUserEmail(),
+                        p.getProfilePhoto(),
+                        p.getIntroduction(),
+                        p.getRole() != null ? p.getRole().name() : null))
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
     }
 
     /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만, 삭제 제외, Blog N+1 방지) */

@@ -38,6 +38,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
         String getNickName();
     }
 
+    /** loginId로 UserResponseDto용 projection 조회 (Blog N+1 방지) */
+    @Query("SELECT u.id AS id, u.loginId AS loginId, u.nickName AS nickName, u.userEmail AS userEmail, u.profilePhoto AS profilePhoto, u.introduction AS introduction, u.role AS role FROM User u WHERE u.loginId = :loginId AND u.deletedAt IS NULL")
+    Optional<UserListProjection> findForUserResponseByLoginId(@Param("loginId") String loginId);
+
     Optional<User> findByLoginId(String loginId);
 
     Optional<User> findByUserEmail(String userEmail);
