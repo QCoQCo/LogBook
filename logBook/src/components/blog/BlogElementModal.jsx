@@ -105,29 +105,8 @@ const BlogElementModal = ({ item, isBlogEditing, releaseModal }) => {
     // 보기 모드 분기 (수정 중이 아닐 때)
     if (!isBlogEditing) {
         return (
-            <div
-                id="BlogElementModal"
-                className="is-viewer-modal"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="modal-top">
-                    <img className="modal-icon" src={`/img/icon-${type}.png`} alt="아이콘" />
-                    <button className="close-modal-btn" onClick={releaseModal}>
-                        닫기
-                    </button>
-                </div>
-                <div className="modal-inner">
-                    {type === 'image' && (
-                        <div className="blog-image-viewer">
-                            <img src={currentContent} alt="크게 보기" style={{ width: '100%' }} />
-                        </div>
-                    )}
-                    {type === 'map' && (
-                        <div className="blog-map-viewer">
-                            <MapInputArea currentContent={currentContent} readOnly={true} />
-                        </div>
-                    )}
-                </div>
+            <div className="blog-image-modal">
+                <img src={currentContent} alt="이미지 크게보기" />
             </div>
         );
     }
