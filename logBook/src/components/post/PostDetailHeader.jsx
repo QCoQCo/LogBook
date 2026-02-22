@@ -27,7 +27,7 @@ const PostDetailHeader = forwardRef(
                     setPosts((prev) => prev.filter((post) => post.postId !== currentPost.postId));
                 }
 
-                navigate(-1);
+                navigate('/feed');
                 scrollToTop();
             } catch (error) {
                 console.error('삭제 실패:', error);
