@@ -1,5 +1,6 @@
 package com.skull.logbook.service;
 
+import com.skull.logbook.constant.NotificationType;
 import com.skull.logbook.dto.CommentRequestDto;
 import com.skull.logbook.dto.CommentResponseDto;
 import com.skull.logbook.entity.Comment;
@@ -21,27 +22,27 @@ public class CommentService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<CommentResponseDto> getCommentsByPostId(Long postId) {
-        List<Comment> comments = commentRepository.findByPostIdWithUser(postId);
+        List<CommentRepository.CommentProjection> projections = commentRepository.findCommentsByPostId(postId);
 
-        return comments.stream()
+        return projections.stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
     }
 
-    private CommentResponseDto convertToResponseDto(Comment comment) {
-        boolean isDeleted = comment.getDeletedAt() != null;
-
+    private CommentResponseDto convertToResponseDto(CommentRepository.CommentProjection p) {
+        boolean isDeleted = p.getDeletedAt() != null;
         return new CommentResponseDto(
-                comment.getId(),
-                comment.getUser().getNickName(), // 매퍼 역할을 수행하는 지점
-                comment.getCommentId(),
-                isDeleted ? "삭제된 댓글입니다." : comment.getContent(),
-                comment.getCreatedAt(),
-                comment.getUpdatedAt(),
-                comment.getDeletedAt()
+                p.getId(),
+                p.getNickName(),
+                p.getCommentId(),
+                isDeleted ? "삭제된 댓글입니다." : p.getContent(),
+                p.getCreatedAt(),
+                p.getUpdatedAt(),
+                p.getDeletedAt()
         );
     }
 
@@ -64,7 +65,23 @@ public class CommentService {
                 .build();
 
         // 4. 저장 및 ID 반환
-        return commentRepository.save(comment).getId();
+        Long commentId = commentRepository.save(comment).getId();
+
+        // 5. 알림: 게시글 작성자에게 (본인 댓글 제외)
+        Long postAuthorId = post.getUserId();
+        if (!postAuthorId.equals(userId)) {
+            String title = "새 댓글";
+            String message = user.getNickName() + "님이 회원님의 게시글에 댓글을 남겼습니다.";
+            notificationService.createAndPush(
+                    NotificationType.COMMENT,
+                    postAuthorId,
+                    title,
+                    message,
+                    postId
+            );
+        }
+
+        return commentId;
     }
 
     @Transactional

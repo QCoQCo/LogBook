@@ -33,9 +33,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u.id AS id, u.nickName AS nickName FROM User u WHERE u.id IN :ids")
     List<UserIdNickNameProjection> findIdAndNickNameByIdIn(@Param("ids") List<Long> ids);
 
+    /** id, nickName, loginId 조회 (PostResponseDto authorLoginId용) */
+    @Query("SELECT u.id AS id, u.nickName AS nickName, u.loginId AS loginId FROM User u WHERE u.id IN :ids")
+    List<UserIdNickNameLoginIdProjection> findIdNickNameLoginIdByIdIn(@Param("ids") List<Long> ids);
+
     interface UserIdNickNameProjection {
         Long getId();
         String getNickName();
+    }
+
+    interface UserIdNickNameLoginIdProjection {
+        Long getId();
+        String getNickName();
+        String getLoginId();
     }
 
     /** loginId로 UserResponseDto용 projection 조회 (Blog N+1 방지) */

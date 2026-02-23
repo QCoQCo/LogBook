@@ -1,4 +1,4 @@
-package com.skull.logbook.security;
+package com.skull.logbook.service;
 
 import com.skull.logbook.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
