@@ -1,11 +1,11 @@
 package com.skull.logbook.service;
 
-import com.skull.logbook.dto.BlogDto;
 import com.skull.logbook.dto.BlogLayoutDto;
 import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.BlogRepository;
 import com.skull.logbook.repository.UserRepository;
+import com.skull.logbook.security.PrincipalDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,11 +25,15 @@ public class BlogService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
-    public BlogLayoutDto getBlogData(String loginId) {
-        User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    private static final String DEFAULT_LAYOUT = """
+            {
+              "layout": [],
+              "elements": []
+            }
+            """;
 
-        Blog blog = blogRepository.findByUserId(user.getId())
+    public BlogLayoutDto getBlogData(String loginId) {
+        Blog blog = blogRepository.findByUserLoginIdWithUser(loginId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 블로그가 존재하지 않습니다."));
 
         try {
@@ -73,15 +77,24 @@ public class BlogService {
 
     public Blog updateBlogLayout(
             Long userId,
-            String layout
+            String layout,
+            PrincipalDetails principal
     ) {
-        Blog blog = blogRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 유저의 블로그가 존재하지 않습니다."));
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
 
+        Blog blog = blogRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Blog newBlog = Blog.builder()
+                            .user(user)
+                            .layout(DEFAULT_LAYOUT)
+                            .build();
+                    return blogRepository.save(newBlog);
+                });
+
+        // 기존 블로그든 새 블로그든 layout 업데이트
         blog.updateLayout(layout);
 
         return blog;
     }
-
-
 }
