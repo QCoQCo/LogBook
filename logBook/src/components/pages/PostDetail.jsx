@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useUserData, useAuth } from '../../context';
 import * as Post from '../post';
 import './PostDetail.scss';
+import { CommentContainer } from '../post/comment';
 
 const PostDetail = () => {
     const navigate = useNavigate();
@@ -169,47 +170,49 @@ const PostDetail = () => {
     };
 
     return (
-        <div id='PostDetail'>
+        <div id="PostDetail">
             {currentPost && postOwner ? (
-                <div className={`post-wrapper ${currentPost.isActive === false ? 'post-wrapper--inactive' : ''}`}>
+                <div
+                    className={`post-wrapper ${currentPost.isActive === false ? 'post-wrapper--inactive' : ''}`}
+                >
                     {currentPost.isActive === false && (
-                        <div className='post-inactive-banner' role='status'>
+                        <div className="post-inactive-banner" role="status">
                             비활성화된 글입니다. 관리자 페이지에서만 조회 가능합니다.
                         </div>
                     )}
-                    <div className='post-wrapper__content'>
-                    <div className='sticky-area'>
-                        <Post.PostStickyUtils
-                            headerHeight={headerHeight}
-                            isLiked={isLiked}
-                            likes={likes}
-                            handleClickLike={handleClickLike}
-                            handleClickShare={handleClickShare}
-                        />
-                    </div>
-                    <div className='post-area'>
-                        <Post.PostDetailHeader
-                            ref={postHeaderRef}
-                            currentPost={currentPost}
-                            postOwner={postOwner}
-                            isOwnPost={isOwnPost}
-                            isFollowing={isFollowing}
-                            handleClickFollowBtn={handleClickFollowBtn}
-                        />
-                        <Post.PostViewer markdown={currentPost.content} />
-                        <Post.PostDetailProfile
-                            postOwner={postOwner}
-                            isFollowing={isFollowing}
-                            isOwnPost={isOwnPost}
-                            handleClickFollowBtn={handleClickFollowBtn}
-                        />
-                        <div className='post-comments'></div>
-                    </div>
+                    <div className="post-wrapper__content">
+                        <div className="sticky-area">
+                            <Post.PostStickyUtils
+                                headerHeight={headerHeight}
+                                isLiked={isLiked}
+                                likes={likes}
+                                handleClickLike={handleClickLike}
+                                handleClickShare={handleClickShare}
+                            />
+                        </div>
+                        <div className="post-area">
+                            <Post.PostDetailHeader
+                                ref={postHeaderRef}
+                                currentPost={currentPost}
+                                postOwner={postOwner}
+                                isOwnPost={isOwnPost}
+                                isFollowing={isFollowing}
+                                handleClickFollowBtn={handleClickFollowBtn}
+                            />
+                            <Post.PostViewer markdown={currentPost.content} />
+                            <Post.PostDetailProfile
+                                postOwner={postOwner}
+                                isFollowing={isFollowing}
+                                isOwnPost={isOwnPost}
+                                handleClickFollowBtn={handleClickFollowBtn}
+                            />
+                            <CommentContainer postId={postId} currentUser={currentUser} />
+                        </div>
                     </div>
                 </div>
             ) : (
-                <div className='post-loading'>
-                    <p className='post-loading-animation'></p>
+                <div className="post-loading">
+                    <p className="post-loading-animation"></p>
                 </div>
             )}
         </div>

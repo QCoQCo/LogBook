@@ -3,10 +3,9 @@ package com.skull.logbook.controller;
 import java.util.List;
 import java.util.Map;
 
-import com.skull.logbook.dto.PostDeleteRequestDto;
-import com.skull.logbook.dto.PostRequestDto;
-import com.skull.logbook.dto.UserPostListDto;
+import com.skull.logbook.dto.*;
 import com.skull.logbook.security.PrincipalDetails;
+import com.skull.logbook.service.CommentService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +19,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import com.skull.logbook.dto.PostResponseDto;
 import com.skull.logbook.service.PostLikeService;
 import com.skull.logbook.service.PostService;
 
@@ -32,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class PostController {
     private final PostService postService;
     private final PostLikeService postLikeService;
+    private final CommentService commentService;
 
     private boolean isCurrentUserAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -147,5 +146,14 @@ public class PostController {
     ) {
         Page<UserPostListDto> posts = postService.getPostsByUserId(userId, pageable);
         return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<?> getPostComments(
+            @PathVariable Long postId
+    ) {
+        List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
+
+        return ResponseEntity.ok(comments);
     }
 }
