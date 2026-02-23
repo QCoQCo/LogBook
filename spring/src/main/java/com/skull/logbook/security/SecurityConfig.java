@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/ws", "/ws/**").permitAll() // WebSocket 핸드셰이크 허용 (STOMP CONNECT에서 JWT 검증)
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/links/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/**").permitAll()

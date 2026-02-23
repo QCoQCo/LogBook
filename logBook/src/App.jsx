@@ -11,6 +11,7 @@ import {
     UserDataProvider,
     useUserData,
     UIProvider,
+    NotificationProvider,
 } from './context';
 import { PostRoutes } from './routes';
 
@@ -64,6 +65,7 @@ function App() {
     return (
         <AuthProvider>
             <UserDataProvider>
+                <NotificationProvider>
                 <UIProvider>
                     <ChatProvider>
                         <BlogProvider>
@@ -116,6 +118,7 @@ function App() {
                         </BlogProvider>
                     </ChatProvider>
                 </UIProvider>
+                </NotificationProvider>
             </UserDataProvider>
         </AuthProvider>
     );

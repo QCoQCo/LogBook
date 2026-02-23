@@ -6,6 +6,7 @@ import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.PostLikeRepository;
 import com.skull.logbook.repository.PostRepository;
 import com.skull.logbook.repository.UserRepository;
+import com.skull.logbook.security.PrincipalDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -35,13 +36,21 @@ public class PostLikeService {
                 .orElseThrow(() -> new AccessDeniedException("존재하지 않는 회원입니다."));
     }
 
+    /** JWT 인증 시 User 엔티티 로딩 없이 ID만 반환 (Blog N+1 방지) */
+    private Long getCurrentUserIdOrNull() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof PrincipalDetails pd)) {
+            return null;
+        }
+        return pd.getId();
+    }
+
     @Transactional(readOnly = true)
     public boolean isLiked(Long postId) {
         try {
-            User user = getCurrentUser();
-            Post post = postRepository.findById(postId)
-                    .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-            return postLikeRepository.existsByPostAndUser(post, user);
+            Long userId = getCurrentUserIdOrNull();
+            if (userId == null) return false;
+            return postLikeRepository.existsByPostIdAndUserId(postId, userId);
         } catch (AccessDeniedException e) {
             return false;
         }
