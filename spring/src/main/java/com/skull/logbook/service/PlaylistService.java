@@ -39,6 +39,9 @@ public class PlaylistService {
     @Value("${youtube.api-key:}")
     private String youtubeApiKey;
 
+    @Value("${YT_DLP_PATH:/Users/apple/Library/Python/3.9/bin/yt-dlp}")
+    private String ytDlpPath;
+
     // 1. 플레이리스트 생성
     public PlaylistResponseDto createPlaylist(Long userId, PlaylistRequestDto requestDto) {
         Playlist playlist = new Playlist();
@@ -314,7 +317,7 @@ public class PlaylistService {
         final int MAX_ITEMS = limitTo25 ? 25 : Integer.MAX_VALUE;
 
         ProcessBuilder pb = new ProcessBuilder(
-                "/Users/apple/Library/Python/3.9/bin/yt-dlp",
+                ytDlpPath, // .env YT_DLP_PATH 또는 PATH의 yt-dlp
                 "--flat-playlist",
                 "--dump-json",
                 "--no-warnings",

@@ -110,3 +110,6 @@ app:
 
 youtube:
     api-key: ${YOUTUBE_API_KEY:}
+
+yt-dlp:
+    path: ${YT_DLP_PATH:yt-dlp}
