@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/search/**").permitAll() // 검색 API 허용
                         .requestMatchers(HttpMethod.GET, "/chat/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts/**").permitAll() // 피드 조회는 누구나 가능
+                        .requestMatchers(HttpMethod.GET, "/comments/**").permitAll() // 댓글 조회는 누구나 가능
                         .requestMatchers("/admin/**").hasRole(Role.ADMIN.name()) // 어드민 API (모든 메서드 ADMIN 전용)
                         .requestMatchers("/img/**").permitAll() // 이미지 조회 허용
                         .requestMatchers("/error").permitAll() // 에러 메시지 확인을 위해 허용
