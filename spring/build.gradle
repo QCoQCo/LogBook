@@ -65,3 +65,8 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// IntelliJ + npm dev 동시 실행 환경에서 메모리 압박(SIGKILL) 방지
+tasks.named('bootRun') {
+    jvmArgs = ['-Xms128m', '-Xmx384m', '-XX:+UseG1GC']
+}
