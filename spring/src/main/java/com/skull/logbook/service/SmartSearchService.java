@@ -6,8 +6,8 @@ import com.skull.logbook.dto.PostResponseDto;
 import com.skull.logbook.dto.SearchResponseDto;
 import com.skull.logbook.entity.Post;
 import com.skull.logbook.entity.SearchMetadata;
-import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.CommonCodeRepository;
+import com.skull.logbook.repository.PostLikeRepository;
 import com.skull.logbook.repository.PostRepository;
 import com.skull.logbook.repository.PostTagRepository;
 import com.skull.logbook.repository.SearchMetadataRepository;
@@ -30,6 +30,7 @@ public class SmartSearchService {
 
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository;
+    private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
     private final CommonCodeRepository commonCodeRepository;
     private final SearchMetadataRepository searchMetadataRepository;
@@ -41,6 +42,7 @@ public class SmartSearchService {
     @Autowired
     public SmartSearchService(PostRepository postRepository,
             PostTagRepository postTagRepository,
+            PostLikeRepository postLikeRepository,
             UserRepository userRepository,
             CommonCodeRepository commonCodeRepository,
             SearchMetadataRepository searchMetadataRepository,
@@ -50,6 +52,7 @@ public class SmartSearchService {
             java.util.List<String> googleModels) {
         this.postRepository = postRepository;
         this.postTagRepository = postTagRepository;
+        this.postLikeRepository = postLikeRepository;
         this.userRepository = userRepository;
         this.commonCodeRepository = commonCodeRepository;
         this.searchMetadataRepository = searchMetadataRepository;
@@ -803,11 +806,23 @@ public class SmartSearchService {
                         data -> (Long) data[0],
                         Collectors.mapping(data -> (String) data[1], Collectors.toList())));
 
-        // 3. 작성자 닉네임 조회
+        // 2. 작성자 닉네임 조회
         List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
-        Map<Long, String> authorNameMap = userRepository.findAllById(userIds).stream()
-                .collect(Collectors.toMap(User::getId, User::getNickName, (a, b) -> a));
+        Map<Long, String> authorNameMap = userRepository.findIdAndNickNameByIdIn(userIds).stream()
+                .collect(Collectors.toMap(
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameProjection::getId,
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameProjection::getNickName,
+                        (a, b) -> a));
 
+        // 3. 좋아요 수 조회
+        Map<Long, Long> likeCountMap = Collections.emptyMap();
+        if (!postIds.isEmpty()) {
+            List<Object[]> likeCountData = postLikeRepository.countLikesByPostIds(postIds);
+            likeCountMap = likeCountData.stream()
+                    .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1], (a, b) -> a));
+        }
+
+        Map<Long, Long> finalLikeCountMap = likeCountMap;
         return posts.stream()
                 .map(post -> new PostResponseDto(
                         post.getId(),
@@ -818,7 +833,9 @@ public class SmartSearchService {
                         post.getCreatedAt().toString(),
                         post.getUpdatedAt().toString(),
                         tagsMap.getOrDefault(post.getId(), new ArrayList<>()),
-                        Boolean.TRUE.equals(post.getIsActive())))
+                        Boolean.TRUE.equals(post.getIsActive()),
+                        finalLikeCountMap.getOrDefault(post.getId(), 0L),
+                        false))
                 .collect(Collectors.toList());
     }
 }

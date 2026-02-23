@@ -21,8 +21,8 @@ const PostDetail = () => {
     const [loadError, setLoadError] = useState(false); // error flag
     const [headerHeight, setHeaderHeight] = useState(0); //
 
-    const [isFollowing, setIsFollowing] = useState(false); // temporary follow state
-    const [likes, setLikes] = useState(21); // temporary likes state
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [likes, setLikes] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
 
     const postHeaderRef = useRef(null);
@@ -31,6 +31,29 @@ const PostDetail = () => {
     useEffect(() => {
         getPostData();
     }, [postId, userData, fromAdmin]);
+
+    // currentUser 로드 시점에 isOwnPost 재계산 (본인 글일 때 팔로우 버튼 숨김)
+    useEffect(() => {
+        if (!postOwner) return;
+        const own = !!(currentUser && String(postOwner.id) === String(currentUser.id));
+        setIsOwnPost(own);
+    }, [postOwner, currentUser]);
+
+    // 팔로우 상태 조회 (로그인 + 타인 글일 때만)
+    useEffect(() => {
+        if (!currentUser || !postOwner || isOwnPost) return;
+        const fetchFollowStatus = async () => {
+            try {
+                const { data } = await apiClient.get(`/users/${postOwner.id}/follow/status`);
+                setIsFollowing(data?.following ?? false);
+            } catch (err) {
+                if (err?.response?.status !== 401) {
+                    console.error('팔로우 상태 조회 실패:', err);
+                }
+            }
+        };
+        fetchFollowStatus();
+    }, [currentUser, postOwner, isOwnPost]);
 
     useEffect(() => {
         if (!currentPost || !postOwner) {
@@ -70,8 +93,12 @@ const PostDetail = () => {
                 setCurrentPost(post);
                 setPostOwner(owner);
 
-                // 게시글 소유자 확인
-                if (owner && currentUser && String(owner.userId) === String(currentUser.id)) {
+                // 좋아요 수, 좋아요 여부 (API 응답에 포함)
+                setLikes(post.likeCount ?? 0);
+                setIsLiked(post.isLiked ?? false);
+
+                // 게시글 소유자 확인 (owner.id = DB PK, currentUser.id = 로그인 유저 PK)
+                if (owner && currentUser && String(owner.id) === String(currentUser.id)) {
                     setIsOwnPost(true);
                 } else {
                     setIsOwnPost(false);
@@ -82,18 +109,53 @@ const PostDetail = () => {
         }
     };
 
-    // handlers
-    const handleClickFollowBtn = () => {
-        setIsFollowing((prev) => !prev);
+    const handleClickFollowBtn = async () => {
+        if (!currentUser) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+        if (!postOwner || isOwnPost) return;
+        try {
+            if (isFollowing) {
+                await apiClient.delete(`/users/${postOwner.id}/follow`);
+                setIsFollowing(false);
+            } else {
+                await apiClient.post(`/users/${postOwner.id}/follow`);
+                setIsFollowing(true);
+            }
+        } catch (err) {
+            const msg = err?.response?.data?.message || '처리 중 오류가 발생했습니다.';
+            if (err?.response?.status === 403) {
+                alert('로그인이 필요합니다.');
+            } else {
+                alert(msg);
+            }
+        }
     };
 
-    const handleClickLike = () => {
-        if (isLiked) {
-            setLikes((prev) => prev - 1);
-        } else {
-            setLikes((prev) => prev + 1);
+    const handleClickLike = async () => {
+        if (!currentUser) {
+            alert('로그인이 필요합니다.');
+            return;
         }
-        setIsLiked((prev) => !prev);
+        try {
+            if (isLiked) {
+                const { data } = await apiClient.delete(`/posts/${postId}/like`);
+                setLikes(data?.likeCount ?? likes - 1);
+                setIsLiked(false);
+            } else {
+                const { data } = await apiClient.post(`/posts/${postId}/like`);
+                setLikes(data?.likeCount ?? likes + 1);
+                setIsLiked(true);
+            }
+        } catch (err) {
+            const msg = err?.response?.data?.message || '처리 중 오류가 발생했습니다.';
+            if (err?.response?.status === 403) {
+                alert('로그인이 필요합니다.');
+            } else {
+                alert(msg);
+            }
+        }
     };
 
     const handleClickShare = async () => {

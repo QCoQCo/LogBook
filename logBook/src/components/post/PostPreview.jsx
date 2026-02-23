@@ -9,22 +9,60 @@ const PostPreview = () => {
     const { markdown, postTitle } = usePost();
 
     return (
-        <div className='post-preview'>
-            <div className='preview-pane'>
-                <div className='post-preview-title'>
+        <div className="post-preview">
+            <div className="preview-pane">
+                <div className="post-preview-title">
                     <h1>{postTitle}</h1>
                 </div>
                 <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkBreaks]}
                     components={{
+                        a({ node, children, href, ...props }) {
+                            // URL 유효성 검사 함수
+                            const isExternal =
+                                href && (href.startsWith('http://') || href.startsWith('https://'));
+                            const isRelative =
+                                href &&
+                                (href.startsWith('/') ||
+                                    href.startsWith('./') ||
+                                    href.startsWith('../'));
+
+                            // 프로토콜도 없고, 상대 경로 기호도 없는 값
+                            const isValid = isExternal || isRelative;
+
+                            const handleClick = (e) => {
+                                if (!isValid) {
+                                    e.preventDefault(); // 이동 방지
+                                    alert('유효하지 않은 링크 형식입니다.');
+                                    return;
+                                }
+                            };
+
+                            return (
+                                <a
+                                    {...props}
+                                    href={href}
+                                    target={'_blank'}
+                                    rel="noopener noreferrer"
+                                    onClick={handleClick}
+                                    style={{
+                                        color: isValid ? '#00bfa5' : '#ff5252', // 유효하지 않으면 빨간색으로 표시 가능
+                                        textDecoration: 'underline',
+                                        cursor: isValid ? 'pointer' : 'not-allowed',
+                                    }}
+                                >
+                                    {children}
+                                </a>
+                            );
+                        },
                         code({ className, children }) {
                             const match = /language-(\w+)/.exec(className || '');
                             return match ? (
                                 <SyntaxHighlighter
                                     style={oneDark}
                                     language={match[1]}
-                                    PreTag='div'
-                                    className='code-block'
+                                    PreTag="div"
+                                    className="code-block"
                                 >
                                     {String(children)
                                         .replace(/\n$/, '')
@@ -34,9 +72,9 @@ const PostPreview = () => {
                             ) : (
                                 <SyntaxHighlighter
                                     style={oneDark}
-                                    language='textile'
-                                    PreTag='div'
-                                    className='code-block'
+                                    language="textile"
+                                    PreTag="div"
+                                    className="code-block"
                                 >
                                     {String(children).replace(/\n$/, '')}
                                 </SyntaxHighlighter>

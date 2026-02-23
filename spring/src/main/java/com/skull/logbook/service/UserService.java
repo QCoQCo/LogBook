@@ -10,6 +10,7 @@ import com.skull.logbook.repository.BlogRepository;
 import com.skull.logbook.repository.UserRepository;
 import com.skull.logbook.repository.AuthSessionRepository;
 import com.skull.logbook.security.JwtTokenProvider;
+import com.skull.logbook.security.PrincipalDetails;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
@@ -28,7 +29,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -148,23 +148,29 @@ public class UserService {
     }
 
     public UserResponseDto getBlogOwner(String loginId) {
-        User user = getUserByLoginId(loginId);
-
-        return new UserResponseDto(
-                user.getId(),
-                user.getLoginId(),
-                user.getNickName(),
-                user.getUserEmail(),
-                user.getProfilePhoto(),
-                user.getIntroduction(),
-                user.getRole() != null ? user.getRole().name() : null);
+        return userRepository.findForUserResponseByLoginId(loginId)
+                .map(p -> new UserResponseDto(
+                        p.getId(),
+                        p.getLoginId(),
+                        p.getNickName(),
+                        p.getUserEmail(),
+                        p.getProfilePhoto(),
+                        p.getIntroduction(),
+                        p.getRole() != null ? p.getRole().name() : null))
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
     }
 
-    /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만, 삭제 제외) */
+    /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만, 삭제 제외, Blog N+1 방지) */
     public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(u -> !u.isDeleted())
-                .map(UserResponseDto::from)
+        return userRepository.findAllForUserList().stream()
+                .map(p -> new UserResponseDto(
+                        p.getId(),
+                        p.getLoginId(),
+                        p.getNickName(),
+                        p.getUserEmail(),
+                        p.getProfilePhoto(),
+                        p.getIntroduction(),
+                        p.getRole() != null ? p.getRole().name() : null))
                 .collect(Collectors.toList());
     }
 
@@ -195,7 +201,7 @@ public class UserService {
 
         // 파일이 있으면 저장 로직 수행 (SFTP)
         if (file != null && !file.isEmpty()) {
-            profilePhotoUrl = sftpService.uploadFile(file, "profile", String.valueOf(userId));
+            profilePhotoUrl = sftpService.uploadFile(file, "profile", userId);
         }
 
         user.updateProfile(introduction, profilePhotoUrl, nickName);
@@ -224,15 +230,15 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         // Authentication 객체 임의 생성 (권한 정보 등 필요 시 로직 추가)
         // 여기서는 간단히 이름만 넣음
-        UserDetails principal = org.springframework.security.core.userdetails.User
-                .builder()
-                .username(user.getLoginId())
-                .password("")
-                .roles(user.getRole().name())
-                .build();
+        PrincipalDetails principal = new PrincipalDetails(user);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, "",
-                principal.getAuthorities());
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(
+                        principal,
+                        null,
+                        principal.getAuthorities()
+                );
+
         return jwtTokenProvider.createToken(authentication);
     }
 
@@ -288,13 +294,15 @@ public class UserService {
         }
         user.changeRole(role);
 
-        UserDetails principal = org.springframework.security.core.userdetails.User
-                .builder()
-                .username(user.getLoginId())
-                .password("")
-                .roles(user.getRole().name())
-                .build();
-        Authentication newAuth = new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities());
+        PrincipalDetails principal = new PrincipalDetails(user);
+
+        Authentication newAuth =
+                new UsernamePasswordAuthenticationToken(
+                        principal,
+                        null,
+                        principal.getAuthorities()
+                );
+
         String newToken = jwtTokenProvider.createToken(newAuth);
 
         Map<String, Object> userMap = new HashMap<>();

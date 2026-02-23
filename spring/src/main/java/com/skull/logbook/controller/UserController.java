@@ -4,11 +4,16 @@ import com.skull.logbook.constant.Role;
 import com.skull.logbook.dto.UserResponseDto;
 import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
+import com.skull.logbook.security.PrincipalDetails;
 import com.skull.logbook.service.BlogService;
+import com.skull.logbook.service.UserFollowService;
 import com.skull.logbook.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +28,7 @@ public class UserController {
 
     private final UserService userService;
     private final BlogService blogService;
+    private final UserFollowService userFollowService;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
@@ -36,8 +42,11 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @Transactional
     @PutMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("#userId == principal.id")
     public ResponseEntity<?> updateProfile(
+            @AuthenticationPrincipal PrincipalDetails principal,
             @PathVariable Long userId,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestPart(value = "introduction", required = false) String introduction,
@@ -47,7 +56,7 @@ public class UserController {
         try {
             User updatedUser = userService.updateUserProfile(userId, file, introduction, nickName);
 
-            Blog updatedBlog = blogService.updateBlogLayout(userId, layout);
+            Blog updatedBlog = blogService.updateBlogLayout(userId, layout, principal);
 
             return ResponseEntity.ok(Map.of(
                     "message", "프로필이 수정되었습니다.",
@@ -81,54 +90,36 @@ public class UserController {
         }
     }
 
-    /** 관리자: 닉네임, 이메일, 역할 일괄 수정 (JSON body, 선택 필드만 보내면 됨) */
-    @PatchMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateUserByAdmin(
-            @PathVariable Long userId,
-            @RequestBody Map<String, String> body) {
-        if (body == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "요청 본문이 없습니다."));
-        }
+    /** 현재 로그인 사용자가 대상 유저를 팔로우 중인지 조회 */
+    @GetMapping("/{userId}/follow/status")
+    public ResponseEntity<?> getFollowStatus(@PathVariable Long userId) {
+        boolean following = userFollowService.isFollowing(userId);
+        return ResponseEntity.ok(Map.of("following", following));
+    }
+
+    /** 대상 유저 팔로우 */
+    @PostMapping("/{userId}/follow")
+    public ResponseEntity<?> followUser(@PathVariable Long userId) {
         try {
-            String nickName = body.get("nickName");
-            String userEmail = body.get("userEmail");
-            String roleStr = body.get("role");
-            Role role = null;
-            if (roleStr != null && !roleStr.isBlank()) {
-                if (!roleStr.equals("USER") && !roleStr.equals("ADMIN") && !roleStr.equals("GUEST")) {
-                    return ResponseEntity.badRequest().body(Map.of("message", "role은 USER, ADMIN, GUEST 중 하나여야 합니다."));
-                }
-                role = Role.valueOf(roleStr);
-            }
-            UserResponseDto result = userService.updateUserByAdmin(userId, nickName, userEmail, role);
-            return ResponseEntity.ok(result);
+            userFollowService.follow(userId);
+            return ResponseEntity.ok(Map.of("message", "팔로우했습니다.", "following", true));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
         }
     }
 
-    @PatchMapping("/{userId}/role")
-    public ResponseEntity<?> updateUserRole(@PathVariable Long userId, @RequestBody Map<String, String> body) {
-        String roleStr = body != null ? body.get("role") : null;
-        if (roleStr == null || (!roleStr.equals("USER") && !roleStr.equals("ADMIN") && !roleStr.equals("GUEST"))) {
-            return ResponseEntity.badRequest().body(Map.of("message", "role은 USER, ADMIN, GUEST 중 하나여야 합니다."));
-        }
+    /** 대상 유저 언팔로우 */
+    @DeleteMapping("/{userId}/follow")
+    public ResponseEntity<?> unfollowUser(@PathVariable Long userId) {
         try {
-            Role role = Role.valueOf(roleStr);
-            UserResponseDto result = userService.updateUserRole(userId, role);
-            return ResponseEntity.ok(result);
+            userFollowService.unfollow(userId);
+            return ResponseEntity.ok(Map.of("message", "언팔로우했습니다.", "following", false));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
-    }
-
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
-        try {
-            userService.softDeleteUser(userId);
-            return ResponseEntity.ok(Map.of("message", "회원이 삭제 처리되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
         }
     }
 }

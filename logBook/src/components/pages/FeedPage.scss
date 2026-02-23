@@ -3,6 +3,42 @@
     padding: 48px 24px;
     position: relative;
 
+    /* Feed Filter Tabs (전체 | 팔로우 | 좋아요) */
+    .feed-filter-tabs {
+        display: flex;
+        gap: 4px;
+        margin: 0 auto 24px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        width: fit-content;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid #eee;
+    }
+
+    .filter-tab {
+        border: none;
+        background: transparent;
+        padding: 10px 24px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 150ms ease;
+
+        &:hover {
+            background: rgba(0, 120, 212, 0.06);
+            color: #0078d4;
+        }
+
+        &.active {
+            background: #0078d4;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 120, 212, 0.25);
+        }
+    }
+
     .container {
         margin: 0 auto;
         position: relative;
