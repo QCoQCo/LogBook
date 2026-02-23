@@ -3,25 +3,22 @@ package com.skull.logbook.controller;
 import java.util.List;
 import java.util.Map;
 
-import com.skull.logbook.dto.UserPostListDto;
+import com.skull.logbook.dto.*;
+import com.skull.logbook.security.PrincipalDetails;
+import com.skull.logbook.service.CommentService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.skull.logbook.dto.PostResponseDto;
 import com.skull.logbook.service.PostLikeService;
 import com.skull.logbook.service.PostService;
 
@@ -33,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class PostController {
     private final PostService postService;
     private final PostLikeService postLikeService;
+    private final CommentService commentService;
 
     private boolean isCurrentUserAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -45,6 +43,36 @@ public class PostController {
             }
         }
         return false;
+    }
+
+    @PostMapping
+    public ResponseEntity<Long> createPost(
+            @Valid @RequestBody PostRequestDto dto,
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        // principalDetails.getId()를 호출하여 안전한 PK 값을 전달
+        Long postId = postService.createPost(dto, principalDetails.getId());
+        return ResponseEntity.ok(postId);
+    }
+
+    @PutMapping("/{postId}")
+    @PreAuthorize("@postSecurity.isOwner(#postId, principal.id)")
+    public ResponseEntity<Void> updatePost(
+            @PathVariable Long postId,
+            @Valid @RequestBody PostRequestDto requestDto,
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        postService.updatePost(postId, requestDto, principalDetails.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping
+    @PreAuthorize("@postSecurity.isOwner(#requestDto.postId, principal.id)")
+    public ResponseEntity<Void> deletePost(
+            @RequestBody PostDeleteRequestDto requestDto
+    ) {
+        postService.softDeletePost(requestDto.getPostId());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping
@@ -64,16 +92,6 @@ public class PostController {
         boolean isAdmin = isCurrentUserAdmin();
         boolean effectiveIncludeInactive = includeInactive && isAdmin;
         return Map.of("totalElements", postService.countAll(effectiveIncludeInactive));
-    }
-
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Map<String, String>> deletePost(@PathVariable Long postId) {
-        try {
-            postService.softDeletePost(postId);
-            return ResponseEntity.ok(Map.of("message", "게시글이 삭제 처리되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
     }
 
     @GetMapping("/{postId}")
@@ -117,26 +135,6 @@ public class PostController {
         }
     }
 
-    @PatchMapping("/{postId}/deactivate")
-    public ResponseEntity<Map<String, String>> deactivatePost(@PathVariable Long postId) {
-        try {
-            postService.deactivatePost(postId);
-            return ResponseEntity.ok(Map.of("message", "게시글이 비활성화되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
-    }
-
-    @PatchMapping("/{postId}/activate")
-    public ResponseEntity<Map<String, String>> activatePost(@PathVariable Long postId) {
-        try {
-            postService.activatePost(postId);
-            return ResponseEntity.ok(Map.of("message", "게시글이 활성화되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
-    }
-
     @GetMapping("/lists/{userId}")
     public ResponseEntity<Page<UserPostListDto>> getPostsByUserId(
             @PathVariable Long userId,
@@ -148,5 +146,14 @@ public class PostController {
     ) {
         Page<UserPostListDto> posts = postService.getPostsByUserId(userId, pageable);
         return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<?> getPostComments(
+            @PathVariable Long postId
+    ) {
+        List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
+
+        return ResponseEntity.ok(comments);
     }
 }

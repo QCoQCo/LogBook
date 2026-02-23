@@ -1,6 +1,5 @@
 package com.skull.logbook.service;
 
-import com.skull.logbook.dto.BlogDto;
 import com.skull.logbook.dto.BlogLayoutDto;
 import com.skull.logbook.entity.Blog;
 import com.skull.logbook.entity.User;
@@ -34,10 +33,7 @@ public class BlogService {
             """;
 
     public BlogLayoutDto getBlogData(String loginId) {
-        User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-
-        Blog blog = blogRepository.findByUserId(user.getId())
+        Blog blog = blogRepository.findByUserLoginIdWithUser(loginId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 블로그가 존재하지 않습니다."));
 
         try {

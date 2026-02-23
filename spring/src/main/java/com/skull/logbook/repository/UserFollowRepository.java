@@ -15,10 +15,16 @@ public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
 
     boolean existsByFollowerAndFollowing(User follower, User following);
 
+    @Query("SELECT COUNT(uf) > 0 FROM UserFollow uf WHERE uf.follower.id = :followerId AND uf.following.id = :followingId")
+    boolean existsByFollowerIdAndFollowingId(@Param("followerId") Long followerId, @Param("followingId") Long followingId);
+
     Optional<UserFollow> findByFollowerAndFollowing(User follower, User following);
 
     void deleteByFollowerAndFollowing(User follower, User following);
 
     @Query("SELECT uf.following.id FROM UserFollow uf WHERE uf.follower = :follower")
     List<Long> findFollowingIdsByFollower(@Param("follower") User follower);
+
+    @Query("SELECT uf.following.id FROM UserFollow uf WHERE uf.follower.id = :followerId")
+    List<Long> findFollowingIdsByFollowerId(@Param("followerId") Long followerId);
 }

@@ -17,6 +17,7 @@ const BlogPosts = ({ blogOwnerData }) => {
     const pageRef = useRef(0);
     const sentinelRef = useRef(null);
     const searchInputRef = useRef(null);
+    const initialFetchInProgressRef = useRef(false);
 
     const fetchPosts = useCallback(async () => {
         if (isLoading || !hasMore) return;
@@ -66,14 +67,17 @@ const BlogPosts = ({ blogOwnerData }) => {
         setHasMore(true);
         setIsInitialLoading(true);
         pageRef.current = 0;
+        initialFetchInProgressRef.current = false;
     }, [userId]);
 
-    // 2. 최초 실행
+    // 2. 최초 실행 (중복 방지: Strict Mode 등으로 effect 2회 실행 시 1회만 요청)
     useEffect(() => {
-        if (pageRef.current === 0 && !isLoading && hasMore) {
-            fetchPosts();
-        }
-    }, [fetchPosts, isLoading, hasMore]);
+        if (pageRef.current !== 0 || !hasMore || initialFetchInProgressRef.current) return;
+        initialFetchInProgressRef.current = true;
+        fetchPosts().finally(() => {
+            initialFetchInProgressRef.current = false;
+        });
+    }, [fetchPosts, hasMore]);
 
     // 3. Intersection Observer (무한 스크롤)
     useEffect(() => {

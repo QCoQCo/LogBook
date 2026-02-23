@@ -1,7 +1,6 @@
 package com.skull.logbook.service;
 
 import com.skull.logbook.entity.ChatRoom;
-import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.ChatRoomRepository;
 import com.skull.logbook.repository.PostRepository;
 import com.skull.logbook.repository.PostTagRepository;
@@ -39,21 +38,26 @@ public class StatsService {
                 .collect(Collectors.toList());
 
         List<Object[]> userCounts = postRepository.countPostsByUserId();
-        Map<Long, User> userMap = new HashMap<>();
+        Map<Long, String> nickNameMap = new HashMap<>();
         if (!userCounts.isEmpty()) {
             List<Long> userIds = userCounts.stream()
                     .map(row -> (Long) row[0])
+                    .filter(id -> id != null && id > 0)
+                    .distinct()
                     .collect(Collectors.toList());
-            userRepository.findAllById(userIds).forEach(u -> userMap.put(u.getId(), u));
+            if (!userIds.isEmpty()) {
+                userRepository.findIdAndNickNameByIdIn(userIds)
+                        .forEach(p -> nickNameMap.put(p.getId(), p.getNickName()));
+            }
         }
         List<Map<String, Object>> postsByUser = userCounts.stream()
                 .map(row -> {
                     Long userId = (Long) row[0];
                     long count = ((Number) row[1]).longValue();
-                    User user = userMap.get(userId);
+                    String nickName = nickNameMap.get(userId);
                     Map<String, Object> m = new LinkedHashMap<>();
                     m.put("userId", userId);
-                    m.put("userName", user != null ? user.getNickName() : "ID:" + userId);
+                    m.put("userName", nickName != null ? nickName : "ID:" + userId);
                     m.put("count", count);
                     return m;
                 })

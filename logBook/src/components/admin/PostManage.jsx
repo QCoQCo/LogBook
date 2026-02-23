@@ -50,8 +50,8 @@ const PostManage = () => {
             setLoading(true);
             setError(null);
             const [listRes, countRes] = await Promise.all([
-                apiClient.get('/posts', { params: { page: pageNum, size: PAGE_SIZE, includeInactive: true } }),
-                apiClient.get('/posts/count', { params: { includeInactive: true } }),
+                apiClient.get('/admin/posts', { params: { page: pageNum, size: PAGE_SIZE, includeInactive: true } }),
+                apiClient.get('/admin/posts/count', { params: { includeInactive: true } }),
             ]);
             const list = listRes.data;
             const total = countRes.data?.totalElements ?? 0;
@@ -95,8 +95,8 @@ const PostManage = () => {
         if (!window.confirm(`"${row.title || '이 게시글'}"을(를) ${action}하시겠습니까?`)) return;
         try {
             const endpoint = row.isActive === false
-                ? `/posts/${row.postId}/activate`
-                : `/posts/${row.postId}/deactivate`;
+                ? `/admin/posts/${row.postId}/activate`
+                : `/admin/posts/${row.postId}/deactivate`;
             await apiClient.patch(endpoint);
             handleModalClose();
             await fetchPosts(page);
@@ -110,7 +110,7 @@ const PostManage = () => {
         if (!row?.postId) return;
         if (!window.confirm(`"${row.title || '이 게시글'}"을(를) 삭제 처리하시겠습니까?`)) return;
         try {
-            await apiClient.delete(`/posts/${row.postId}`);
+            await apiClient.delete(`/admin/posts/${row.postId}`);
             handleModalClose();
             await fetchPosts(page);
         } catch (err) {

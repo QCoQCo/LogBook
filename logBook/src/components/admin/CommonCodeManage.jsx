@@ -12,7 +12,7 @@ const CommonCodeManage = () => {
         try {
             setLoading(true);
             setError(null);
-            const { data } = await apiClient.get('/common-codes');
+            const { data } = await apiClient.get('/admin/common-codes');
             setCommonCodes(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(err?.response?.data?.message || '공통코드 목록을 불러오는데 실패했습니다.');

@@ -29,7 +29,7 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
         this.username = user.getLoginId();
         this.authorities =
                 Collections.singletonList(
-                        new SimpleGrantedAuthority(user.getRole().name())
+                        new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
                 );
     }
 
@@ -41,7 +41,7 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
         this.username = user.getLoginId();
         this.authorities =
                 Collections.singletonList(
-                        new SimpleGrantedAuthority(user.getRole().name())
+                        new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
                 );
     }
 

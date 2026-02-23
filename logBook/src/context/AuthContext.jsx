@@ -199,7 +199,8 @@ export const AuthProvider = ({ children }) => {
             return { ok: true };
         } catch (err) {
             if (err?.response?.status === 403) {
-                setRoleOverride(role);
+                // roleOverride를 설정하지 않음: JWT에 ADMIN이 없으면 /admin/** API가 403을 반환하므로
+                // UI에서만 ADMIN처럼 보이게 하면 관리자 페이지 접근 시 모든 API가 Forbidden 됨
                 return { ok: false, message: '역할 변경은 관리자만 가능합니다.' };
             }
             return {
