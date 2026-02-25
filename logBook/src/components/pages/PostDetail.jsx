@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useUserData, useAuth } from '../../context';
 import * as Post from '../post';
 import './PostDetail.scss';
+import { CommentContainer } from '../post/comment';
 
 const PostDetail = () => {
     const navigate = useNavigate();
@@ -59,7 +60,7 @@ const PostDetail = () => {
         if (!currentPost || !postOwner) {
             timeoutRef.current = setTimeout(() => {
                 setLoadError(true);
-            }, 5000);
+            }, 8000); // API가 5초 이상 걸릴 수 있음 (N+1 등)
         } else {
             clearTimeout(timeoutRef.current);
         }
@@ -87,9 +88,23 @@ const PostDetail = () => {
             const res = await apiClient.get(`/posts/${postId}`, { params });
             const post = res.data;
 
-            if (post && userData) {
-                // DTO userId는 String, userData id는 Number일 수 있음. 비교 시 주의
-                const owner = userData.find((user) => String(user.id) === String(post.userId));
+            if (post) {
+                // userData에서 우선 조회, 없으면 post 응답(authorName, authorLoginId)으로 fallback
+                const ownerFromUserData = Array.isArray(userData)
+                    ? userData.find((user) => String(user.id) === String(post.userId))
+                    : null;
+                const owner =
+                    ownerFromUserData ||
+                    (post.userId && post.authorName
+                        ? {
+                              id: post.userId,
+                              nickName: post.authorName,
+                              userId: post.authorLoginId || post.userId,
+                              profilePhoto: null,
+                              introduction: null,
+                          }
+                        : null);
+
                 setCurrentPost(post);
                 setPostOwner(owner);
 
@@ -106,6 +121,7 @@ const PostDetail = () => {
             }
         } catch (error) {
             console.error('게시글 데이터 로딩 오류: ', error);
+            setLoadError(true);
         }
     };
 
@@ -171,40 +187,42 @@ const PostDetail = () => {
     return (
         <div id='PostDetail'>
             {currentPost && postOwner ? (
-                <div className={`post-wrapper ${currentPost.isActive === false ? 'post-wrapper--inactive' : ''}`}>
+                <div
+                    className={`post-wrapper ${currentPost.isActive === false ? 'post-wrapper--inactive' : ''}`}
+                >
                     {currentPost.isActive === false && (
                         <div className='post-inactive-banner' role='status'>
                             비활성화된 글입니다. 관리자 페이지에서만 조회 가능합니다.
                         </div>
                     )}
                     <div className='post-wrapper__content'>
-                    <div className='sticky-area'>
-                        <Post.PostStickyUtils
-                            headerHeight={headerHeight}
-                            isLiked={isLiked}
-                            likes={likes}
-                            handleClickLike={handleClickLike}
-                            handleClickShare={handleClickShare}
-                        />
-                    </div>
-                    <div className='post-area'>
-                        <Post.PostDetailHeader
-                            ref={postHeaderRef}
-                            currentPost={currentPost}
-                            postOwner={postOwner}
-                            isOwnPost={isOwnPost}
-                            isFollowing={isFollowing}
-                            handleClickFollowBtn={handleClickFollowBtn}
-                        />
-                        <Post.PostViewer markdown={currentPost.content} />
-                        <Post.PostDetailProfile
-                            postOwner={postOwner}
-                            isFollowing={isFollowing}
-                            isOwnPost={isOwnPost}
-                            handleClickFollowBtn={handleClickFollowBtn}
-                        />
-                        <div className='post-comments'></div>
-                    </div>
+                        <div className='sticky-area'>
+                            <Post.PostStickyUtils
+                                headerHeight={headerHeight}
+                                isLiked={isLiked}
+                                likes={likes}
+                                handleClickLike={handleClickLike}
+                                handleClickShare={handleClickShare}
+                            />
+                        </div>
+                        <div className='post-area'>
+                            <Post.PostDetailHeader
+                                ref={postHeaderRef}
+                                currentPost={currentPost}
+                                postOwner={postOwner}
+                                isOwnPost={isOwnPost}
+                                isFollowing={isFollowing}
+                                handleClickFollowBtn={handleClickFollowBtn}
+                            />
+                            <Post.PostViewer markdown={currentPost.content} />
+                            <Post.PostDetailProfile
+                                postOwner={postOwner}
+                                isFollowing={isFollowing}
+                                isOwnPost={isOwnPost}
+                                handleClickFollowBtn={handleClickFollowBtn}
+                            />
+                            <CommentContainer postId={postId} currentUser={currentUser} />
+                        </div>
                     </div>
                 </div>
             ) : (

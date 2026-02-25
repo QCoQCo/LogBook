@@ -11,13 +11,18 @@ export default defineConfig({
     // .env를 프로젝트 루트(PJ02)에서 로드
     envDir: path.resolve(__dirname, '..'),
 
+    // sockjs-client 등 Node 스타일 모듈이 global을 참조할 때 브라우저 호환
+    define: {
+        global: 'globalThis',
+    },
+
     server: {
         proxy: {
             '/api': {
                 target: 'http://localhost:8080',
                 changeOrigin: true,
+                ws: true, // WebSocket (SockJS) 프록시
             },
-            // 혹시 다른 API가 더 있다면 여기에 추가 가능
         }
     }
 });

@@ -9,10 +9,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Getter;
+import lombok.*;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "postTag")
 public class PostTag extends BaseCreatedEntity {
 

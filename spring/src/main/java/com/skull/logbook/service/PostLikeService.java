@@ -6,6 +6,7 @@ import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.PostLikeRepository;
 import com.skull.logbook.repository.PostRepository;
 import com.skull.logbook.repository.UserRepository;
+import com.skull.logbook.security.PrincipalDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -35,28 +36,36 @@ public class PostLikeService {
                 .orElseThrow(() -> new AccessDeniedException("존재하지 않는 회원입니다."));
     }
 
+    /** JWT 인증 시 User 엔티티 로딩 없이 ID만 반환 (Blog N+1 방지) */
+    private Long getCurrentUserIdOrNull() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof PrincipalDetails pd)) {
+            return null;
+        }
+        return pd.getId();
+    }
+
     @Transactional(readOnly = true)
     public boolean isLiked(Long postId) {
         try {
-            User user = getCurrentUser();
-            Post post = postRepository.findById(postId)
-                    .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-            return postLikeRepository.existsByPostAndUser(post, user);
+            Long userId = getCurrentUserIdOrNull();
+            if (userId == null) return false;
+            return postLikeRepository.existsByPostIdAndUserId(postId, userId);
         } catch (AccessDeniedException e) {
             return false;
         }
     }
 
     /**
-     * 배치 조회: 주어진 postIds 중 현재 사용자가 좋아요한 postId 목록 반환.
-     * N+1 방지를 위해 목록 조회 시 사용.
+     * 배치 조회: 주어진 postIds 중 해당 사용자가 좋아요한 postId 목록 반환.
+     * N+1 방지를 위해 목록 조회 시 사용. userId만 사용하여 User 엔티티 로딩 불필요.
      */
     @Transactional(readOnly = true)
-    public Set<Long> getLikedPostIds(User user, List<Long> postIds) {
-        if (user == null || postIds == null || postIds.isEmpty()) {
+    public Set<Long> getLikedPostIds(Long userId, List<Long> postIds) {
+        if (userId == null || postIds == null || postIds.isEmpty()) {
             return Collections.emptySet();
         }
-        List<Long> liked = postLikeRepository.findPostIdsByUserAndPostIdIn(user, postIds);
+        List<Long> liked = postLikeRepository.findPostIdsByUserIdAndPostIdIn(userId, postIds);
         return Set.copyOf(liked);
     }
 

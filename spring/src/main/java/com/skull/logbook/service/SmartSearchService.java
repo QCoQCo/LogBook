@@ -806,12 +806,17 @@ public class SmartSearchService {
                         data -> (Long) data[0],
                         Collectors.mapping(data -> (String) data[1], Collectors.toList())));
 
-        // 2. 작성자 닉네임 조회
+        // 2. 작성자 닉네임, loginId 조회
         List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
-        Map<Long, String> authorNameMap = userRepository.findIdAndNickNameByIdIn(userIds).stream()
+        Map<Long, String> authorNameMap = userRepository.findIdNickNameLoginIdByIdIn(userIds).stream()
                 .collect(Collectors.toMap(
-                        com.skull.logbook.repository.UserRepository.UserIdNickNameProjection::getId,
-                        com.skull.logbook.repository.UserRepository.UserIdNickNameProjection::getNickName,
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameLoginIdProjection::getId,
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameLoginIdProjection::getNickName,
+                        (a, b) -> a));
+        Map<Long, String> authorLoginIdMap = userRepository.findIdNickNameLoginIdByIdIn(userIds).stream()
+                .collect(Collectors.toMap(
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameLoginIdProjection::getId,
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameLoginIdProjection::getLoginId,
                         (a, b) -> a));
 
         // 3. 좋아요 수 조회
@@ -828,6 +833,7 @@ public class SmartSearchService {
                         post.getId(),
                         String.valueOf(post.getUserId()),
                         authorNameMap.getOrDefault(post.getUserId(), ""),
+                        authorLoginIdMap.getOrDefault(post.getUserId(), ""),
                         post.getTitle(),
                         post.getContent(),
                         post.getCreatedAt().toString(),

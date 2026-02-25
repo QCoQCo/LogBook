@@ -7,9 +7,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CommonCodeRepository extends JpaRepository<CommonCode, String> {
+
+    /** 태그 명칭으로 공통 코드 단건 조회 */
+    Optional<CommonCode> findByCodeName(String codeName);
+
+    /** 채번을 위한 최댓값 조회 (T + 숫자 형태) */
+    @Query(value = "SELECT MAX(CAST(SUBSTRING(c.codeValue, 2) AS UNSIGNED)) " +
+            "FROM commonCode c WHERE c.groupCode = :groupCode",
+            nativeQuery = true)
+    Integer findMaxNumericValueByGroupCode(@Param("groupCode") String groupCode);
 
     @Query("SELECT c.codeName FROM CommonCode c WHERE c.codeGroup.groupCode = :groupCode AND c.useYn = 'Y'")
     List<String> findCodeNamesByGroupCode(@Param("groupCode") String groupCode);

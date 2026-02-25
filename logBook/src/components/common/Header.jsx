@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import Login from './Login';
-import { useAuth, useUserData, useUI } from '../../context';
+import { useAuth, useUserData, useUI, useNotification } from '../../context';
 import UserInfoModal from '../chat/UserInfoModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import FindAccountModal from './FindAccountModal';
@@ -13,14 +13,16 @@ import {
 } from '../../utils/sessionSync';
 import './Header.scss';
 
-import SmartSearchDropdown from './SmartSearchDropdown'; // New Component
-import apiClient from '../../utils/apiClient'; // For API calls
+import SmartSearchDropdown from './SmartSearchDropdown';
+import NotificationPanel from './NotificationPanel';
+import apiClient from '../../utils/apiClient';
 
 const Header = () => {
     const navigate = useNavigate();
     const { isChatPage, showLogin, toggleLogin } = useUI(); // 다크모드 상태 구독
     const { getUserInfo, getUserProfilePhoto, userDataLoaded } = useUserData();
     const { currentUser, isLogin, logout, effectiveRole, updateRoleInBackend } = useAuth();
+    const { unreadCount } = useNotification();
     const [showMenu, setShowMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -34,6 +36,8 @@ const Header = () => {
     const [showUserModal, setShowUserModal] = useState(false);
     const [showChangePwModal, setShowChangePwModal] = useState(false);
     const [showFindAccountModal, setShowFindAccountModal] = useState(false);
+    const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+    const notificationBtnRef = useRef(null);
     const searchRef = useRef(null);
     const searchAreaRef = useRef(null);
     const searchAreaElRef = useRef(null);
@@ -93,6 +97,21 @@ const Header = () => {
         document.addEventListener('click', onDocClick);
         return () => document.removeEventListener('click', onDocClick);
     }, [showMenu]);
+
+    useEffect(() => {
+        if (!showNotificationPanel) return;
+        const onDocClick = (e) => {
+            if (
+                notificationBtnRef.current &&
+                !notificationBtnRef.current.contains(e.target) &&
+                !e.target.closest('.notification-panel')
+            ) {
+                setShowNotificationPanel(false);
+            }
+        };
+        document.addEventListener('click', onDocClick);
+        return () => document.removeEventListener('click', onDocClick);
+    }, [showNotificationPanel]);
 
     // autofocus search input when opened: use transitionend event on the .search-area element
     useEffect(() => {
@@ -197,7 +216,7 @@ const Header = () => {
                             <p>프로젝트 소개</p>
                         </Link>
                     </div>
-                    {isLogin && (
+                    {isLogin && [1, 2, 3, 7, 8, 265, 266, 271, 272, 273, 274].includes(currentUser?.id) && (
                         <div className='role-toggle' role='group' aria-label='역할 전환'>
                             <button
                                 type='button'
@@ -332,11 +351,30 @@ const Header = () => {
                         </button>
                     </div>
 
-                    <div className='notification-btn' aria-hidden>
-                        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'>
-                            <path d='M224 0c-17.7 0-32 14.3-32 32l0 3.2C119 50 64 114.6 64 192l0 21.7c0 48.1-16.4 94.8-46.4 132.4L7.8 358.3C2.7 364.6 0 372.4 0 380.5 0 400.1 15.9 416 35.5 416l376.9 0c19.6 0 35.5-15.9 35.5-35.5 0-8.1-2.7-15.9-7.8-22.2l-9.8-12.2C400.4 308.5 384 261.8 384 213.7l0-21.7c0-77.4-55-142-128-156.8l0-3.2c0-17.7-14.3-32-32-32zM162 464c7.1 27.6 32.2 48 62 48s54.9-20.4 62-48l-124 0z' />
-                        </svg>
-                    </div>
+                    {isLogin && (
+                        <div className='notification-btn-wrap' ref={notificationBtnRef}>
+                            <button
+                                type='button'
+                                className='notification-btn'
+                                aria-label='알림'
+                                aria-haspopup='true'
+                                aria-expanded={showNotificationPanel}
+                                onClick={() => setShowNotificationPanel((s) => !s)}
+                            >
+                                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'>
+                                    <path d='M224 0c-17.7 0-32 14.3-32 32l0 3.2C119 50 64 114.6 64 192l0 21.7c0 48.1-16.4 94.8-46.4 132.4L7.8 358.3C2.7 364.6 0 372.4 0 380.5 0 400.1 15.9 416 35.5 416l376.9 0c19.6 0 35.5-15.9 35.5-35.5 0-8.1-2.7-15.9-7.8-22.2l-9.8-12.2C400.4 308.5 384 261.8 384 213.7l0-21.7c0-77.4-55-142-128-156.8l0-3.2c0-17.7-14.3-32-32-32zM162 464c7.1 27.6 32.2 48 62 48s54.9-20.4 62-48l-124 0z' />
+                                </svg>
+                                {unreadCount > 0 && (
+                                    <span className='notification-badge'>{unreadCount > 99 ? '99+' : unreadCount}</span>
+                                )}
+                            </button>
+                            {showNotificationPanel && (
+                                <NotificationPanel
+                                    onClose={() => setShowNotificationPanel(false)}
+                                />
+                            )}
+                        </div>
+                    )}
 
                     <div className='login-btn'>
                         {isLogin ? (

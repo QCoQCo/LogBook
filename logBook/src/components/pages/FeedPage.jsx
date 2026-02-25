@@ -15,30 +15,39 @@ const FEED_CONFIG = {
         WIDE: 4,
         TABLET: 3,
         MOBILE: 2,
-        TINY: 1
+        TINY: 1,
     },
     BREAKPOINTS: {
         WIDE: 1100,
         TABLET: 800,
-        MOBILE: 500
-    }
+        MOBILE: 500,
+    },
 };
 
 // [New] 스니펫 프리셋 설정
 const SNIPPET_PRESETS = {
     // 필요 시 추가적인 스니펫 타입별 설정을 이곳에서 관리
-    default: { w: 1, h: 1 }
+    default: { w: 1, h: 1 },
 };
 
 const FeedPage = () => {
-    const { posts, loadMorePosts, hasMore, isMoreLoading, fetchPosts, searchMetadata, feedFilter, setFeedFilter } = usePost();
+    const {
+        posts,
+        loadMorePosts,
+        hasMore,
+        isMoreLoading,
+        fetchPosts,
+        searchMetadata,
+        feedFilter,
+        setFeedFilter,
+    } = usePost();
     const { currentUser } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
 
     // [New] 데이터 전처리: 렌더링 루프 내 연산을 최소화하기 위해 메모이제이션 적용
     const processedPosts = React.useMemo(() => {
-        return posts.map(post => {
+        return posts.map((post) => {
             // 썸네일 추출 로직 상위 이동
             let displayThumbnail = post.thumbnail;
             if (!displayThumbnail && post.content) {
@@ -50,11 +59,19 @@ const FeedPage = () => {
             return {
                 ...post,
                 displayThumbnail,
-                excerptLong: (post.content || '').slice(0, 240) + ((post.content || '').length > 240 ? '…' : ''),
-                excerptShort: (post.content || '').slice(0, 120) + ((post.content || '').length > 120 ? '…' : '')
+                excerptLong:
+                    (post.content || '').slice(0, 240) +
+                    ((post.content || '').length > 240 ? '…' : ''),
+                excerptShort:
+                    (post.content || '').slice(0, 120) +
+                    ((post.content || '').length > 120 ? '…' : ''),
             };
         });
     }, [posts]);
+
+    // 이중 fetch 방지 (동일 params로 연속 호출 시 스킵)
+    const lastFetchParamsRef = useRef(null);
+    const lastFetchTimeRef = useRef(0);
 
     // URL 검색 파라미터 변경 감지 및 데이터 로드
     useEffect(() => {
@@ -62,6 +79,14 @@ const FeedPage = () => {
         const search = params.get('search');
         const tag = params.get('tag');
         const query = params.get('query');
+
+        const fetchKey = tag ? `tag:${tag}` : `query:${query || search || ''}:${feedFilter}`;
+        const now = Date.now();
+        if (lastFetchParamsRef.current === fetchKey && now - lastFetchTimeRef.current < 300) {
+            return; // 300ms 이내 동일 params 중복 호출 방지
+        }
+        lastFetchParamsRef.current = fetchKey;
+        lastFetchTimeRef.current = now;
 
         // Tag 검색인 경우 isTagSearch=true 전달
         if (tag) {
@@ -99,8 +124,8 @@ const FeedPage = () => {
         setForceCols(val);
         setRglKey(
             `${val != null ? `force-${val}` : 'auto'}-${cols}-${Math.floor(
-                containerWidth
-            )}-${Date.now()}`
+                containerWidth,
+            )}-${Date.now()}`,
         );
     };
 
@@ -142,7 +167,7 @@ const FeedPage = () => {
             if (!current) continue;
 
             const collisions = layout.filter(
-                (it) => String(it.i) !== String(current.i) && collides(current, it)
+                (it) => String(it.i) !== String(current.i) && collides(current, it),
             );
 
             for (const col of collisions) {
@@ -162,28 +187,30 @@ const FeedPage = () => {
     };
 
     const rebuildPostsIntoGrid = (currentLayout) => {
-        const current = Array.isArray(currentLayout) ? currentLayout : (gridLayoutRef.current || []);
+        const current = Array.isArray(currentLayout) ? currentLayout : gridLayoutRef.current || [];
         const nextLayout = [];
         const occupied = new Set();
 
         // 1. 고정된 스니펫(Snippet) 우선 배치
-        current.filter(it => String(it.i).startsWith('snippet-')).forEach(it => {
-            const item = {
-                ...it,
-                x: Math.max(0, Math.min(cols - 1, Number(it.x || 0))),
-                y: Math.max(0, Number(it.y || 0)),
-                w: Math.max(1, Math.min(cols, Number(it.w || 1))),
-                h: Math.max(1, Number(it.h || 1)),
-                static: false
-            };
-            nextLayout.push(item);
-            // 점유 영역 기록
-            for (let dy = 0; dy < item.h; dy++) {
-                for (let dx = 0; dx < item.w; dx++) {
-                    occupied.add(`${item.x + dx}:${item.y + dy}`);
+        current
+            .filter((it) => String(it.i).startsWith('snippet-'))
+            .forEach((it) => {
+                const item = {
+                    ...it,
+                    x: Math.max(0, Math.min(cols - 1, Number(it.x || 0))),
+                    y: Math.max(0, Number(it.y || 0)),
+                    w: Math.max(1, Math.min(cols, Number(it.w || 1))),
+                    h: Math.max(1, Number(it.h || 1)),
+                    static: false,
+                };
+                nextLayout.push(item);
+                // 점유 영역 기록
+                for (let dy = 0; dy < item.h; dy++) {
+                    for (let dx = 0; dx < item.w; dx++) {
+                        occupied.add(`${item.x + dx}:${item.y + dy}`);
+                    }
                 }
-            }
-        });
+            });
 
         // 2. 일반 포스트 순차 배치
         let row = 0;
@@ -191,8 +218,8 @@ const FeedPage = () => {
         visiblePosts.forEach((post, index) => {
             const postId = String(post.postId);
             // 이미 배치된 레이아웃에서 위치 정보 찾기 (드래그 상태 유지용)
-            const existing = current.find(it => String(it.i) === postId);
-            
+            const existing = current.find((it) => String(it.i) === postId);
+
             if (existing) {
                 const item = { ...existing, static: true };
                 nextLayout.push(item);
@@ -205,16 +232,22 @@ const FeedPage = () => {
                 // 비어있는 최적의 공간 찾기
                 while (occupied.has(`${col}:${row}`)) {
                     col++;
-                    if (col >= cols) { col = 0; row++; }
+                    if (col >= cols) {
+                        col = 0;
+                        row++;
+                    }
                 }
                 nextLayout.push({ i: postId, x: col, y: row, w: 1, h: 1, static: true });
                 occupied.add(`${col}:${row}`);
                 col++;
-                if (col >= cols) { col = 0; row++; }
+                if (col >= cols) {
+                    col = 0;
+                    row++;
+                }
             }
         });
 
-        return nextLayout.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+        return nextLayout.sort((a, b) => a.y - b.y || a.x - b.x);
     };
 
     const compareLayoutToDom = (mapped, note) => {
@@ -293,7 +326,7 @@ const FeedPage = () => {
     const [gridLayout, setGridLayout] = useState([]);
 
     const [rglKey, setRglKey] = useState(
-        () => `${cols}-${Math.floor(containerWidth)}-${Date.now()}`
+        () => `${cols}-${Math.floor(containerWidth)}-${Date.now()}`,
     );
 
     const gridLayoutRef = useRef(gridLayout);
@@ -307,14 +340,14 @@ const FeedPage = () => {
                 window.__gridLayout = gridLayoutRef;
                 window.__compareLayoutToDom = compareLayoutToDom;
             }
-        } catch (err) { }
+        } catch (err) {}
         return () => {
             try {
                 if (typeof window !== 'undefined') {
                     delete window.__gridLayout;
                     delete window.__compareLayoutToDom;
                 }
-            } catch (err) { }
+            } catch (err) {}
         };
     }, []);
 
@@ -327,7 +360,9 @@ const FeedPage = () => {
                     if (entry.isIntersecting) {
                         // 1. 로컬에 더 보여줄게 남았으면 -> visibleCount 증가
                         if (visibleCount < posts.length) {
-                            setVisibleCount((prev) => Math.min(posts.length, prev + FEED_CONFIG.PAGE_SIZE));
+                            setVisibleCount((prev) =>
+                                Math.min(posts.length, prev + FEED_CONFIG.PAGE_SIZE),
+                            );
                         }
                         // 2. 로컬은 다 보여줬는데 서버에 더 있으면 -> fetch
                         else if (hasMore && !isMoreLoading) {
@@ -336,7 +371,7 @@ const FeedPage = () => {
                     }
                 });
             },
-            { root: null, rootMargin: '0px', threshold: 0.1 }
+            { root: null, rootMargin: '0px', threshold: 0.1 },
         );
         obs.observe(el);
         return () => obs.disconnect();
@@ -498,7 +533,7 @@ const FeedPage = () => {
             });
             setGridLayout(sanitizedMapped);
         }
-    }, [visibleCount, cols, droppedSnippets.length, gridLayout]);
+    }, [visibleCount, cols, droppedSnippets.length, gridLayout, processedPosts]);
 
     const forceMoveRef = useRef(false);
     const resizeRaf = useRef(null);
@@ -524,6 +559,7 @@ const FeedPage = () => {
 
     const handleFilterChange = (filter) => {
         setFeedFilter(filter);
+        setVisibleCount(FEED_CONFIG.PAGE_SIZE); // 탭 전환 시 가시 개수 초기화
         // URL에 검색 파라미터가 있으면 제거하고 피드로 이동
         const params = new URLSearchParams(location.search);
         if (params.get('tag') || params.get('search') || params.get('query')) {
@@ -588,24 +624,26 @@ const FeedPage = () => {
                     </button>
                 </div>
             </div>
-            {searchMetadata && searchMetadata.recommendedTags && searchMetadata.recommendedTags.length > 0 && (
-                <div className="ai-search-info">
-                    <div className="ai-mode-badge">
-                        <span className="sparkle-icon">✨</span> AI 강화 검색 모드
+            {searchMetadata &&
+                searchMetadata.recommendedTags &&
+                searchMetadata.recommendedTags.length > 0 && (
+                    <div className='ai-search-info'>
+                        <div className='ai-mode-badge'>
+                            <span className='sparkle-icon'>✨</span> AI 강화 검색 모드
+                        </div>
+                        <div className='recommended-tags'>
+                            {searchMetadata.recommendedTags.map((tag) => (
+                                <button
+                                    key={tag}
+                                    className='tag-chip'
+                                    onClick={() => fetchPosts(tag)}
+                                >
+                                    #{tag}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                    <div className="recommended-tags">
-                        {searchMetadata.recommendedTags.map(tag => (
-                            <button
-                                key={tag}
-                                className="tag-chip"
-                                onClick={() => fetchPosts(tag)}
-                            >
-                                #{tag}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
+                )}
             <div
                 className='container'
                 ref={containerRef}
@@ -613,89 +651,92 @@ const FeedPage = () => {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
-                                <ReactGridLayout
-                                    key={rglKey}
-                                    className='layout'
-                                    layout={layout}
-                                    cols={cols}
-                                    rowHeight={
-                                        forceCols == 4 ? Math.max(120, Math.floor(containerWidth / cols)) : 150
-                                    }
-                                    onLayoutChange={handleLayoutChange}
-                                    isDraggable={true}
-                                    draggableHandle='.post-card'
-                                                        isResizable={true}
-                                                        compactType={null}
-                                                        margin={[FEED_CONFIG.MARGIN_X, FEED_CONFIG.MARGIN_Y]}
-                                                    >
-                                                        {layout.filter(l => !l.i.startsWith('snippet-')).map((l) => {
-                                                            const post = visiblePosts.find(p => String(p.postId) === String(l.i));
-                                                            if (!post) return null;
-                                                            return (
-                                                                <div key={l.i}>
-                                                                    <FeedPostCard 
-                                                                        post={post} 
-                                                                        cols={cols} 
-                                                                        dragEnabled={dragEnabled} 
-                                                                        longPressedId={longPressedId} 
-                                                                    />
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </ReactGridLayout>
-                                    
-                                                    {/* [New] Empty State UI */}
-                                                    {!isMoreLoading && processedPosts.length === 0 && (
-                                                        <div className="empty-state">
-                                                            <div className="empty-icon">
-                                                                {feedFilter === 'follow' || feedFilter === 'liked' ? '👤' : '🔍'}
-                                                            </div>
-                                                            <p className="empty-text">
-                                                                {feedFilter === 'follow' && !currentUser
-                                                                    ? '로그인하면 팔로우한 사용자의 게시글을 확인할 수 있습니다.'
-                                                                    : feedFilter === 'liked' && !currentUser
-                                                                    ? '로그인하면 좋아요한 게시글을 확인할 수 있습니다.'
-                                                                    : feedFilter === 'follow'
-                                                                    ? '팔로우한 사용자의 게시글이 없습니다.'
-                                                                    : feedFilter === 'liked'
-                                                                    ? '좋아요한 게시글이 없습니다.'
-                                                                    : lastQuery
-                                                                    ? `"${lastQuery}"에 대한 검색 결과가 없습니다.`
-                                                                    : '등록된 게시글이 없습니다.'}
-                                                            </p>
-                                                            <p className="empty-subtext">
-                                                                {feedFilter === 'follow' || feedFilter === 'liked'
-                                                                    ? '다른 사용자를 팔로우하거나 게시글에 좋아요를 눌러보세요.'
-                                                                    : '검색어를 변경하거나 다른 태그를 탐색해 보세요.'}
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                    
-                                                    {/* [New] Skeleton Loading UI */}
-                                                    {isMoreLoading && (
-                                                        <div className="skeleton-container" style={{ 
-                                                            display: 'grid', 
-                                                            gridTemplateColumns: `repeat(${cols}, 1fr)`, 
-                                                            gap: FEED_CONFIG.MARGIN_X,
-                                                            marginTop: FEED_CONFIG.MARGIN_Y 
-                                                        }}>
-                                                            {[1, 2, 3, 4].map(i => (
-                                                                <div key={i} className="skeleton-card">
-                                                                    <div className="skeleton-thumb"></div>
-                                                                    <div className="skeleton-body">
-                                                                        <div className="skeleton-line title"></div>
-                                                                        <div className="skeleton-line text"></div>
-                                                                        <div className="skeleton-line text short"></div>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                    
-                                        
-                                                        <div ref={loadMoreRef} style={{ height: 1 }} />
-                                                    </div>
-                                        
+                <ReactGridLayout
+                    key={rglKey}
+                    className='layout'
+                    layout={layout}
+                    cols={cols}
+                    rowHeight={
+                        forceCols == 4 ? Math.max(120, Math.floor(containerWidth / cols)) : 150
+                    }
+                    onLayoutChange={handleLayoutChange}
+                    isDraggable={true}
+                    draggableHandle='.post-card'
+                    isResizable={true}
+                    compactType={null}
+                    margin={[FEED_CONFIG.MARGIN_X, FEED_CONFIG.MARGIN_Y]}
+                >
+                    {layout
+                        .filter((l) => !l.i.startsWith('snippet-'))
+                        .map((l) => {
+                            const post = visiblePosts.find((p) => String(p.postId) === String(l.i));
+                            if (!post) return null;
+                            return (
+                                <div key={l.i}>
+                                    <FeedPostCard
+                                        post={post}
+                                        cols={cols}
+                                        dragEnabled={dragEnabled}
+                                        longPressedId={longPressedId}
+                                    />
+                                </div>
+                            );
+                        })}
+                </ReactGridLayout>
+
+                {/* [New] Empty State UI */}
+                {!isMoreLoading && processedPosts.length === 0 && (
+                    <div className='empty-state'>
+                        <div className='empty-icon'>
+                            {feedFilter === 'follow' || feedFilter === 'liked' ? '👤' : '🔍'}
+                        </div>
+                        <p className='empty-text'>
+                            {feedFilter === 'follow' && !currentUser
+                                ? '로그인하면 팔로우한 사용자의 게시글을 확인할 수 있습니다.'
+                                : feedFilter === 'liked' && !currentUser
+                                  ? '로그인하면 좋아요한 게시글을 확인할 수 있습니다.'
+                                  : feedFilter === 'follow'
+                                    ? '팔로우한 사용자의 게시글이 없습니다.'
+                                    : feedFilter === 'liked'
+                                      ? '좋아요한 게시글이 없습니다.'
+                                      : lastQuery
+                                        ? `"${lastQuery}"에 대한 검색 결과가 없습니다.`
+                                        : '등록된 게시글이 없습니다.'}
+                        </p>
+                        <p className='empty-subtext'>
+                            {feedFilter === 'follow' || feedFilter === 'liked'
+                                ? '다른 사용자를 팔로우하거나 게시글에 좋아요를 눌러보세요.'
+                                : '검색어를 변경하거나 다른 태그를 탐색해 보세요.'}
+                        </p>
+                    </div>
+                )}
+
+                {/* [New] Skeleton Loading UI */}
+                {isMoreLoading && (
+                    <div
+                        className='skeleton-container'
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                            gap: FEED_CONFIG.MARGIN_X,
+                            marginTop: FEED_CONFIG.MARGIN_Y,
+                        }}
+                    >
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className='skeleton-card'>
+                                <div className='skeleton-thumb'></div>
+                                <div className='skeleton-body'>
+                                    <div className='skeleton-line title'></div>
+                                    <div className='skeleton-line text'></div>
+                                    <div className='skeleton-line text short'></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div ref={loadMoreRef} style={{ height: 1 }} />
+            </div>
         </div>
     );
 };
