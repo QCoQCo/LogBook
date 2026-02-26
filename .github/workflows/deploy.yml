@@ -106,7 +106,15 @@ jobs:
                   port: ${{ secrets.SERVER_PORT }}
                   script: |
                       cd /d "C:/Users/logbook/images/logbook"
+                      echo --- Docker Login ---
                       echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+                      
+                      echo --- Deployment ---
+                      # 이미지 이름을 환경변수로 강제 주입하며 실행
+                      set FRONT_IMAGE=${{ env.FRONT_IMAGE }}
+                      set BACK_IMAGE=${{ env.BACK_IMAGE }}
                       docker compose pull
                       docker compose up -d
-                      docker image prune -f
+                      
+                      echo --- Check Status ---
+                      docker ps -a

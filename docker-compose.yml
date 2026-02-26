@@ -1,7 +1,6 @@
 services:
-  # 백엔드 API 서버 (Spring Boot)
   backend:
-    image: ghcr.io/qcoqco/logbook-backend:latest
+    image: ${BACK_IMAGE:-ghcr.io/qcoqco/logbook/backend:latest}
     container_name: logbook-api
     restart: always
     environment:
@@ -19,19 +18,17 @@ services:
     networks:
       - logbook-network
 
-  # 프론트엔드 웹 서버 (Nginx)
   frontend:
-    image: ghcr.io/qcoqco/logbook-frontend:latest
+    image: ${FRONT_IMAGE:-ghcr.io/qcoqco/logbook/frontend:latest}
     container_name: logbook-web
     restart: always
     ports:
-      - "80:80"
+      - "8084:80" # 외부 접속 포트를 8084로 설정
     depends_on:
       - backend
     networks:
       - logbook-network
 
-  # 데이터베이스 (MySQL)
   db:
     image: mysql:8.0
     container_name: logbook-db
