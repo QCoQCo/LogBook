@@ -5,11 +5,10 @@ on:
         branches: ['f/bbb']
 
 env:
-    REGISTRY: ghcr.io
-    # GitHub Container Registry 이미지 이름 형식: ghcr.io/계정명/레포지토리명/서비스명
-    FRONT_IMAGE: ghcr.io/${{ github.repository }}/frontend
-    BACK_IMAGE: ghcr.io/${{ github.repository }}/backend
-
+  REGISTRY: ghcr.io
+  # 도커 이미지 이름은 반드시 소문자여야 하므로 대문자를 소문자로 직접 수정합니다.
+  FRONT_IMAGE: ghcr.io/qcoqco/logbook/frontend
+  BACK_IMAGE: ghcr.io/qcoqco/logbook/backend
 jobs:
     build-and-push:
         runs-on: ubuntu-latest
