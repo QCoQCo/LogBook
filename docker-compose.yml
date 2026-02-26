@@ -3,6 +3,8 @@ services:
     image: ghcr.io/qcoqco/logbook/backend:latest
     container_name: logbook-api
     restart: always
+    ports:
+      - "8085:8080" # 백엔드 포트도 8085로 노출
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=logbook-db
@@ -23,7 +25,7 @@ services:
     container_name: logbook-web
     restart: always
     ports:
-      - "8084:80"
+      - "8084:80" # 프론트엔드는 8084
     depends_on:
       - logbook-backend
     networks:
