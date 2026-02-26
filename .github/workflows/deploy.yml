@@ -92,9 +92,9 @@ jobs:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
                   password: ${{ secrets.SERVER_PASSWORD }}
-                  port: ${{ secrets.SERVER_PORT }} # 커스텀 포트 추가
+                  port: ${{ secrets.SERVER_PORT }}
                   source: "docker-compose.yml"
-                  target: "~/logbook/images/logbook"
+                  target: "C:/Users/logbook/images/logbook" # 윈도우 절대 경로 (슬래시 사용)
 
             # 2. SSH를 통한 서버 실배포
             - name: SSH Remote Deployment
@@ -103,9 +103,12 @@ jobs:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
                   password: ${{ secrets.SERVER_PASSWORD }}
-                  port: ${{ secrets.SERVER_PORT }} # 커스텀 포트 추가
+                  port: ${{ secrets.SERVER_PORT }}
                   script: |
-                      cd ~/logbook/images/logbook
+                      # 지정된 절대 경로로 이동 (윈도우 CMD/PowerShell 호환)
+                      cd /d "C:/Users/logbook/images/logbook"
+                      
+                      # 도커 작업 수행
                       echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                       docker compose pull
                       docker compose up -d
