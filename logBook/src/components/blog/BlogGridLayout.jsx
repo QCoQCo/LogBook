@@ -10,6 +10,7 @@ import './BlogGridLayout.scss';
 
 const BlogGridLayout = ({ userId, enableModal }) => {
     const [newItemCounter, setNewItemCounter] = useState(0);
+
     const {
         layout,
         setLayout,
@@ -18,6 +19,7 @@ const BlogGridLayout = ({ userId, enableModal }) => {
         setElements,
         isBlogEditing,
         setDeletedImagesUrl,
+        setColorTheme,
     } = useBlog();
 
     useEffect(() => {
@@ -36,13 +38,21 @@ const BlogGridLayout = ({ userId, enableModal }) => {
                 return;
             }
 
+            console.log(blogData);
             const layoutData = blogData.layout;
             const elementData = blogData.elements;
+            const blogColorTheme = blogData.colorTheme;
+
+            console.log(blogColorTheme);
 
             const numbersFromLayoutId = layoutData.map((item) => parseInt(item.i.split('-')[1]));
 
             setLayout(layoutData);
             setElements(elementData);
+            if (blogColorTheme) {
+                setColorTheme(blogColorTheme);
+            }
+
             setNewItemCounter(
                 numbersFromLayoutId.length > 0 ? Math.max(...numbersFromLayoutId) + 1 : 0,
             );

@@ -21,6 +21,8 @@ public class BlogLayoutDto {
 
     private List<Map<String, Object>> elements;
 
+    private String colorTheme;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
