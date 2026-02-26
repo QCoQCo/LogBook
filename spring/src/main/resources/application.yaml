@@ -87,7 +87,7 @@ logging:
         org.springframework.web.servlet.resource.ResourceHttpRequestHandler: ERROR # 리소스 미발견 로그 숨김
 
 server:
-    port: 8081
+    port: 8080
     servlet:
         context-path: /api
 
