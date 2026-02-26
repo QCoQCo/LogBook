@@ -3,6 +3,7 @@ services:
     image: ghcr.io/qcoqco/logbook/backend:latest
     container_name: logbook-api
     restart: always
+    # 호스트의 8085 포트를 컨테이너의 8080 포트로 연결
     ports:
       - "8085:8080"
     environment:
@@ -25,7 +26,7 @@ services:
     container_name: logbook-web
     restart: always
     ports:
-      - "9008:80" # 포트를 8084에서 9008로 변경
+      - "9008:80"
     depends_on:
       - logbook-backend
     networks:
