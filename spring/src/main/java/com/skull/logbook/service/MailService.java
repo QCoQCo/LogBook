@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @Slf4j
 public class MailService {
-
     private final JavaMailSender javaMailSender;
 
     // 생성자 주입 명시 확인
