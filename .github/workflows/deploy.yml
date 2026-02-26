@@ -105,12 +105,8 @@ jobs:
                   password: ${{ secrets.SERVER_PASSWORD }}
                   port: ${{ secrets.SERVER_PORT }}
                   script: |
-                      # 지정된 절대 경로로 이동 (윈도우 CMD/PowerShell 호환)
                       cd /d "C:/Users/logbook/images/logbook"
-                      
-                      # 도커 작업 수행
                       echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                       docker compose pull
                       docker compose up -d
                       docker image prune -f
-                      echo "✅ Deployment successful!"
