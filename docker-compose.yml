@@ -1,7 +1,7 @@
 services:
   # 백엔드 API 서버 (Spring Boot)
   backend:
-    image: ghcr.io/qcoqco/logbook/backend:latest
+    image: ghcr.io/qcoqco/logbook-backend:latest
     container_name: logbook-api
     restart: always
     environment:
@@ -12,7 +12,7 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
     env_file:
-      - .env  # 서버에 미리 작성해둔 .env 파일에서 비밀번호 등을 읽어옵니다.
+      - .env
     depends_on:
       db:
         condition: service_healthy
@@ -21,7 +21,7 @@ services:
 
   # 프론트엔드 웹 서버 (Nginx)
   frontend:
-    image: ghcr.io/qcoqco/logbook/frontend:latest
+    image: ghcr.io/qcoqco/logbook-frontend:latest
     container_name: logbook-web
     restart: always
     ports:

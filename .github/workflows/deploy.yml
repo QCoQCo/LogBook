@@ -89,8 +89,9 @@ jobs:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
                   key: ${{ secrets.SERVER_SSH_KEY }}
-                  source: "docker-compose.yml"
+                  source: "./docker-compose.yml"
                   target: "~/logbook/images/logbook"
+                  strip_components: 0
 
             # 2. SSH를 통한 서버 실배포
             - name: SSH Remote Deployment
