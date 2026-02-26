@@ -105,22 +105,4 @@ jobs:
                   password: ${{ secrets.SERVER_PASSWORD }}
                   port: ${{ secrets.SERVER_PORT }}
                   script: |
-                      cd /d "C:/Users/logbook/images/logbook"
-                      
-                      echo --- Checking .env file ---
-                      if not exist .env (
-                        echo DB_USERNAME=root > .env
-                        echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
-                        echo Created a basic .env file. Please check it on the server.
-                      )
-                      
-                      echo --- Docker Login ---
-                      echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-                      
-                      echo --- Deployment ---
-                      # 이미지 이름을 인자로 직접 전달
-                      docker compose pull
-                      docker compose up -d --force-recreate
-                      
-                      echo --- Container Status ---
-                      docker ps -a | findstr logbook
+                      powershell -Command "cd 'C:/Users/logbook/images/logbook'; if (!(Test-Path '.env')) { Set-Content -Path '.env' -Value 'DB_USERNAME=root`nDB_PASSWORD=${{ secrets.DB_PASSWORD }}' }; echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin; docker compose pull; docker compose up -d --force-recreate; docker ps -a"
