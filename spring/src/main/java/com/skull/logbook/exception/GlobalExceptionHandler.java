@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Map;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.AuthenticationException;
 
 @RestControllerAdvice
@@ -28,6 +29,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> handleAuthenticationException(AuthenticationException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "아이디 또는 비밀번호가 올바르지 않습니다."));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage() != null ? e.getMessage() : "리소스를 찾을 수 없습니다."));
     }
 
     @ExceptionHandler(Exception.class)
