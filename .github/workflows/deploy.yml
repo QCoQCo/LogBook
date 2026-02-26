@@ -103,4 +103,4 @@ jobs:
                   password: ${{ secrets.SERVER_PASSWORD }}
                   port: ${{ secrets.SERVER_PORT }}
                   script: |
-                      powershell -Command "$ErrorActionPreference = 'Stop'; cd 'C:/Users/logbook/images/logbook'; $env:DB_PASSWORD='${{ secrets.DB_PASSWORD }}'; docker compose pull; docker compose up -d --force-recreate; docker ps -a"
+                      powershell -Command "$ErrorActionPreference = 'Stop'; cd 'C:/Users/logbook/images/logbook'; $env:DB_PASSWORD='${{ secrets.DB_PASSWORD }}'; docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}; docker compose pull; docker compose up -d --force-recreate; docker ps -a"
