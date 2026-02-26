@@ -2,7 +2,7 @@ name: LogBook CI/CD Pipeline
 
 on:
     push:
-        branches: ['main']
+        branches: ['f/bbb']
 
 env:
     REGISTRY: ghcr.io
