@@ -1,7 +1,7 @@
 services:
   # 백엔드 API 서버 (Spring Boot)
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY}/backend:latest
+    image: ghcr.io/qcoqco/logbook/backend:latest
     container_name: logbook-api
     restart: always
     environment:
@@ -11,7 +11,8 @@ services:
       - DB_NAME=logbook
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
-      # 기타 필요한 환경변수들 추가
+    env_file:
+      - .env  # 서버에 미리 작성해둔 .env 파일에서 비밀번호 등을 읽어옵니다.
     depends_on:
       db:
         condition: service_healthy
@@ -20,14 +21,15 @@ services:
 
   # 프론트엔드 웹 서버 (Nginx)
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY}/frontend:latest
+    image: ghcr.io/qcoqco/logbook/frontend:latest
     container_name: logbook-web
     restart: always
     ports:
       - "80:80"
     depends_on:
       - backend
-    networks:      - logbook-network
+    networks:
+      - logbook-network
 
   # 데이터베이스 (MySQL)
   db:
