@@ -4,7 +4,7 @@ services:
     container_name: logbook-api
     restart: always
     ports:
-      - "8085:8080"
+      - "8085:8081" # 내부 포트를 8081로 변경
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=logbook-db
