@@ -85,16 +85,13 @@ jobs:
             - name: Checkout Repository
               uses: actions/checkout@v4
 
-            - name: List files for debugging
-              run: ls -R
-
             # 1. 설계도 파일(docker-compose.yml)을 서버로 전송 (SCP)
             - name: Copy docker-compose.yml via SCP
               uses: appleboy/scp-action@master
               with:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
-                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  password: ${{ secrets.SERVER_PASSWORD }} # key 대신 password 사용
                   source: "docker-compose.yml"
                   target: "~/logbook/images/logbook"
 
@@ -104,16 +101,11 @@ jobs:
               with:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
-                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  password: ${{ secrets.SERVER_PASSWORD }} # key 대신 password 사용
                   script: |
-                      # 서버의 배포 경로로 이동
                       cd ~/logbook/images/logbook
-
-                      # 최신 이미지 풀 및 컨테이너 재시작
+                      echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                       docker compose pull
                       docker compose up -d
-
-                      # 미사용 이미지 정리 (디스크 용량 확보)
                       docker image prune -f
-
-                      echo "✅ Deployment of version ${{ env.VERSION }} successful!"
+                      echo "✅ Deployment successful!"
