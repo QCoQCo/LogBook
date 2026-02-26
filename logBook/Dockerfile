@@ -2,7 +2,8 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+# 의존성 충돌 무시 옵션 추가
+RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 
