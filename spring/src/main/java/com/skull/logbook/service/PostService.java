@@ -228,11 +228,17 @@ public class PostService {
                         Collectors.mapping(data -> (String) data[1], Collectors.toList())));
 
         List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
-        Map<Long, String> authorNameMap = userRepository.findIdAndNickNameByIdIn(userIds).stream()
+        var authorData = userRepository.findIdNickNameLoginIdByIdIn(userIds).stream()
                 .collect(Collectors.toMap(
-                        com.skull.logbook.repository.UserRepository.UserIdNickNameProjection::getId,
-                        com.skull.logbook.repository.UserRepository.UserIdNickNameProjection::getNickName,
+                        com.skull.logbook.repository.UserRepository.UserIdNickNameLoginIdProjection::getId,
+                        p -> p,
                         (a, b) -> a));
+        Map<Long, String> authorNameMap = new java.util.HashMap<>();
+        Map<Long, String> authorLoginIdMap = new java.util.HashMap<>();
+        authorData.forEach((id, p) -> {
+            authorNameMap.put(id, p.getNickName());
+            authorLoginIdMap.put(id, p.getLoginId());
+        });
 
         Map<Long, Long> likeCountMap = Collections.emptyMap();
         List<Object[]> likeCountData = postLikeRepository.countLikesByPostIds(postIds);
@@ -248,6 +254,7 @@ public class PostService {
                         post.getId(),
                         String.valueOf(post.getUserId()),
                         authorNameMap.getOrDefault(post.getUserId(), ""),
+                        authorLoginIdMap.getOrDefault(post.getUserId(), ""),
                         post.getTitle(),
                         post.getContent(),
                         post.getCreatedAt().toString(),
@@ -314,6 +321,7 @@ public class PostService {
                 post.getId(),
                 String.valueOf(post.getUserId()),
                 author.getNickName(),
+                author.getLoginId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedAt().toString(),

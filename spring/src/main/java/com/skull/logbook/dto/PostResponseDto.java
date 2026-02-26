@@ -15,6 +15,7 @@ public class PostResponseDto {
     private Long id;
     private String userId;
     private String authorName;
+    private String authorLoginId;  // 블로그 링크용 (loginId)
     private String title;
     private String content;
     private String createdAt;

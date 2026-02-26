@@ -316,12 +316,18 @@
                 }
             }
 
+            .notification-btn-wrap {
+                position: relative;
+            }
+
             .notification-btn {
+                position: relative;
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
-                // background-color: #e5f4f7;
                 background-color: #fff;
+                border: none;
+                cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -334,6 +340,23 @@
                 &:hover {
                     background-color: #c0dedd;
                 }
+            }
+
+            .notification-badge {
+                position: absolute;
+                top: 2px;
+                right: 2px;
+                min-width: 18px;
+                height: 18px;
+                padding: 0 4px;
+                font-size: 11px;
+                font-weight: 600;
+                color: #fff;
+                background: #e53935;
+                border-radius: 9px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .login-btn {
