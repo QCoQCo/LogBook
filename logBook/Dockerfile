@@ -10,7 +10,7 @@ RUN npm run build
 # 실행 단계: Nginx로 정적 파일 서빙
 FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-# SPA 라우팅 지원을 위한 설정 복사
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 경로를 상대경로로 확실히 지정
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
