@@ -117,8 +117,9 @@ const LogBookIntro = () => {
             category: 'Backend & Database',
             technologies: [
                 { name: 'Firebase', description: 'Google의 BaaS 플랫폼', icon: '🔥' },
-                { name: 'Firestore', description: 'NoSQL 실시간 데이터베이스', icon: '💾' },
-                { name: '추가예정', description: '추가예정', icon: '☠️' },
+                { name: 'MySQL', description: 'SQL 데이터베이스', icon: '💾' },
+                { name: 'Spring Boot', description: 'Spring Boot 프레임워크', icon: '🌐' },
+                { name: 'JPA', description: 'Java Persistence API', icon: '💾' },
             ],
         },
         {
@@ -127,7 +128,16 @@ const LogBookIntro = () => {
                 { name: 'Swiper', description: '터치 슬라이더 라이브러리', icon: '📱' },
                 { name: 'React Grid Layout', description: '드래그 앤 드롭 그리드', icon: '📐' },
                 { name: 'Axios', description: 'HTTP 클라이언트', icon: '🌐' },
-                { name: '추가예정', description: '추가예정', icon: '☠️' },
+                { name: 'React Color', description: '블로그 테마 색상 선택', icon: '🎨' },
+            ],
+        },
+        {
+            category: 'Security',
+            technologies: [
+                { name: 'JWT', description: 'JSON Web Token', icon: '🔒' },
+                { name: 'OAuth2', description: 'OAuth2 Authorization Server', icon: '🔒' },
+                { name: 'Spring Security', description: 'Spring Security', icon: '🔒' },
+                { name: 'SMTP', description: '회원가입 & 비밀번호 찾기 이메일 발송', icon: '🔒' },
             ],
         },
     ];
