@@ -59,7 +59,7 @@ public class UserService {
             throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
         }
 
-        if (userRepository.findByUserEmail(requestDto.getUserEmail()).isPresent()) {
+        if (userRepository.existsByUserEmail(requestDto.getUserEmail())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 
@@ -260,9 +260,15 @@ public class UserService {
     // 아이디 찾기
     @Transactional(readOnly = true)
     public String findLoginId(String userEmail) {
-        User user = userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 사용자가 없습니다."));
-        return user.getLoginId();
+        List<User> users = userRepository.findByUserEmail(userEmail);
+        if (users.isEmpty()) {
+            throw new IllegalArgumentException("입력하신 정보와 일치하는 사용자가 없습니다.");
+        }
+        User targetUser = users.stream()
+                .filter(u -> com.skull.logbook.constant.AuthProvider.LOCAL.equals(u.getProvider()))
+                .findFirst()
+                .orElse(users.get(0));
+        return targetUser.getLoginId();
     }
 
     // 비밀번호 재설정 (아이디 + 이메일 검증 후 변경)
@@ -349,11 +355,12 @@ public class UserService {
             user.updateProfile(null, null, nickName);
         }
         if (userEmail != null && !userEmail.isBlank()) {
-            userRepository.findByUserEmail(userEmail)
-                    .filter(other -> !other.getId().equals(userId))
-                    .ifPresent(other -> {
-                        throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-                    });
+            boolean emailExistsForOther = userRepository.findByUserEmail(userEmail)
+                    .stream()
+                    .anyMatch(other -> !other.getId().equals(userId));
+            if (emailExistsForOther) {
+                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            }
             user.updateUserEmail(userEmail);
         }
         if (role != null && (role == Role.USER || role == Role.ADMIN || role == Role.GUEST)) {
