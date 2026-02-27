@@ -31,7 +31,16 @@ const PostDetail = () => {
 
     useEffect(() => {
         getPostData();
-    }, [postId, userData, fromAdmin]);
+    }, [postId, fromAdmin]);
+
+    // userData 로드 시 postOwner에 profilePhoto 반영 (userData 의존성 제거로 중복 fetch 방지)
+    useEffect(() => {
+        if (!postOwner || !Array.isArray(userData) || userData.length === 0) return;
+        const ownerFromUserData = userData.find((u) => String(u.id) === String(postOwner.id));
+        if (ownerFromUserData?.profilePhoto && !postOwner.profilePhoto) {
+            setPostOwner((prev) => ({ ...prev, profilePhoto: ownerFromUserData.profilePhoto }));
+        }
+    }, [userData, postOwner?.id]);
 
     // currentUser 로드 시점에 isOwnPost 재계산 (본인 글일 때 팔로우 버튼 숨김)
     useEffect(() => {
@@ -89,13 +98,9 @@ const PostDetail = () => {
             const post = res.data;
 
             if (post) {
-                // userData에서 우선 조회, 없으면 post 응답(authorName, authorLoginId)으로 fallback
-                const ownerFromUserData = Array.isArray(userData)
-                    ? userData.find((user) => String(user.id) === String(post.userId))
-                    : null;
+                // post 응답으로 owner 구성 (profilePhoto는 userData 로드 시 별도 effect에서 반영)
                 const owner =
-                    ownerFromUserData ||
-                    (post.userId && post.authorName
+                    post.userId && post.authorName
                         ? {
                               id: post.userId,
                               nickName: post.authorName,
@@ -103,7 +108,7 @@ const PostDetail = () => {
                               profilePhoto: null,
                               introduction: null,
                           }
-                        : null);
+                        : null;
 
                 setCurrentPost(post);
                 setPostOwner(owner);

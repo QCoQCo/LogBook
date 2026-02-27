@@ -3,6 +3,7 @@ package com.skull.logbook.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,9 +16,9 @@ import com.skull.logbook.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    /** 전체 사용자 목록용 (Blog N+1 방지 - User 엔티티 미로드) */
+    /** 전체 사용자 목록용 (Blog N+1 방지 - User 엔티티 미로드). limit로 조회 수 제한. */
     @Query("SELECT u.id AS id, u.loginId AS loginId, u.nickName AS nickName, u.userEmail AS userEmail, u.profilePhoto AS profilePhoto, u.introduction AS introduction, u.role AS role FROM User u WHERE u.deletedAt IS NULL")
-    List<UserListProjection> findAllForUserList();
+    List<UserListProjection> findAllForUserList(Pageable pageable);
 
     interface UserListProjection {
         Long getId();
