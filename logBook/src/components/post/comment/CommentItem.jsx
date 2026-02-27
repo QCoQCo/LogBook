@@ -9,6 +9,7 @@ const CommentItem = ({
     parentAuthor,
     activeReplyId,
     setActiveReplyId,
+    highlightCommentId,
 }) => {
     const [replyContent, setReplyContent] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -63,7 +64,7 @@ const CommentItem = ({
     };
 
     return (
-        <div className="comment-item">
+        <div className="comment-item" data-comment-id={comment.id}>
             <div
                 className={`comment-main ${isReplying ? 'active' : ''}`}
                 onClick={handleAreaClick}
@@ -145,10 +146,13 @@ const CommentItem = ({
                             key={child.id}
                             comment={child}
                             onReplySubmit={onReplySubmit}
+                            onEditSubmit={onEditSubmit}
+                            onDeleteClick={onDeleteClick}
                             currentUser={currentUser}
                             parentAuthor={comment.nickName}
                             activeReplyId={activeReplyId}
                             setActiveReplyId={setActiveReplyId}
+                            highlightCommentId={highlightCommentId}
                         />
                     ))}
                 </div>

@@ -25,10 +25,11 @@ public class NotificationService {
 
     /**
      * 알림 생성 후 DB 저장 + WebSocket 실시간 푸시
+     * @param commentId 댓글 알림 시 해당 댓글 ID (COMMENT 타입 전용, null 가능)
      */
     @Transactional
     public Notification createAndPush(NotificationType type, Long recipientUserId,
-                                      String title, String message, Long relatedId) {
+                                      String title, String message, Long relatedId, Long commentId) {
         User user = userRepository.findById(recipientUserId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
@@ -38,6 +39,7 @@ public class NotificationService {
                 .title(title)
                 .message(message)
                 .relatedId(relatedId)
+                .commentId(commentId)
                 .build();
         notification = notificationRepository.save(notification);
 

@@ -52,6 +52,12 @@
     }
 
     .comment-item {
+        &.highlighted .comment-main {
+            background-color: #b3e5fc !important;
+            border: 2px solid #03a9f4;
+            box-shadow: 0 0 12px rgba(3, 169, 244, 0.3);
+        }
+
         // 루트 댓글의 직계 자식(대댓글)만 들여쓰기
         .comment-replies {
             margin-left: 20px;

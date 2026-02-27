@@ -79,7 +79,8 @@ public class UserFollowService {
                 following.getId(),
                 title,
                 message,
-                follower.getId()
+                follower.getId(),
+                null
         );
     }
 

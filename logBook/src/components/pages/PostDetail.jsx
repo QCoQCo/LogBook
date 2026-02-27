@@ -15,6 +15,9 @@ const PostDetail = () => {
     const [searchParam] = useSearchParams();
     const postId = parseInt(searchParam.get('postId'));
     const fromAdmin = searchParam.get('fromAdmin') === '1';
+    const highlightCommentId = searchParam.get('commentId')
+        ? parseInt(searchParam.get('commentId'), 10)
+        : null;
 
     const [currentPost, setCurrentPost] = useState(null); // post Data
     const [postOwner, setPostOwner] = useState(null); // post Owner Data
@@ -226,7 +229,11 @@ const PostDetail = () => {
                                 isOwnPost={isOwnPost}
                                 handleClickFollowBtn={handleClickFollowBtn}
                             />
-                            <CommentContainer postId={postId} currentUser={currentUser} />
+                            <CommentContainer
+                                postId={postId}
+                                currentUser={currentUser}
+                                highlightCommentId={highlightCommentId}
+                            />
                         </div>
                     </div>
                 </div>
