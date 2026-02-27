@@ -34,9 +34,13 @@ export const PostProvider = ({ children }) => {
     // Race Condition: 이전 fetch 취소용
     const fetchAbortControllerRef = useRef(null);
 
+    // Stale response 방지: 요청 버전 체크 (빠른 탭 전환 시 이전 응답이 나중에 도착해 덮어쓰는 것 방지)
+    const fetchVersionRef = useRef(0);
+
     // 탭별 캐시 (filter -> { posts, fetchedAt })
     const feedCacheRef = useRef({});
     const FEED_CACHE_TTL_MS = 60 * 1000; // 1분
+    const FEED_CACHE_TTL_LIKED_MS = 10 * 1000; // 좋아요 탭: 10초 (좋아요 상태 변경 빈도 고려)
 
     // 통합 데이터 로드 함수
     const fetchPosts = useCallback(
@@ -54,10 +58,15 @@ export const PostProvider = ({ children }) => {
             fetchAbortControllerRef.current = new AbortController();
             const signal = fetchAbortControllerRef.current.signal;
 
+            // Stale response 방지: 이번 요청의 버전 기록
+            const thisFetchVersion = ++fetchVersionRef.current;
+
             // 검색이 아닐 때만 캐시 사용 (필터 탭 전환)
             if (!queryParam) {
                 const cached = feedCacheRef.current[cacheKey];
-                if (cached && Date.now() - cached.fetchedAt < FEED_CACHE_TTL_MS) {
+                const cacheTtl =
+                    effectiveFilter === 'liked' ? FEED_CACHE_TTL_LIKED_MS : FEED_CACHE_TTL_MS;
+                if (cached && Date.now() - cached.fetchedAt < cacheTtl) {
                     setPosts(cached.posts);
                     setCurrentSearch({ query: null, isTagSearch: false, filter: effectiveFilter });
                     setPage(0);
@@ -89,6 +98,9 @@ export const PostProvider = ({ children }) => {
                 }
 
                 const response = await apiClient.get(endpoint, { signal });
+                // Stale response 무시: 이 요청 이후 새 요청이 시작됐으면 적용하지 않음
+                if (thisFetchVersion !== fetchVersionRef.current) return;
+
                 const data = response.data;
                 let resultList = [];
 
@@ -144,7 +156,10 @@ export const PostProvider = ({ children }) => {
                 setPosts([]);
                 setSearchMetadata({ recommendedTags: [], searchSource: 'DB' });
             } finally {
-                if (!signal.aborted) setIsMoreLoading(false);
+                // Stale/aborted 요청은 로딩 상태 변경하지 않음 (새 요청이 처리)
+                if (!signal.aborted && thisFetchVersion === fetchVersionRef.current) {
+                    setIsMoreLoading(false);
+                }
             }
         },
         [feedFilter],
