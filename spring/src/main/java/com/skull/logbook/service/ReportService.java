@@ -1,5 +1,6 @@
 package com.skull.logbook.service;
 
+import com.skull.logbook.constant.NotificationType;
 import com.skull.logbook.constant.ReportStatus;
 import com.skull.logbook.constant.Role;
 import com.skull.logbook.dto.ReportCreateRequestDto;
@@ -23,6 +24,7 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     /** 로그인 사용자가 다른 사용자를 신고 */
     @Transactional
@@ -86,12 +88,21 @@ public class ReportService {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신고입니다."));
         report.setStatus(status);
-        
+
         // 처리 정보 저장
         if (status == ReportStatus.PROCESSED) {
             report.setProcessInfo(processType, processNote, suspendDays);
+            // 알림: 신고자에게 "회원님이 신고하신 내용이 처리되었습니다."
+            notificationService.createAndPush(
+                    NotificationType.REPORT_PROCESSED,
+                    report.getReporter().getId(),
+                    "신고 처리 완료",
+                    "회원님이 신고하신 내용이 처리되었습니다.",
+                    report.getId(),
+                    null
+            );
         }
-        
+
         return ReportResponseDto.from(report);
     }
 }

@@ -3,6 +3,7 @@ package com.skull.logbook.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,9 +16,9 @@ import com.skull.logbook.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    /** 전체 사용자 목록용 (Blog N+1 방지 - User 엔티티 미로드) */
+    /** 전체 사용자 목록용 (Blog N+1 방지 - User 엔티티 미로드). limit로 조회 수 제한. */
     @Query("SELECT u.id AS id, u.loginId AS loginId, u.nickName AS nickName, u.userEmail AS userEmail, u.profilePhoto AS profilePhoto, u.introduction AS introduction, u.role AS role FROM User u WHERE u.deletedAt IS NULL")
-    List<UserListProjection> findAllForUserList();
+    List<UserListProjection> findAllForUserList(Pageable pageable);
 
     interface UserListProjection {
         Long getId();
@@ -33,9 +34,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u.id AS id, u.nickName AS nickName FROM User u WHERE u.id IN :ids")
     List<UserIdNickNameProjection> findIdAndNickNameByIdIn(@Param("ids") List<Long> ids);
 
+    /** id, nickName, loginId 조회 (PostResponseDto authorLoginId용) */
+    @Query("SELECT u.id AS id, u.nickName AS nickName, u.loginId AS loginId FROM User u WHERE u.id IN :ids")
+    List<UserIdNickNameLoginIdProjection> findIdNickNameLoginIdByIdIn(@Param("ids") List<Long> ids);
+
     interface UserIdNickNameProjection {
         Long getId();
         String getNickName();
+    }
+
+    interface UserIdNickNameLoginIdProjection {
+        Long getId();
+        String getNickName();
+        String getLoginId();
     }
 
     /** loginId로 UserResponseDto용 projection 조회 (Blog N+1 방지) */

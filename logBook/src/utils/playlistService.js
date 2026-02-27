@@ -58,3 +58,9 @@ export const updatePlaylistItemsBatch = async (playlistId, items) => {
     const response = await apiClient.patch(`/playlists/${playlistId}/items/batch`, items);
     return response.data;
 };
+
+// 10. YouTube 재생목록 URL에서 곡 목록 가져오기
+export const importYoutubePlaylist = async (playlistUrl) => {
+    const response = await apiClient.post('/playlists/import-yt', { playlistUrl });
+    return response.data; // [{title, link, thumbnail}, ...]
+};

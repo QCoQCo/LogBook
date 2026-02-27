@@ -31,6 +31,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-authorization-server'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	
@@ -64,4 +65,9 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// IntelliJ + npm dev 동시 실행 환경에서 메모리 압박(SIGKILL) 방지
+tasks.named('bootRun') {
+    jvmArgs = ['-Xms128m', '-Xmx384m', '-XX:+UseG1GC']
 }

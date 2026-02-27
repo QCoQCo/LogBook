@@ -126,4 +126,21 @@ public class PlaylistController {
         playlistService.updatePlaylistItemsBatch(user.getId(), playlistId, requestDtos);
         return ResponseEntity.ok(Map.of("message", "Batch update successful"));
     }
+
+    // 9. YouTube 재생목록 URL에서 곡 목록 임포트 (인증 필요)
+    @PostMapping("/import-yt")
+    public ResponseEntity<?> importYoutubePlaylist(@RequestBody Map<String, String> body, Principal principal) {
+        if (principal == null)
+            return ResponseEntity.status(401).body("Unauthorized");
+        String playlistUrl = body.get("playlistUrl");
+        if (playlistUrl == null || playlistUrl.isBlank())
+            return ResponseEntity.badRequest().body(Map.of("message", "playlistUrl이 필요합니다."));
+        try {
+            return ResponseEntity.ok(playlistService.importYoutubePlaylist(playlistUrl));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "재생목록 가져오기 실패: " + e.getMessage()));
+        }
+    }
 }
