@@ -1,0 +1,13 @@
+.gradle
+.idea
+bin
+out
+src/test
+build.gradle
+gradle
+gradlew
+gradlew.bat
+settings.gradle
+Dockerfile
+.git
+.gitignore

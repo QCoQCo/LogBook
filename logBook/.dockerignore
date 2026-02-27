@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.gitignore
+.vscode
+Dockerfile
+# nginx.conf는 빌드 시 필요하므로 제외하면 안 됩니다.
+# README.md

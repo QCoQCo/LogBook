@@ -1,6 +1,6 @@
 import ChatMessage from './ChatMessage';
 import ChatRoomList from './ChatRoomList';
-import UserPlaylist from './UserPlaylist';
+import UserPlaylist from './UserPlayList';
 import UserInfoModal from './UserInfoModal';
 import ChatRoomUsersModal from './ChatRoomUsersModal';
 import CreateChatRoomModal from './CreateChatRoomModal';

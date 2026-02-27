@@ -34,6 +34,7 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
         setEditingSessionId,
         deletedImagesUrl,
         setDeletedImagesUrl,
+        colorTheme,
     } = useBlog();
     const { currentUser, updateCurrentUser } = useAuth();
     const { updateUserInCache } = useUserData();
@@ -148,6 +149,7 @@ const BlogUserInfo = ({ blogOwnerData, isOwnBlog, onUpdate }) => {
             const layoutJson = {
                 layout: layout,
                 elements: updatedElements,
+                colorTheme: colorTheme,
             };
 
             formData.append('introduction', introText);
