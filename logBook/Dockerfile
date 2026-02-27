@@ -1,8 +1,26 @@
 # 빌드 단계: Vite 애플리케이션 빌드
 FROM node:22-alpine AS build
 WORKDIR /app
+
+# 빌드 시점에 주입받을 7개의 변수 정의
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_STORAGE_BUCKET
+ARG VITE_FIREBASE_MESSAGING_SENDER_ID
+ARG VITE_FIREBASE_APP_ID
+ARG VITE_FIREBASE_APP_MEASUREMENT_ID
+
+# 환경변수로 설정 (빌드 시 index.js 안에 박힘)
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
+ENV VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN
+ENV VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID
+ENV VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET
+ENV VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID
+ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
+ENV VITE_FIREBASE_APP_MEASUREMENT_ID=$VITE_FIREBASE_APP_MEASUREMENT_ID
+
 COPY package*.json ./
-# 의존성 충돌 무시 옵션 추가
 RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
@@ -10,7 +28,6 @@ RUN npm run build
 # 실행 단계: Nginx로 정적 파일 서빙
 FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-# SPA 라우팅 지원을 위한 설정 복사
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

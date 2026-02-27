@@ -1,54 +1,53 @@
 services:
-  # 백엔드 API 서버 (Spring Boot)
-  backend:
-    image: ghcr.io/qcoqco/logbook-backend:latest
-    container_name: logbook-api
-    restart: always
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_NAME=logbook
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - logbook-network
+    logbook-backend:
+        image: ghcr.io/qcoqco/logbook/backend:latest
+        container_name: logbook-api
+        restart: always
+        ports:
+            - '8085:8080'
+        environment:
+            - SPRING_PROFILES_ACTIVE=prod
+            - DB_HOST=logbook-db
+            - DB_PORT=3306
+            - DB_NAME=logbook
+            - DB_USERNAME=${DB_USERNAME:-root}
+            - DB_PASSWORD=${DB_PASSWORD}
+        env_file:
+            - .env
+        depends_on:
+            logbook-db:
+                condition: service_healthy
+        networks:
+            - logbook-network
 
-  # 프론트엔드 웹 서버 (Nginx)
-  frontend:
-    image: ghcr.io/qcoqco/logbook-frontend:latest
-    container_name: logbook-web
-    restart: always
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - logbook-network
+    logbook-frontend:
+        image: ghcr.io/qcoqco/logbook/frontend:latest
+        container_name: logbook-web
+        restart: always
+        ports:
+            - '9008:80'
+        depends_on:
+            - logbook-backend
+        networks:
+            - logbook-network
 
-  # 데이터베이스 (MySQL)
-  db:
-    image: mysql:8.0
-    container_name: logbook-db
-    restart: always
-    environment:
-      - MYSQL_DATABASE=logbook
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - ./db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - logbook-network
+    logbook-db:
+        image: mysql:8.0
+        container_name: logbook-db
+        restart: always
+        environment:
+            - MYSQL_DATABASE=logbook
+            - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+        volumes:
+            - ./db_data:/var/lib/mysql
+        healthcheck:
+            test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - logbook-network
 
 networks:
-  logbook-network:
-    driver: bridge
+    logbook-network:
+        driver: bridge
