@@ -65,7 +65,7 @@ public class CommentService {
                 .build();
 
         // 4. 저장 및 ID 반환
-        Long commentId = commentRepository.save(comment).getId();
+        Long savedCommentId = commentRepository.save(comment).getId();
 
         // 5. 알림: 게시글 작성자에게 (본인 댓글 제외)
         Long postAuthorId = post.getUserId();
@@ -77,11 +77,12 @@ public class CommentService {
                     postAuthorId,
                     title,
                     message,
-                    postId
+                    postId,
+                    savedCommentId
             );
         }
 
-        return commentId;
+        return savedCommentId;
     }
 
     @Transactional

@@ -4,7 +4,7 @@
     .react-grid-layout {
         position: relative;
         transition: height 200ms ease;
-        background-color: #e6ffff;
+        background-color: color-mix(in srgb, var(--theme-color) 25%, white);
         margin: 0 auto;
         min-height: 550px;
         border-radius: 15px;
@@ -174,7 +174,7 @@
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    background-color: #9ee7e7;
+                    background-color: var(--theme-color);
                     padding: 2px 10px;
                     height: 32px; // 고정 높이
                     flex-shrink: 0; // 추가: 하단 내용이 길어져도 이 영역은 절대 줄어들지 않음
@@ -193,13 +193,14 @@
                             height: 17px;
                             flex-shrink: 0; // 아이콘 크기 유지
                             margin-right: 6px;
+                            filter: var(--icon-filter);
                         }
 
                         p {
                             margin: 0;
                             font-size: 13px;
                             font-weight: 700;
-                            color: #333;
+                            color: var(--theme-text-color);
                             white-space: nowrap; // 한 줄 처리
                             overflow: hidden; // 넘치는 부분 숨김
                             text-overflow: ellipsis; // ... 처리

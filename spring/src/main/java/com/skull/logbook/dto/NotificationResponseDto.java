@@ -17,6 +17,7 @@ public class NotificationResponseDto {
     private String title;
     private String message;
     private Long relatedId;
+    private Long commentId;
     private LocalDateTime readAt;
     private LocalDateTime createdAt;
 
@@ -27,6 +28,7 @@ public class NotificationResponseDto {
                 notification.getTitle(),
                 notification.getMessage(),
                 notification.getRelatedId(),
+                notification.getCommentId(),
                 notification.getReadAt(),
                 notification.getCreatedAt()
         );
