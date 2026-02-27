@@ -34,7 +34,10 @@ const NotificationPanel = ({ onClose }) => {
             const blogUserId = user?.userId ?? user?.loginId ?? n.relatedId;
             navigate(`/blog?userId=${blogUserId}`);
         } else if (n.type === 'COMMENT' && n.relatedId) {
-            navigate(`/post?postId=${n.relatedId}`);
+            const url = n.commentId
+                ? `/post/detail?postId=${n.relatedId}&commentId=${n.commentId}`
+                : `/post/detail?postId=${n.relatedId}`;
+            navigate(url);
         }
         // REPORT_PROCESSED: 별도 이동 없음
     };

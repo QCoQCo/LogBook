@@ -21,7 +21,7 @@ export const UserDataProvider = ({ children }) => {
 
         try {
             setUserDataLoading(true);
-            const { data } = await apiClient.get('/users');
+            const { data } = await apiClient.get('/users', { params: { limit: 500 } });
             // 백엔드 DTO: id, loginId, nickName, userEmail, profilePhoto, introduction
             // 프론트 호환: userId(loginId)로 Map 검색하므로 userId 필드 추가
             const users = Array.isArray(data) ? data.map((u) => ({ ...u, userId: u.loginId })) : [];

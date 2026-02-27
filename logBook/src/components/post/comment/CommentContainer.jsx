@@ -5,7 +5,7 @@ import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';
 import './Comments.scss';
 
-const CommentContainer = ({ postId, currentUser }) => {
+const CommentContainer = ({ postId, currentUser, highlightCommentId }) => {
     const [comments, setComments] = useState([]);
     // 현재 답글 작성 창이 열려있는 댓글의 ID (null이면 아무것도 안 열림)
     const [activeReplyId, setActiveReplyId] = useState(null);
@@ -28,6 +28,17 @@ const CommentContainer = ({ postId, currentUser }) => {
     useEffect(() => {
         if (postId) fetchComments(true);
     }, [postId]);
+
+    // highlightCommentId가 있으면 해당 댓글을 하이라이트 표시
+    useEffect(() => {
+        if (!highlightCommentId || comments.length === 0) return;
+        const el = document.querySelector(`[data-comment-id="${highlightCommentId}"]`);
+        if (el) {
+            el.classList.add('highlighted');
+            const t = setTimeout(() => el.classList.remove('highlighted'), 5000);
+            return () => clearTimeout(t);
+        }
+    }, [highlightCommentId, comments]);
 
     // 2. 평면 데이터를 계층형 트리 구조로 변환
     const commentTree = useMemo(() => {
@@ -120,9 +131,9 @@ const CommentContainer = ({ postId, currentUser }) => {
                             onEditSubmit={handleCommentEdit}
                             onDeleteClick={handleCommentDelete}
                             currentUser={currentUser}
-                            // 상태 공유: 한 번에 하나만 열리게 함
                             activeReplyId={activeReplyId}
                             setActiveReplyId={setActiveReplyId}
+                            highlightCommentId={highlightCommentId}
                         />
                     ))
                 ) : (
