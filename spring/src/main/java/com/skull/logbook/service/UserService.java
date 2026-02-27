@@ -30,6 +30,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -160,9 +161,10 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
     }
 
-    /** 채팅/헤더 등에서 프로필 표시용 전체 사용자 목록 (공개 정보만, 삭제 제외, Blog N+1 방지) */
-    public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAllForUserList().stream()
+    /** 채팅/헤더 등에서 프로필 표시용 사용자 목록 (공개 정보만, 삭제 제외, limit로 조회 수 제한) */
+    public List<UserResponseDto> getAllUsers(int limit) {
+        int safeLimit = Math.min(Math.max(1, limit), 1000);
+        return userRepository.findAllForUserList(PageRequest.of(0, safeLimit)).stream()
                 .map(p -> new UserResponseDto(
                         p.getId(),
                         p.getLoginId(),

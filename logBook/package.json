@@ -15,6 +15,7 @@
         "axios": "^1.11.0",
         "firebase": "^12.1.0",
         "react": "^19.1.1",
+        "react-color": "^2.19.3",
         "react-dom": "^19.1.1",
         "react-grid-layout": "^1.5.2",
         "react-is": "^19.0.0",

@@ -98,7 +98,8 @@ public class ReportService {
                     report.getReporter().getId(),
                     "신고 처리 완료",
                     "회원님이 신고하신 내용이 처리되었습니다.",
-                    report.getId()
+                    report.getId(),
+                    null
             );
         }
 
