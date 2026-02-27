@@ -92,6 +92,13 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("exists", exists));
     }
 
+    @PostMapping("/signup/check-email")
+    public ResponseEntity<?> checkEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        boolean exists = userRepository.existsByUserEmail(email);
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
     @PostMapping("/signup/check-nickname") // 또는 GET 방식도 가능
     public ResponseEntity<?> checkNickname(@RequestBody Map<String, String> request) {
         String nickName = request.get("nickName");

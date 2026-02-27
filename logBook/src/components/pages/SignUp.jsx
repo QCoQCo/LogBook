@@ -81,12 +81,12 @@ const SignUp = () => {
 
     const handleCheckId = async () => {
         if (!values.id.trim()) {
-            setErrors(prev => ({ ...prev, id: 'ID를 입력하세요.' }));
+            setErrors((prev) => ({ ...prev, id: 'ID를 입력하세요.' }));
             return;
         }
         // ID 유효성 검사 (길이, 문자 등)
         if (!/^[a-z0-9]{6,15}$/.test(values.id)) {
-            setErrors(prev => ({ ...prev, id: 'ID는 6~15자, 소문자와 숫자만 가능합니다.' }));
+            setErrors((prev) => ({ ...prev, id: 'ID는 6~15자, 소문자와 숫자만 가능합니다.' }));
             return;
         }
 
@@ -94,42 +94,42 @@ const SignUp = () => {
             const resp = await fetch('/api/auth/signup/check-loginId', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ loginId: values.id })
+                body: JSON.stringify({ loginId: values.id }),
             });
             const data = await resp.json();
             if (data.exists) {
-                setErrors(prev => ({ ...prev, id: '이미 사용 중인 ID입니다.' }));
+                setErrors((prev) => ({ ...prev, id: '이미 사용 중인 ID입니다.' }));
                 setIsIdChecked(false);
             } else {
                 setIsIdChecked(true);
-                setErrors(prev => ({ ...prev, id: '' }));
+                setErrors((prev) => ({ ...prev, id: '' }));
             }
         } catch (e) {
-            setErrors(prev => ({ ...prev, id: '중복 체크 중 오류가 발생했습니다.' }));
+            setErrors((prev) => ({ ...prev, id: '중복 체크 중 오류가 발생했습니다.' }));
         }
     };
 
     const handleCheckNickname = async () => {
         if (!values.nickName.trim()) {
-            setErrors(prev => ({ ...prev, nickName: '닉네임을 입력하세요.' }));
+            setErrors((prev) => ({ ...prev, nickName: '닉네임을 입력하세요.' }));
             return;
         }
         try {
             const resp = await fetch('/api/auth/signup/check-nickname', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nickName: values.nickName })
+                body: JSON.stringify({ nickName: values.nickName }),
             });
             const data = await resp.json();
             if (data.exists) {
-                setErrors(prev => ({ ...prev, nickName: '이미 사용 중인 닉네임입니다.' }));
+                setErrors((prev) => ({ ...prev, nickName: '이미 사용 중인 닉네임입니다.' }));
                 setIsNickNameChecked(false);
             } else {
                 setIsNickNameChecked(true);
-                setErrors(prev => ({ ...prev, nickName: '' }));
+                setErrors((prev) => ({ ...prev, nickName: '' }));
             }
         } catch (e) {
-            setErrors(prev => ({ ...prev, nickName: '중복 체크 중 오류가 발생했습니다.' }));
+            setErrors((prev) => ({ ...prev, nickName: '중복 체크 중 오류가 발생했습니다.' }));
         }
     };
 
@@ -200,8 +200,8 @@ const SignUp = () => {
                     password: values.password,
                     userEmail: values.email,
                     nickName: values.nickName,
-                    introduction: "" // 일단 빈값
-                })
+                    introduction: '', // 일단 빈값
+                }),
             });
 
             if (response.ok) {
@@ -210,7 +210,16 @@ const SignUp = () => {
                 setSubmitted(true);
             } else {
                 const errorData = await response.json();
-                setErrors((prev) => ({ ...prev, id: errorData.message || '회원가입에 실패했습니다.' }));
+                const msg = errorData.message || '회원가입에 실패했습니다.';
+                if (msg.includes('이메일')) {
+                    setErrors((prev) => ({ ...prev, email: msg }));
+                } else if (msg.includes('닉네임')) {
+                    setErrors((prev) => ({ ...prev, nickName: msg }));
+                } else if (msg.includes('아이디') || msg.includes('ID')) {
+                    setErrors((prev) => ({ ...prev, id: msg }));
+                } else {
+                    alert(msg);
+                }
             }
         } catch (err) {
             console.error(err);
@@ -246,20 +255,35 @@ const SignUp = () => {
 
     const handleSendEmail = async () => {
         if (!values.email || !emailRegex.test(values.email)) {
-            setErrors(prev => ({ ...prev, email: '유효한 이메일을 입력하세요.' }));
+            setErrors((prev) => ({ ...prev, email: '유효한 이메일을 입력하세요.' }));
             return;
         }
 
         try {
+            // [NEW] 1. 이메일 중복 체크 먼저 수행
+            const checkResp = await fetch('/api/auth/signup/check-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: values.email }),
+            });
+            const checkData = await checkResp.json();
+
+            if (checkData.exists) {
+                setErrors((prev) => ({ ...prev, email: '이미 가입된 이메일입니다.' }));
+                alert('이미 가입된 이메일입니다. 다른 이메일을 사용해주세요.');
+                return; // 중복이면 인증 메일 발송 중단
+            }
+
+            // 2. 중복 아닐 시 인증 메일 발송
             const resp = await fetch('/api/auth/email/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: values.email })
+                body: JSON.stringify({ email: values.email }),
             });
             if (resp.ok) {
                 setIsCodeSent(true);
                 startTimer();
-                setErrors(prev => ({ ...prev, email: '' }));
+                setErrors((prev) => ({ ...prev, email: '' }));
                 alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
             } else {
                 alert('이메일 전송에 실패했습니다.');
@@ -280,7 +304,7 @@ const SignUp = () => {
             const resp = await fetch('/api/auth/email/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: values.email, code: authCode })
+                body: JSON.stringify({ email: values.email, code: authCode }),
             });
 
             if (resp.ok) {
@@ -297,7 +321,16 @@ const SignUp = () => {
     };
 
     const isFormValid = () => {
-        if (!values.id || !values.password || !values.passwordConfirm || !values.email || !values.nickName || !isIdChecked || !isNickNameChecked || !isEmailVerified) {
+        if (
+            !values.id ||
+            !values.password ||
+            !values.passwordConfirm ||
+            !values.email ||
+            !values.nickName ||
+            !isIdChecked ||
+            !isNickNameChecked ||
+            !isEmailVerified
+        ) {
             return false;
         }
 
@@ -314,54 +347,62 @@ const SignUp = () => {
     // ... 기존 코드 유지
 
     return (
-        <div id='SignUp'>
+        <div id="SignUp">
             {submitted ? (
                 // ... 성공 화면
-                <div className='signup-success' role='status' aria-live='polite'>
+                <div className="signup-success" role="status" aria-live="polite">
                     <p>
                         <h2>회원가입이 완료되었습니다</h2>
                         <h2>로그인 후 서비스를 이용하세요.</h2>
                     </p>
                 </div>
             ) : (
-                <div className='signup-container'>
+                <div className="signup-container">
                     {/* ... 폼 헤더 */}
-                    <h2 className='signup-title'>회원가입</h2>
-                    <form className='signup-form' onSubmit={handleSubmit} noValidate>
+                    <h2 className="signup-title">회원가입</h2>
+                    <form className="signup-form" onSubmit={handleSubmit} noValidate>
                         {/* ID 입력 필드 (생략 없이 유지) */}
-                        <label className='form-row' htmlFor='signup-id'>
-                            <div className='label-text'>
-                                ID <span className='necessary'>*</span>
+                        <label className="form-row" htmlFor="signup-id">
+                            <div className="label-text">
+                                ID <span className="necessary">*</span>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <input
-                                    id='signup-id'
+                                    id="signup-id"
                                     ref={idRef}
-                                    className='input-field'
-                                    type='text'
-                                    name='id'
+                                    className="input-field"
+                                    type="text"
+                                    name="id"
                                     value={values.id}
                                     onChange={handleChange}
                                     aria-describedby={errors.id ? 'signup-id-error' : undefined}
                                     aria-invalid={!!errors.id}
                                 />
                                 <button
-                                    type='button'
+                                    type="button"
                                     onClick={handleCheckId}
                                     disabled={!values.id || !/^[a-z0-9]{6,15}$/.test(values.id)}
-                                    className='check-button'
+                                    className="check-button"
                                 >
                                     중복 확인
                                 </button>
                             </div>
                             <div>
                                 {isIdChecked && !errors.id && (
-                                    <div className='field-success' style={{ color: '#28a745', fontSize: '12px', marginTop: '4px', fontWeight: 'bold' }}>
+                                    <div
+                                        className="field-success"
+                                        style={{
+                                            color: '#28a745',
+                                            fontSize: '12px',
+                                            marginTop: '4px',
+                                            fontWeight: 'bold',
+                                        }}
+                                    >
                                         ✓ 사용 가능한 ID입니다.
                                     </div>
                                 )}
                                 {(submitted || errors.id) && errors.id && (
-                                    <div id='signup-id-error' className='field-error' role='alert'>
+                                    <div id="signup-id-error" className="field-error" role="alert">
                                         {errors.id}
                                     </div>
                                 )}
@@ -369,16 +410,16 @@ const SignUp = () => {
                         </label>
 
                         {/* PW 입력 필드 (기존 유지) */}
-                        <label className='form-row' htmlFor='signup-password'>
-                            <div className='label-text'>
-                                PW <span className='necessary'>*</span>
+                        <label className="form-row" htmlFor="signup-password">
+                            <div className="label-text">
+                                PW <span className="necessary">*</span>
                             </div>
                             <input
-                                id='signup-password'
+                                id="signup-password"
                                 ref={pwRef}
-                                className='input-field'
-                                type='password'
-                                name='password'
+                                className="input-field"
+                                type="password"
+                                name="password"
                                 value={values.password}
                                 onChange={handleChange}
                                 aria-describedby={
@@ -393,9 +434,9 @@ const SignUp = () => {
                             />
                             {(submitted || errors.password) && errors.password && (
                                 <div
-                                    id='signup-password-error'
-                                    className='field-error'
-                                    role='alert'
+                                    id="signup-password-error"
+                                    className="field-error"
+                                    role="alert"
                                 >
                                     {errors.password}
                                 </div>
@@ -403,14 +444,14 @@ const SignUp = () => {
 
                             {failingRules.length > 0 && (
                                 <div
-                                    id='signup-password-hint'
-                                    className='pw-rules'
-                                    aria-live='polite'
+                                    id="signup-password-hint"
+                                    className="pw-rules"
+                                    aria-live="polite"
                                 >
                                     {failingRules.map((r) => (
                                         <div key={r.key} className={`pw-rule fail`}>
-                                            <span className='pw-rule-icon'>✕</span>
-                                            <span className='pw-rule-text'>{r.text}</span>
+                                            <span className="pw-rule-icon">✕</span>
+                                            <span className="pw-rule-text">{r.text}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -418,16 +459,16 @@ const SignUp = () => {
                         </label>
 
                         {/* PW 확인 (기존 유지) */}
-                        <label className='form-row' htmlFor='signup-password-confirm'>
-                            <div className='label-text'>
-                                PW 확인 <span className='necessary'>*</span>
+                        <label className="form-row" htmlFor="signup-password-confirm">
+                            <div className="label-text">
+                                PW 확인 <span className="necessary">*</span>
                             </div>
                             <input
-                                id='signup-password-confirm'
+                                id="signup-password-confirm"
                                 ref={pwConfirmRef}
-                                className='input-field'
-                                type='password'
-                                name='passwordConfirm'
+                                className="input-field"
+                                type="password"
+                                name="passwordConfirm"
                                 value={values.passwordConfirm}
                                 onChange={handleChange}
                                 aria-describedby={
@@ -439,9 +480,9 @@ const SignUp = () => {
                             />
                             {(submitted || errors.passwordConfirm) && errors.passwordConfirm && (
                                 <div
-                                    id='signup-password-confirm-error'
-                                    className='field-error'
-                                    role='alert'
+                                    id="signup-password-confirm-error"
+                                    className="field-error"
+                                    role="alert"
                                 >
                                     {errors.passwordConfirm}
                                 </div>
@@ -449,17 +490,17 @@ const SignUp = () => {
                         </label>
 
                         {/* Email 입력 필드 (수정됨) */}
-                        <label className='form-row' htmlFor='signup-email'>
-                            <div className='label-text'>
-                                Email <span className='necessary'>*</span>
+                        <label className="form-row" htmlFor="signup-email">
+                            <div className="label-text">
+                                Email <span className="necessary">*</span>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <input
-                                    id='signup-email'
+                                    id="signup-email"
                                     ref={emailRef}
-                                    className='input-field'
-                                    type='email'
-                                    name='email'
+                                    className="input-field"
+                                    type="email"
+                                    name="email"
                                     value={values.email}
                                     onChange={(e) => {
                                         handleChange(e);
@@ -468,37 +509,60 @@ const SignUp = () => {
                                         setTimer(0);
                                     }}
                                     disabled={isEmailVerified} // 인증 완료 시 수정 불가
-                                    aria-describedby={errors.email ? 'signup-email-error' : undefined}
+                                    aria-describedby={
+                                        errors.email ? 'signup-email-error' : undefined
+                                    }
                                     aria-invalid={!!errors.email}
                                 />
                                 <button
-                                    type='button'
+                                    type="button"
                                     onClick={handleSendEmail}
-                                    disabled={!values.email || !emailRegex.test(values.email) || isEmailVerified}
-                                    className='check-button'
+                                    disabled={
+                                        !values.email ||
+                                        !emailRegex.test(values.email) ||
+                                        isEmailVerified
+                                    }
+                                    className="check-button"
                                 >
-                                    {isEmailVerified ? '인증 완료' : (isCodeSent ? '재전송' : '인증번호 전송')}
+                                    {isEmailVerified
+                                        ? '인증 완료'
+                                        : isCodeSent
+                                          ? '재전송'
+                                          : '인증번호 전송'}
                                 </button>
                             </div>
 
                             {/* 인증 번호 입력란 (전송 시 표시) */}
                             {isCodeSent && !isEmailVerified && (
-                                <div style={{ marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <div
+                                    style={{
+                                        marginTop: '10px',
+                                        display: 'flex',
+                                        gap: '10px',
+                                        alignItems: 'center',
+                                    }}
+                                >
                                     <input
-                                        type='text'
-                                        placeholder='인증코드 6자리'
-                                        className='input-field'
+                                        type="text"
+                                        placeholder="인증코드 6자리"
+                                        className="input-field"
                                         value={authCode}
                                         onChange={(e) => setAuthCode(e.target.value)}
                                         maxLength={6}
                                     />
-                                    <span style={{ color: 'red', fontWeight: 'bold', minWidth: '50px' }}>
+                                    <span
+                                        style={{
+                                            color: 'red',
+                                            fontWeight: 'bold',
+                                            minWidth: '50px',
+                                        }}
+                                    >
                                         {formatTime(timer)}
                                     </span>
                                     <button
-                                        type='button'
+                                        type="button"
                                         onClick={handleVerifyCode}
-                                        className='check-button'
+                                        className="check-button"
                                         disabled={timer === 0}
                                     >
                                         확인
@@ -507,30 +571,32 @@ const SignUp = () => {
                             )}
 
                             {(submitted || errors.email) && errors.email && (
-                                <div id='signup-email-error' className='field-error' role='alert'>
+                                <div id="signup-email-error" className="field-error" role="alert">
                                     {errors.email}
                                 </div>
                             )}
                         </label>
 
                         {/* 닉네임 입력 (기존 유지) */}
-                        <label className='form-row' htmlFor='signup-nickName'>
-                            <div className='label-text'>
-                                닉네임 <span className='necessary'>*</span>
+                        <label className="form-row" htmlFor="signup-nickName">
+                            <div className="label-text">
+                                닉네임 <span className="necessary">*</span>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <input
-                                    id='signup-nickName'
+                                    id="signup-nickName"
                                     ref={nickNameRef}
-                                    className='input-field'
-                                    type='text'
-                                    name='nickName'
+                                    className="input-field"
+                                    type="text"
+                                    name="nickName"
                                     value={values.nickName}
                                     onChange={(e) => {
                                         handleChange(e);
                                         setIsNickNameChecked(false);
                                     }}
-                                    aria-describedby={errors.nickName ? 'signup-nickName-error' : undefined}
+                                    aria-describedby={
+                                        errors.nickName ? 'signup-nickName-error' : undefined
+                                    }
                                     aria-invalid={!!errors.nickName}
                                 />
                                 <button
@@ -543,21 +609,32 @@ const SignUp = () => {
                                 </button>
                             </div>
                             {errors.nickName && (
-                                <div className='field-error' style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>
+                                <div
+                                    className="field-error"
+                                    style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}
+                                >
                                     {errors.nickName}
                                 </div>
                             )}
                             {isNickNameChecked && !errors.nickName && (
-                                <div className='field-success' style={{ color: '#28a745', fontSize: '12px', marginTop: '4px', fontWeight: 'bold' }}>
+                                <div
+                                    className="field-success"
+                                    style={{
+                                        color: '#28a745',
+                                        fontSize: '12px',
+                                        marginTop: '4px',
+                                        fontWeight: 'bold',
+                                    }}
+                                >
                                     ✓ 사용 가능한 닉네임입니다.
                                 </div>
                             )}
                         </label>
 
-                        <div className='form-actions'>
+                        <div className="form-actions">
                             <button
-                                className='submit-btn'
-                                type='submit'
+                                className="submit-btn"
+                                type="submit"
                                 disabled={!isFormValid()}
                                 aria-disabled={!isFormValid()}
                             >
