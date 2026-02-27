@@ -6,7 +6,7 @@ import { getCurrentUserId } from '../../utils/auth';
 import './BlogPosts.scss';
 
 const BlogPosts = ({ blogOwnerData }) => {
-    const userId = getCurrentUserId() || blogOwnerData.id;
+    const userId = blogOwnerData?.id;
 
     const [myPosts, setMyPosts] = useState([]);
     const [hasMore, setHasMore] = useState(true);
@@ -72,6 +72,8 @@ const BlogPosts = ({ blogOwnerData }) => {
 
     // 2. 최초 실행 (중복 방지: Strict Mode 등으로 effect 2회 실행 시 1회만 요청)
     useEffect(() => {
+        if (!userId) return;
+
         if (pageRef.current !== 0 || !hasMore || initialFetchInProgressRef.current) return;
         initialFetchInProgressRef.current = true;
         fetchPosts().finally(() => {

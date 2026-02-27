@@ -61,11 +61,14 @@ public class BlogService {
                             new TypeReference<List<Map<String, Object>>>() {}
                     );
 
+            String colorTheme = root.path("colorTheme").asText("#9ee7e7");
+
             return new BlogLayoutDto(
                     blog.getId(),
                     blog.getUser().getLoginId(),
                     layout,
                     elements,
+                    colorTheme,
                     blog.getCreatedAt(),
                     blog.getUpdatedAt(),
                     blog.getDeletedAt()
