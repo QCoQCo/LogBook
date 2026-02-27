@@ -14,6 +14,7 @@ export const BlogProvider = ({ children }) => {
     const [isBlogEditing, setisBlogEditing] = useState(false);
     const [editingSessionId, setEditingSessionId] = useState(null);
     const [deletedImagesUrl, setDeletedImagesUrl] = useState([]);
+    const [colorTheme, setColorTheme] = useState('#9ee7e7');
 
     // 블로그 탭 위치 관리
     const [activeTab, setActiveTabState] = useState(() => {
@@ -49,6 +50,8 @@ export const BlogProvider = ({ children }) => {
             setEditingSessionId,
             deletedImagesUrl,
             setDeletedImagesUrl,
+            colorTheme,
+            setColorTheme,
         }),
         [
             layout,
@@ -69,6 +72,8 @@ export const BlogProvider = ({ children }) => {
             setEditingSessionId,
             deletedImagesUrl,
             setDeletedImagesUrl,
+            colorTheme,
+            setColorTheme,
         ],
     );
 

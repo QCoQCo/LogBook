@@ -106,7 +106,7 @@ llm:
 
 app:
     oauth2:
-        authorized-redirect-uris: http://localhost:5173/oauth2/redirect
+        authorized-redirect-uris: http://localhost:5173/oauth2/redirect,http://proxogus.codns.com:9008/oauth2/redirect
 
 youtube:
     api-key: ${YOUTUBE_API_KEY:}
