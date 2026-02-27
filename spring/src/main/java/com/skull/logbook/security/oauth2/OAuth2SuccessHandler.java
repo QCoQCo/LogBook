@@ -20,7 +20,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtTokenProvider jwtTokenProvider;
 
     @Value("${app.oauth2.authorized-redirect-uris}")
-    private String redirectUri;
+    private String redirectUris;
 
 
     @Override
@@ -31,8 +31,24 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String token = jwtTokenProvider.createToken(authentication);
 
         // 프론트엔드로 리다이렉트 (쿼리 파라미터로 토큰 전달)
-        // 로컬 개발 환경인 5173으로 리다이렉트
-        String targetUrl = redirectUri + "?token=" + token;
+        // 여러 리다이렉트 URI 중 적절한 것 선택
+        String[] uris = redirectUris.split(",");
+        String targetBaseUrl = uris[0]; // 기본값: 첫 번째 주소
+
+        // 요청의 Referer를 확인하여 매칭되는 URI가 있는지 탐색
+        String referer = request.getHeader("Referer");
+        if (referer != null) {
+            for (String uri : uris) {
+                // URI의 프로토콜과 호스트 부분이 Referer에 포함되어 있는지 확인
+                String cleanUri = uri.trim();
+                if (referer.contains(cleanUri.replace("/oauth2/redirect", ""))) {
+                    targetBaseUrl = cleanUri;
+                    break;
+                }
+            }
+        }
+
+        String targetUrl = targetBaseUrl + "?token=" + token;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
