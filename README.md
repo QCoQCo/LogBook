@@ -194,7 +194,7 @@ PJ02/
 
 #### Backend
 
-| 기술             | 용도   |
+| 기술             | 버전   | 용도              |
 | ---------------- | ------ | ----------------- |
 | Spring Boot      | ^4.0.1 | 백엔드 프레임워크 |
 | Spring Security  | -      | 인증/인가         |
@@ -769,30 +769,30 @@ PJ02/
 
 ### 📋 要件定義書
 
-| 機能ID | 機能詳細説明                                                         | 重要度 |
-| ------ | -------------------------------------------------------------------- | ------ |
-| REQ-01 | メール認証ベースのローカル会員登録（コード送信→検証→登録）           | 高     |
-| REQ-02 | Google / Kakao / Naver OAuth2ソーシャルログイン                      | 高     |
-| REQ-03 | JWT Access Token（短期）+ Refresh Token（HttpOnly Cookie、7日）二重発行 | 高     |
-| REQ-04 | トークン自動更新（`/api/auth/refresh`）                             | 高     |
-| REQ-05 | パスワード変更 / ID・パスワード検索                                  | 中     |
+| 機能ID | 機能詳細説明                                                                     | 重要度 |
+| ------ | -------------------------------------------------------------------------------- | ------ |
+| REQ-01 | メール認証ベースのローカル会員登録（コード送信→検証→登録）                       | 高     |
+| REQ-02 | Google / Kakao / Naver OAuth2ソーシャルログイン                                  | 高     |
+| REQ-03 | JWT Access Token（短期）+ Refresh Token（HttpOnly Cookie、7日）二重発行          | 高     |
+| REQ-04 | トークン自動更新（`/api/auth/refresh`）                                          | 高     |
+| REQ-05 | パスワード変更 / ID・パスワード検索                                              | 中     |
 | REQ-06 | ユーザープロフィール編集（ニックネーム、紹介、プロフィール写真SFTPアップロード） | 中     |
-| REQ-07 | フォロー / アンフォロー及びフォロー状態照会                          | 中     |
-| REQ-08 | ブロックエディタ（BlockNote）ベース投稿作成・編集・ソフト削除         | 高     |
-| REQ-09 | 投稿一覧ページネーション照会（フィルター・タグ検索含む）              | 高     |
-| REQ-10 | Gemini AIベーススマート検索（意図分析+タグマッチング）               | 高     |
-| REQ-11 | 投稿いいねトグル（重複防止）                                         | 中     |
-| REQ-12 | コメント作成・編集・ソフト削除（返信対応）                           | 中     |
-| REQ-13 | YouTube URLベースプレイリストインポート                              | 高     |
-| REQ-14 | プレイリストCRUD及びトラック順序一括変更                             | 中     |
-| REQ-15 | Firebaseベースリアルタイムチャット（公開・非公開室）                 | 高     |
-| REQ-16 | チャットルーム作成・削除・パスワード検証                              | 中     |
-| REQ-17 | 通知（Notification）作成・照会・既読処理                             | 中     |
-| REQ-18 | リンクプレビューメタデータパース（Jsoup）                            | 低     |
-| REQ-19 | 不正投稿通報受付                                                     | 低     |
-| REQ-20 | 管理者（ADMIN）ユーザー一覧・統計・投稿管理                          | 高     |
-| REQ-21 | ダークモードトグル（ローカルストレージ永続）                         | 低     |
-| REQ-22 | Google Maps APIベース地図位置表示                                    | 低     |
+| REQ-07 | フォロー / アンフォロー及びフォロー状態照会                                      | 中     |
+| REQ-08 | ブロックエディタ（BlockNote）ベース投稿作成・編集・ソフト削除                    | 高     |
+| REQ-09 | 投稿一覧ページネーション照会（フィルター・タグ検索含む）                         | 高     |
+| REQ-10 | Gemini AIベーススマート検索（意図分析+タグマッチング）                           | 高     |
+| REQ-11 | 投稿いいねトグル（重複防止）                                                     | 中     |
+| REQ-12 | コメント作成・編集・ソフト削除（返信対応）                                       | 中     |
+| REQ-13 | YouTube URLベースプレイリストインポート                                          | 高     |
+| REQ-14 | プレイリストCRUD及びトラック順序一括変更                                         | 中     |
+| REQ-15 | Firebaseベースリアルタイムチャット（公開・非公開室）                             | 高     |
+| REQ-16 | チャットルーム作成・削除・パスワード検証                                         | 中     |
+| REQ-17 | 通知（Notification）作成・照会・既読処理                                         | 中     |
+| REQ-18 | リンクプレビューメタデータパース（Jsoup）                                        | 低     |
+| REQ-19 | 不正投稿通報受付                                                                 | 低     |
+| REQ-20 | 管理者（ADMIN）ユーザー一覧・統計・投稿管理                                      | 高     |
+| REQ-21 | ダークモードトグル（ローカルストレージ永続）                                     | 低     |
+| REQ-22 | Google Maps APIベース地図位置表示                                                | 低     |
 
 ---
 
@@ -932,65 +932,65 @@ LogBook
 
 #### 認証 (`/api/auth`)
 
-| URLパス | Method | パラメータ | 戻り値 |
-| ------- | ------ | ---------- | ------ |
-| `/api/auth/email/send` | POST | `{ email }` | `{ message }` |
-| `/api/auth/email/verify` | POST | `{ email, code }` | `{ verified, token }` |
-| `/api/auth/signup` | POST | `SignupRequestDto` | `{ message, userId }` |
-| `/api/auth/login` | POST | `{ loginId, password }` | `{ token, user }` + Set-Cookie |
-| `/api/auth/logout` | POST | Cookie: `refreshToken` | `{ message }` |
-| `/api/auth/refresh` | POST | Cookie: `refreshToken` | `{ token }` |
-| `/api/auth/change-password` | POST | `{ userId, oldPassword, newPassword }` | `{ message }` |
-| `/api/auth/find-id` | POST | `{ email }` | `{ loginId }` |
-| `/api/auth/reset-password` | POST | `{ verificationToken, email, loginId, newPassword }` | `{ message }` |
+| URLパス                     | Method | パラメータ                                           | 戻り値                         |
+| --------------------------- | ------ | ---------------------------------------------------- | ------------------------------ |
+| `/api/auth/email/send`      | POST   | `{ email }`                                          | `{ message }`                  |
+| `/api/auth/email/verify`    | POST   | `{ email, code }`                                    | `{ verified, token }`          |
+| `/api/auth/signup`          | POST   | `SignupRequestDto`                                   | `{ message, userId }`          |
+| `/api/auth/login`           | POST   | `{ loginId, password }`                              | `{ token, user }` + Set-Cookie |
+| `/api/auth/logout`          | POST   | Cookie: `refreshToken`                               | `{ message }`                  |
+| `/api/auth/refresh`         | POST   | Cookie: `refreshToken`                               | `{ token }`                    |
+| `/api/auth/change-password` | POST   | `{ userId, oldPassword, newPassword }`               | `{ message }`                  |
+| `/api/auth/find-id`         | POST   | `{ email }`                                          | `{ loginId }`                  |
+| `/api/auth/reset-password`  | POST   | `{ verificationToken, email, loginId, newPassword }` | `{ message }`                  |
 
 #### 投稿 (`/api/posts`)
 
-| URLパス | Method | パラメータ | 戻り値 |
-| ------- | ------ | ---------- | ------ |
-| `/api/posts` | GET | `page, size, filter` | `List<PostResponseDto>` |
-| `/api/posts` | POST | `PostRequestDto`（認証） | `Long` (postId) |
-| `/api/posts/{postId}` | GET | — | `PostResponseDto` |
-| `/api/posts/{postId}` | PUT | `PostRequestDto`（所有者） | `204` |
-| `/api/posts` | DELETE | `{ postId }`（所有者） | `204` |
-| `/api/posts/{postId}/like` | POST | 認証 | `{ likeCount, isLiked }` |
-| `/api/posts/{postId}/like` | DELETE | 認証 | `{ likeCount, isLiked }` |
-| `/api/posts/lists/{userId}` | GET | `Pageable` | `Page<UserPostListDto>` |
-| `/api/posts/{postId}/comments` | GET | — | `List<CommentResponseDto>` |
+| URLパス                        | Method | パラメータ                 | 戻り値                     |
+| ------------------------------ | ------ | -------------------------- | -------------------------- |
+| `/api/posts`                   | GET    | `page, size, filter`       | `List<PostResponseDto>`    |
+| `/api/posts`                   | POST   | `PostRequestDto`（認証）   | `Long` (postId)            |
+| `/api/posts/{postId}`          | GET    | —                          | `PostResponseDto`          |
+| `/api/posts/{postId}`          | PUT    | `PostRequestDto`（所有者） | `204`                      |
+| `/api/posts`                   | DELETE | `{ postId }`（所有者）     | `204`                      |
+| `/api/posts/{postId}/like`     | POST   | 認証                       | `{ likeCount, isLiked }`   |
+| `/api/posts/{postId}/like`     | DELETE | 認証                       | `{ likeCount, isLiked }`   |
+| `/api/posts/lists/{userId}`    | GET    | `Pageable`                 | `Page<UserPostListDto>`    |
+| `/api/posts/{postId}/comments` | GET    | —                          | `List<CommentResponseDto>` |
 
 #### ユーザー (`/api/users`)
 
-| URLパス | Method | パラメータ | 戻り値 |
-| ------- | ------ | ---------- | ------ |
-| `/api/users/{loginId}` | GET | — | `UserResponseDto` |
-| `/api/users/{userId}` | PUT | `file, introduction, nickName, layout` | `{ profilePhoto, nickName }` |
-| `/api/users/{userId}/follow` | POST | 認証 | `{ following }` |
-| `/api/users/{userId}/follow` | DELETE | 認証 | `{ following }` |
+| URLパス                      | Method | パラメータ                             | 戻り値                       |
+| ---------------------------- | ------ | -------------------------------------- | ---------------------------- |
+| `/api/users/{loginId}`       | GET    | —                                      | `UserResponseDto`            |
+| `/api/users/{userId}`        | PUT    | `file, introduction, nickName, layout` | `{ profilePhoto, nickName }` |
+| `/api/users/{userId}/follow` | POST   | 認証                                   | `{ following }`              |
+| `/api/users/{userId}/follow` | DELETE | 認証                                   | `{ following }`              |
 
 #### プレイリスト (`/api/playlists`)
 
-| URLパス | Method | パラメータ | 戻り値 |
-| ------- | ------ | ---------- | ------ |
-| `/api/playlists` | POST | `PlaylistRequestDto`（認証） | `PlaylistResponseDto` |
-| `/api/playlists` | GET | `userId` | `List<PlaylistResponseDto>` |
-| `/api/playlists/{playlistId}` | GET | — | `PlaylistDetailDto` |
-| `/api/playlists/{playlistId}/items` | POST | `PlaylistItemRequestDto`（認証） | `PlaylistItemResponseDto` |
-| `/api/playlists/{playlistId}/items/batch` | PATCH | `List<PlaylistItemRequestDto>` | `{ message }` |
-| `/api/playlists/import-yt` | POST | `{ playlistUrl }`（認証） | `List<PlaylistItemDto>` |
+| URLパス                                   | Method | パラメータ                       | 戻り値                      |
+| ----------------------------------------- | ------ | -------------------------------- | --------------------------- |
+| `/api/playlists`                          | POST   | `PlaylistRequestDto`（認証）     | `PlaylistResponseDto`       |
+| `/api/playlists`                          | GET    | `userId`                         | `List<PlaylistResponseDto>` |
+| `/api/playlists/{playlistId}`             | GET    | —                                | `PlaylistDetailDto`         |
+| `/api/playlists/{playlistId}/items`       | POST   | `PlaylistItemRequestDto`（認証） | `PlaylistItemResponseDto`   |
+| `/api/playlists/{playlistId}/items/batch` | PATCH  | `List<PlaylistItemRequestDto>`   | `{ message }`               |
+| `/api/playlists/import-yt`                | POST   | `{ playlistUrl }`（認証）        | `List<PlaylistItemDto>`     |
 
 #### チャット / 通知 / 検索
 
-| URLパス | Method | 説明 | 戻り値 |
-| ------- | ------ | ---- | ------ |
-| `/api/chat/chat-rooms` | GET | チャットルーム一覧 | `{ chatRooms }` |
-| `/api/chat/chat-rooms` | POST | チャットルーム作成（認証） | `ChatRoomDto` |
-| `/api/chat/chat-rooms/{id}` | DELETE | チャットルーム削除（認証） | `{ message }` |
-| `/api/notifications` | GET | 通知一覧（認証） | `Page<NotificationResponseDto>` |
-| `/api/notifications/unread-count` | GET | 未読通知数 | `Long` |
-| `/api/notifications/{id}/read` | PATCH | 単件既読処理 | `204` |
-| `/api/notifications/read-all` | PATCH | 全件既読処理 | `204` |
-| `/api/search` | GET | `q`パラメータスマート検索 | `SmartSearchResponseDto` |
-| `/api/files/upload` | POST | SFTP画像アップロード | `{ url }` |
+| URLパス                           | Method | 説明                       | 戻り値                          |
+| --------------------------------- | ------ | -------------------------- | ------------------------------- |
+| `/api/chat/chat-rooms`            | GET    | チャットルーム一覧         | `{ chatRooms }`                 |
+| `/api/chat/chat-rooms`            | POST   | チャットルーム作成（認証） | `ChatRoomDto`                   |
+| `/api/chat/chat-rooms/{id}`       | DELETE | チャットルーム削除（認証） | `{ message }`                   |
+| `/api/notifications`              | GET    | 通知一覧（認証）           | `Page<NotificationResponseDto>` |
+| `/api/notifications/unread-count` | GET    | 未読通知数                 | `Long`                          |
+| `/api/notifications/{id}/read`    | PATCH  | 単件既読処理               | `204`                           |
+| `/api/notifications/read-all`     | PATCH  | 全件既読処理               | `204`                           |
+| `/api/search`                     | GET    | `q`パラメータスマート検索  | `SmartSearchResponseDto`        |
+| `/api/files/upload`               | POST   | SFTP画像アップロード       | `{ url }`                       |
 
 </details>
 
@@ -1019,83 +1019,83 @@ user ──1:N── auth_session (Refresh Token)
 
 #### `user` テーブル
 
-| 物理名 | 論理名 | 型 | PK/FK/その他 |
-| ------ | ------ | -- | ------------ |
-| id | ユーザーPK | BIGINT | PK, AUTO_INCREMENT |
-| login_id | ログインID | VARCHAR(255) | UNIQUE, NOT NULL |
-| password | パスワード（BCrypt） | VARCHAR(255) | NULL可（ソーシャル） |
-| nick_name | ニックネーム | VARCHAR(255) | NOT NULL |
-| user_email | メール | VARCHAR(255) | NOT NULL |
-| profile_photo | プロフィール写真URL | VARCHAR(255) | — |
-| introduction | 自己紹介 | TEXT | — |
-| role | 権限（USER/ADMIN） | VARCHAR(30) | NOT NULL |
-| provider | 認証プロバイダ（LOCAL/GOOGLE/KAKAO/NAVER） | VARCHAR(30) | NOT NULL |
-| provider_id | ソーシャル固有ID | VARCHAR(255) | — |
-| deleted_at | ソフト削除日時 | DATETIME | — |
-| created_at | 作成日時 | DATETIME | NOT NULL |
+| 物理名        | 論理名                                     | 型           | PK/FK/その他         |
+| ------------- | ------------------------------------------ | ------------ | -------------------- |
+| id            | ユーザーPK                                 | BIGINT       | PK, AUTO_INCREMENT   |
+| login_id      | ログインID                                 | VARCHAR(255) | UNIQUE, NOT NULL     |
+| password      | パスワード（BCrypt）                       | VARCHAR(255) | NULL可（ソーシャル） |
+| nick_name     | ニックネーム                               | VARCHAR(255) | NOT NULL             |
+| user_email    | メール                                     | VARCHAR(255) | NOT NULL             |
+| profile_photo | プロフィール写真URL                        | VARCHAR(255) | —                    |
+| introduction  | 自己紹介                                   | TEXT         | —                    |
+| role          | 権限（USER/ADMIN）                         | VARCHAR(30)  | NOT NULL             |
+| provider      | 認証プロバイダ（LOCAL/GOOGLE/KAKAO/NAVER） | VARCHAR(30)  | NOT NULL             |
+| provider_id   | ソーシャル固有ID                           | VARCHAR(255) | —                    |
+| deleted_at    | ソフト削除日時                             | DATETIME     | —                    |
+| created_at    | 作成日時                                   | DATETIME     | NOT NULL             |
 
 #### `post` テーブル
 
-| 物理名 | 論理名 | 型 | PK/FK/その他 |
-| ------ | ------ | -- | ------------ |
-| id | 投稿PK | BIGINT | PK, AUTO_INCREMENT |
-| user_id | 著者ID | BIGINT | NOT NULL |
-| title | タイトル | VARCHAR(255) | NOT NULL |
-| content | 本文（BlockNote JSON） | TEXT | — |
-| is_active | 有効フラグ | TINYINT(1) | DEFAULT 1 |
-| deleted_at | ソフト削除日時 | DATETIME | — |
-| created_at | 作成日時 | DATETIME | NOT NULL |
-| updated_at | 更新日時 | DATETIME | — |
+| 物理名     | 論理名                 | 型           | PK/FK/その他       |
+| ---------- | ---------------------- | ------------ | ------------------ |
+| id         | 投稿PK                 | BIGINT       | PK, AUTO_INCREMENT |
+| user_id    | 著者ID                 | BIGINT       | NOT NULL           |
+| title      | タイトル               | VARCHAR(255) | NOT NULL           |
+| content    | 本文（BlockNote JSON） | TEXT         | —                  |
+| is_active  | 有効フラグ             | TINYINT(1)   | DEFAULT 1          |
+| deleted_at | ソフト削除日時         | DATETIME     | —                  |
+| created_at | 作成日時               | DATETIME     | NOT NULL           |
+| updated_at | 更新日時               | DATETIME     | —                  |
 
 #### `comment` テーブル
 
-| 物理名 | 論理名 | 型 | PK/FK/その他 |
-| ------ | ------ | -- | ------------ |
-| id | コメントPK | BIGINT | PK, AUTO_INCREMENT |
-| comment_id | 親コメントID（返信） | BIGINT | — |
-| content | 内容 | VARCHAR(500) | NOT NULL |
-| post_id | 投稿FK | BIGINT | FK → post.id |
-| user_id | 著者FK | BIGINT | FK → user.id |
-| deleted_at | ソフト削除日時 | DATETIME | — |
+| 物理名     | 論理名               | 型           | PK/FK/その他       |
+| ---------- | -------------------- | ------------ | ------------------ |
+| id         | コメントPK           | BIGINT       | PK, AUTO_INCREMENT |
+| comment_id | 親コメントID（返信） | BIGINT       | —                  |
+| content    | 内容                 | VARCHAR(500) | NOT NULL           |
+| post_id    | 投稿FK               | BIGINT       | FK → post.id       |
+| user_id    | 著者FK               | BIGINT       | FK → user.id       |
+| deleted_at | ソフト削除日時       | DATETIME     | —                  |
 
 #### `playlist` / `playlist_item` テーブル
 
-| 物理名 | 論理名 | 型 | PK/FK/その他 |
-| ------ | ------ | -- | ------------ |
-| id | プレイリストPK | BIGINT | PK, AUTO_INCREMENT |
-| user_id | 所有者ID | BIGINT | NOT NULL |
-| title | タイトル | VARCHAR(255) | NOT NULL |
+| 物理名  | 論理名         | 型           | PK/FK/その他       |
+| ------- | -------------- | ------------ | ------------------ |
+| id      | プレイリストPK | BIGINT       | PK, AUTO_INCREMENT |
+| user_id | 所有者ID       | BIGINT       | NOT NULL           |
+| title   | タイトル       | VARCHAR(255) | NOT NULL           |
 
-| 物理名 | 論理名 | 型 | PK/FK/その他 |
-| ------ | ------ | -- | ------------ |
-| id | アイテムPK | BIGINT | PK, AUTO_INCREMENT |
-| play_id | プレイリストFK | BIGINT | FK → playlist.id |
-| title | 曲名 | VARCHAR(255) | NOT NULL |
-| link | YouTubeリンク | VARCHAR(255) | NOT NULL |
-| thumbnail | サムネイルURL | VARCHAR(255) | — |
-| seq | 再生順序 | INT | — |
+| 物理名    | 論理名         | 型           | PK/FK/その他       |
+| --------- | -------------- | ------------ | ------------------ |
+| id        | アイテムPK     | BIGINT       | PK, AUTO_INCREMENT |
+| play_id   | プレイリストFK | BIGINT       | FK → playlist.id   |
+| title     | 曲名           | VARCHAR(255) | NOT NULL           |
+| link      | YouTubeリンク  | VARCHAR(255) | NOT NULL           |
+| thumbnail | サムネイルURL  | VARCHAR(255) | —                  |
+| seq       | 再生順序       | INT          | —                  |
 
 #### `notification` テーブル
 
-| 物理名 | 論理名 | 型 | PK/FK/その他 |
-| ------ | ------ | -- | ------------ |
-| id | 通知PK | BIGINT | PK, AUTO_INCREMENT |
-| user_id | 受信者FK | BIGINT | FK → user.id |
-| type | 通知タイプ | VARCHAR(30) | NOT NULL |
-| title | 通知タイトル | VARCHAR(100) | NOT NULL |
-| message | 通知メッセージ | VARCHAR(500) | NOT NULL |
-| related_id | 関連ID（postId等） | BIGINT | — |
-| read_at | 既読日時 | DATETIME | — |
-| created_at | 作成日時 | DATETIME | NOT NULL |
+| 物理名     | 論理名             | 型           | PK/FK/その他       |
+| ---------- | ------------------ | ------------ | ------------------ |
+| id         | 通知PK             | BIGINT       | PK, AUTO_INCREMENT |
+| user_id    | 受信者FK           | BIGINT       | FK → user.id       |
+| type       | 通知タイプ         | VARCHAR(30)  | NOT NULL           |
+| title      | 通知タイトル       | VARCHAR(100) | NOT NULL           |
+| message    | 通知メッセージ     | VARCHAR(500) | NOT NULL           |
+| related_id | 関連ID（postId等） | BIGINT       | —                  |
+| read_at    | 既読日時           | DATETIME     | —                  |
+| created_at | 作成日時           | DATETIME     | NOT NULL           |
 
 #### `auth_session` テーブル (Refresh Token)
 
-| 物理名 | 論理名 | 型 | PK/FK/その他 |
-| ------ | ------ | -- | ------------ |
-| id | セッションPK | BIGINT | PK, AUTO_INCREMENT |
-| user_id | ユーザーFK | BIGINT | FK → user.id |
-| session_token | UUID Refresh Token | VARCHAR(255) | UNIQUE |
-| expires_at | 有効期限 | DATETIME | NOT NULL |
+| 物理名        | 論理名             | 型           | PK/FK/その他       |
+| ------------- | ------------------ | ------------ | ------------------ |
+| id            | セッションPK       | BIGINT       | PK, AUTO_INCREMENT |
+| user_id       | ユーザーFK         | BIGINT       | FK → user.id       |
+| session_token | UUID Refresh Token | VARCHAR(255) | UNIQUE             |
+| expires_at    | 有効期限           | DATETIME     | NOT NULL           |
 
 ---
 
@@ -1275,12 +1275,12 @@ cd logBook && npm run dev
 
 #### ポート構成
 
-| サービス | ポート | 説明 |
-| -------- | ----- | ---- |
-| Spring Boot API | 8080 | `/api` context-path |
-| React Vite 開発サーバー | 5173 | 開発環境 |
-| MySQL (Aiven Cloud) | 16606 | リモートDB |
-| SFTP ファイルサーバー | 2222 | NAS 画像サーバー |
+| サービス                | ポート | 説明                |
+| ----------------------- | ------ | ------------------- |
+| Spring Boot API         | 8080   | `/api` context-path |
+| React Vite 開発サーバー | 5173   | 開発環境            |
+| MySQL (Aiven Cloud)     | 16606  | リモートDB          |
+| SFTP ファイルサーバー   | 2222   | NAS 画像サーバー    |
 
 ---
 
