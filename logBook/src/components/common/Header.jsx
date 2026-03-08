@@ -190,10 +190,12 @@ const Header = () => {
 
         searchDebounceRef.current = setTimeout(async () => {
             try {
-                const response = await apiClient.get(`/search/hybrid?query=${encodeURIComponent(query)}`);
+                const response = await apiClient.get(
+                    `/search/hybrid?query=${encodeURIComponent(query)}`,
+                );
                 setSearchResults(response.data);
             } catch (error) {
-                console.error("Search failed", error);
+                console.error('Search failed', error);
                 setSearchResults(null);
             } finally {
                 setIsSearching(false);
@@ -216,7 +218,8 @@ const Header = () => {
                             <p>프로젝트 소개</p>
                         </Link>
                     </div>
-                    {isLogin && [1, 2, 3, 7, 8, 265, 266, 271, 272, 273, 274].includes(currentUser?.id) && (
+                    {/* {isLogin && [1, 2, 3, 7, 8, 265, 266, 271, 272, 273, 274].includes(currentUser?.id) && ( */}
+                    {isLogin && [1].includes(currentUser?.id) && (
                         <div className='role-toggle' role='group' aria-label='역할 전환'>
                             <button
                                 type='button'
@@ -281,7 +284,8 @@ const Header = () => {
                                         value={searchQuery}
                                         onChange={handleSearchChange} // 변경된 핸들러
                                         onFocus={() => {
-                                            if (searchQuery.trim().length >= 2) setShowDropdown(true);
+                                            if (searchQuery.trim().length >= 2)
+                                                setShowDropdown(true);
                                         }}
                                         placeholder='검색어를 입력하세요'
                                         aria-label='검색어'
@@ -309,7 +313,7 @@ const Header = () => {
                             </form>
 
                             {/* Smart Search Dropdown Integration */}
-                            {(showDropdown && searchQuery.trim().length >= 1) && (
+                            {showDropdown && searchQuery.trim().length >= 1 && (
                                 <SmartSearchDropdown
                                     results={searchResults}
                                     isLoading={isSearching}
@@ -365,7 +369,9 @@ const Header = () => {
                                     <path d='M224 0c-17.7 0-32 14.3-32 32l0 3.2C119 50 64 114.6 64 192l0 21.7c0 48.1-16.4 94.8-46.4 132.4L7.8 358.3C2.7 364.6 0 372.4 0 380.5 0 400.1 15.9 416 35.5 416l376.9 0c19.6 0 35.5-15.9 35.5-35.5 0-8.1-2.7-15.9-7.8-22.2l-9.8-12.2C400.4 308.5 384 261.8 384 213.7l0-21.7c0-77.4-55-142-128-156.8l0-3.2c0-17.7-14.3-32-32-32zM162 464c7.1 27.6 32.2 48 62 48s54.9-20.4 62-48l-124 0z' />
                                 </svg>
                                 {unreadCount > 0 && (
-                                    <span className='notification-badge'>{unreadCount > 99 ? '99+' : unreadCount}</span>
+                                    <span className='notification-badge'>
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
                                 )}
                             </button>
                             {showNotificationPanel && (
