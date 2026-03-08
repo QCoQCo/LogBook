@@ -194,7 +194,7 @@ const LogBookIntro = () => {
                         <span className='title-sub'>당신의 이야기를 기록하세요</span>
                     </h1>
                     <p className='hero-description'>
-                        React + Firebase로 구축된 올인원 플랫폼
+                        React + Firebase + Spring Boot로 구축된 올인원 플랫폼
                         <br />
                         자유롭게 꾸밀 수 있는 블로그, 실시간 채팅, 음악 플레이리스트까지
                         <br />
