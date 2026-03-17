@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import './login.scss';
+import './Login.scss';
 import { loginClient } from '../../utils/auth';
 import { useAuth } from '../../context';
 
