@@ -25,7 +25,7 @@ services:
         container_name: logbook-web
         restart: always
         ports:
-            - '9008:80'
+            - '80:80'
         depends_on:
             - logbook-backend
         networks:
