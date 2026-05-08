@@ -1,5 +1,5 @@
 # 빌드 단계: Vite 애플리케이션 빌드
-FROM node:22-alpine AS build
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 
 # 빌드 시점에 주입받을 7개의 변수 정의
