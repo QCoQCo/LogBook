@@ -51,12 +51,18 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
 
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
             - name: Build and Push Frontend Image
               uses: docker/build-push-action@v5
               with:
                   context: ./logBook
                   push: true
-                  # Secrets에 등록된 이름이 VITE_FIREBASE_... 인지 꼭 확인하세요!
+                  platforms: linux/arm64
                   build-args: |
                       VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}
                       VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -65,6 +71,7 @@ jobs:
                       VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
                       VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}
                       VITE_FIREBASE_APP_MEASUREMENT_ID=${{ secrets.VITE_FIREBASE_APP_MEASUREMENT_ID }}
+                      VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
                   tags: |
                       ${{ env.FRONT_IMAGE }}:latest
                       ${{ env.FRONT_IMAGE }}:${{ env.VERSION }}
@@ -74,6 +81,7 @@ jobs:
               with:
                   context: ./spring
                   push: true
+                  platforms: linux/arm64
                   tags: |
                       ${{ env.BACK_IMAGE }}:latest
                       ${{ env.BACK_IMAGE }}:${{ env.VERSION }}
@@ -90,17 +98,30 @@ jobs:
               with:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
-                  password: ${{ secrets.SERVER_PASSWORD }}
+                  key: ${{ secrets.SERVER_SSH_KEY }}
                   port: ${{ secrets.SERVER_PORT }}
                   source: 'docker-compose.yml'
-                  target: 'C:/Users/logbook/images/logbook'
+                  target: '/home/ubuntu/logbook/'
 
             - name: SSH Remote Deployment
               uses: appleboy/ssh-action@master
               with:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
-                  password: ${{ secrets.SERVER_PASSWORD }}
+                  key: ${{ secrets.SERVER_SSH_KEY }}
                   port: ${{ secrets.SERVER_PORT }}
                   script: |
-                      powershell -Command "cd 'C:/Users/logbook/images/logbook'; $env:DB_PASSWORD='${{ secrets.DB_PASSWORD }}'; $env:DOCKER_CONFIG='C:/Users/logbook/.docker-bypass'; mkdir $env:DOCKER_CONFIG -ErrorAction SilentlyContinue; $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}')); @{ auths = @{ 'ghcr.io' = @{ auth = $auth } } } | ConvertTo-Json -Depth 5 | Set-Content $env:DOCKER_CONFIG/config.json; docker compose pull; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; docker compose up -d --force-recreate; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; docker ps -a"
+                      cd /home/ubuntu/logbook
+
+                      # Docker Registry Login
+                      echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+                      # Pull new images and restart containers
+                      sudo docker compose pull
+                      sudo docker compose up -d --force-recreate
+
+                      # Clean up unused images to save disk space
+                      sudo docker image prune -f
+
+                      # Check status
+                      sudo docker ps -a
