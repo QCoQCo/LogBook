@@ -1,13 +1,12 @@
-# 실행 단계: Java 21 런타임 기반 실행
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 
-# CI 환경(GitHub Actions)에서 빌드된 JAR 파일을 복사 (Gradle 빌드 결과물)
 COPY build/libs/*.jar app.jar
 
-# Spring Boot 포트 오픈
 EXPOSE 8080
 
-# 컨테이너 자원 사용 효율화를 위한 JVM 옵션 추가
-# -Xms: 초기 힙 메모리, -Xmx: 최대 힙 메모리
-ENTRYPOINT ["java", "-jar", "-Xms256m", "-Xmx512m", "-Duser.timezone=Asia/Seoul", "app.jar"]
+RUN apk add --no-cache ffmpeg python3
+RUN wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp
+RUN chmod a+rx /usr/local/bin/yt-dlp
+
+ENTRYPOINT ["java", "-jar", "-Xms256m", "-Xmx1024m", "-Duser.timezone=Asia/Seoul", "app.jar"]
