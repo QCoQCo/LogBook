@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -31,6 +33,28 @@ public class SftpService {
     @Value("${file.upload.uploadPath}")
     private String uploadPath;
 
+    // 경로 조작(../) 방지: 경로 한 칸에 허용되는 문자 (UUID, 파일명.확장자, temp 등)
+    private static final Pattern SAFE_SEGMENT = Pattern.compile("^[A-Za-z0-9_-]+(\\.[A-Za-z0-9]+)?$");
+    private static final Set<String> ALLOWED_SUB_FOLDERS = Set.of("profile", "blogItems");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
+
+    public static boolean isSafeSegment(String segment) {
+        return segment != null && SAFE_SEGMENT.matcher(segment).matches();
+    }
+
+    // 잘못된 입력은 서버 오류(500)가 아닌 400으로 응답되도록 IllegalArgumentException 사용
+    private static void requireSafeSegment(String segment, String name) {
+        if (!isSafeSegment(segment)) {
+            throw new IllegalArgumentException("허용되지 않는 경로 값입니다: " + name);
+        }
+    }
+
+    private static void requireAllowedSubFolder(String subFolder) {
+        if (!ALLOWED_SUB_FOLDERS.contains(subFolder)) {
+            throw new IllegalArgumentException("허용되지 않는 폴더입니다.");
+        }
+    }
+
     public String uploadFile(
             MultipartFile file,
             String subFolder,
@@ -40,10 +64,20 @@ public class SftpService {
         Session session = null;
         ChannelSftp channelSftp = null;
 
+        requireAllowedSubFolder(subFolder);
+        if (extraPaths != null) {
+            for (String path : extraPaths) {
+                requireSafeSegment(path, "extraPath");
+            }
+        }
+
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        }
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("허용되지 않는 이미지 확장자입니다.");
         }
         String savedFilename = java.util.UUID.randomUUID().toString() + extension;
         // SFTP 서버 상의 저장 경로: uploadPath/{subFolder}/{userId}/
@@ -67,11 +101,11 @@ public class SftpService {
 
         String remoteFilePath = remoteDir + "/" + savedFilename;
 
-        System.out.println("=== SftpService.uploadFile Started ===");
-        System.out.println("Host: " + host + ", Port: " + port);
-        System.out.println("Username: " + username);
-        System.out.println("Upload Path (Target): " + remoteFilePath);
-        System.out.println("remoteDir: " + remoteDir);
+        log.debug("=== SftpService.uploadFile Started ===");
+        log.debug("Host: " + host + ", Port: " + port);
+        log.debug("Username: " + username);
+        log.debug("Upload Path (Target): " + remoteFilePath);
+        log.debug("remoteDir: " + remoteDir);
 
         try {
             JSch jsch = new JSch();
@@ -96,7 +130,7 @@ public class SftpService {
             targetFullPath = targetFullPath.replace("\\", "/");
             String[] pathParts = targetFullPath.split("/");
 
-            System.out.println("Processing path parts for: " + targetFullPath);
+            log.debug("Processing path parts for: " + targetFullPath);
 
             for (String part : pathParts) {
                 if (part.isEmpty())
@@ -104,15 +138,15 @@ public class SftpService {
 
                 try {
                     channelSftp.cd(part);
-                    System.out.println("cd success: " + part);
+                    log.debug("cd success: " + part);
                 } catch (SftpException e) {
-                    System.out.println("cd failed for " + part + ", trying mkdir. Error: " + e.getMessage());
+                    log.debug("cd failed for " + part + ", trying mkdir. Error: " + e.getMessage());
                     try {
                         channelSftp.mkdir(part);
                         channelSftp.cd(part);
-                        System.out.println("mkdir & cd success: " + part);
+                        log.debug("mkdir & cd success: " + part);
                     } catch (SftpException mkdirEx) {
-                        System.out.println("mkdir failed for " + part + ": " + mkdirEx.getMessage());
+                        log.debug("mkdir failed for " + part + ": " + mkdirEx.getMessage());
                         // 여기서 에러가 나면 멈추지 않고 진행해 볼 수도 있지만,
                         // 다음 경로로 진입 못하면 어차피 업로드 실패함.
                         throw new IOException("Failed to create directory: " + part, mkdirEx);
@@ -186,8 +220,19 @@ public class SftpService {
                 // 1-2. 경로를 분해하여 서버에서 userId 검증 후 재조합
                 // 예시 경로: /blogItems/{userId}/... (temp/final 모두 대응)
                 String[] parts = relativePath.split("/");
-                if (parts.length < 3) { // 최소 blogItems/userId/filename
+                if (parts.length < 4 || !parts[0].isEmpty() || !"blogItems".equals(parts[1])) { // /blogItems/userId/filename
                     log.warn("잘못된 파일 경로: {}", relativePath);
+                    continue;
+                }
+                boolean unsafe = false;
+                for (int i = 3; i < parts.length; i++) {
+                    if (!isSafeSegment(parts[i])) {
+                        unsafe = true;
+                        break;
+                    }
+                }
+                if (unsafe) {
+                    log.warn("경로 조작 의심 요청 차단: {}", relativePath);
                     continue;
                 }
 
@@ -207,7 +252,7 @@ public class SftpService {
                 // 안전하게 server-side userId로 재조합
                 StringBuilder safePathBuilder = new StringBuilder();
                 safePathBuilder.append(uploadPath);
-                for (int i = 0; i < parts.length; i++) {
+                for (int i = 1; i < parts.length; i++) {
                     if (i == 2) { // userId 부분은 서버값으로 교체
                         safePathBuilder.append("/").append(userId);
                     } else {
@@ -228,6 +273,10 @@ public class SftpService {
             }
 
             // 2. temp/sessionId 폴더 삭제
+            if (!isSafeSegment(sessionId)) {
+                log.warn("잘못된 sessionId, temp 폴더 삭제 생략: {}", sessionId);
+                return;
+            }
             String tempFolder = uploadPath + "/blogItems/" + userId + "/temp/" + sessionId;
             if (!tempFolder.startsWith("/")) tempFolder = "/" + tempFolder;
 
@@ -261,6 +310,11 @@ public class SftpService {
         Session session = null;
         ChannelSftp channelSftp = null;
         byte[] fileContent = null;
+
+        requireAllowedSubFolder(subFolder);
+        for (String segment : relativePath.split("/")) {
+            requireSafeSegment(segment, "filename");
+        }
 
         // 경로: uploadPath/{subFolder}/{userId}/{filename}
         String targetFullPath = uploadPath + "/" + subFolder + "/" + userId + "/" + relativePath;
@@ -307,6 +361,14 @@ public class SftpService {
 
         Session session = null;
         ChannelSftp channelSftp = null;
+
+        requireAllowedSubFolder(subFolder);
+        requireSafeSegment(editId, "editId");
+        if (files != null) {
+            for (String filename : files) {
+                requireSafeSegment(filename, "filename");
+            }
+        }
 
         try {
             // uploadPath는 반드시 서버의 절대경로여야 함

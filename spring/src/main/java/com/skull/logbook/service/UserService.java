@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -46,6 +47,10 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final SftpService sftpService;
+
+    // 헤더의 USER/ADMIN 전환 버튼을 쓸 수 있는 사용자 id 목록 (쉼표 구분, 비어 있으면 아무도 불가)
+    @Value("${app.role-toggle.allowed-user-ids:}")
+    private String roleToggleAllowedUserIds;
 
     private static final String DEFAULT_LAYOUT = """
             {
@@ -203,6 +208,10 @@ public class UserService {
 
         // 파일이 있으면 저장 로직 수행 (SFTP)
         if (file != null && !file.isEmpty()) {
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다.");
+            }
             profilePhotoUrl = sftpService.uploadFile(file, "profile", userId);
         }
 
@@ -292,11 +301,15 @@ public class UserService {
     @Transactional
     public Map<String, Object> updateMyRole(Role role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof PrincipalDetails principalDetails)) {
             throw new AccessDeniedException("로그인이 필요합니다.");
         }
-        String loginId = auth.getName();
-        User user = getUserByLoginId(loginId);
+        // 일반 사용자가 스스로 ADMIN이 되는 것을 막기 위해 허용된 계정만 전환 가능
+        if (!isRoleToggleAllowed(principalDetails.getId())) {
+            throw new AccessDeniedException("역할 전환 권한이 없습니다.");
+        }
+        User user = userRepository.findById(principalDetails.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
         if (role != Role.USER && role != Role.ADMIN) {
             throw new IllegalArgumentException("USER 또는 ADMIN만 설정할 수 있습니다.");
         }
@@ -323,6 +336,18 @@ public class UserService {
         userMap.put("role", user.getRole().name());
 
         return Map.of("token", newToken, "user", userMap);
+    }
+
+    private boolean isRoleToggleAllowed(Long userId) {
+        if (userId == null || roleToggleAllowedUserIds == null || roleToggleAllowedUserIds.isBlank()) {
+            return false;
+        }
+        for (String id : roleToggleAllowedUserIds.split(",")) {
+            if (id.trim().equals(String.valueOf(userId))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** 관리자: 특정 사용자의 역할 변경 */

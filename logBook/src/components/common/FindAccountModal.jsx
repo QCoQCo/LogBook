@@ -55,7 +55,8 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
             const res = await apiClient.post('/auth/find-id', {
                 email: findIdEmail
             });
-            setFoundId(res.data.loginId);
+            // 아이디는 응답으로 받지 않고 이메일로 발송됨
+            setFoundId(res.data.message || '입력하신 이메일로 아이디를 발송했습니다.');
         } catch (err) {
             setFindIdError(err.response?.data?.message || '사용자 정보를 찾을 수 없습니다.');
         } finally {
@@ -250,18 +251,16 @@ const FindAccountModal = ({ isOpen, onClose, onToLogin }) => {
                         <div className="find-id-section">
                             {foundId ? (
                                 <div className="result-view">
-                                    <h3>회원님의 아이디는</h3>
-                                    <p className="found-id">{foundId}</p>
-                                    <h3>입니다.</h3>
+                                    <h3>{foundId}</h3>
+                                    <p>메일함을 확인해주세요.</p>
                                     <div className="btn-group" style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                                         <button className="login-btn" style={{ flex: 1, margin: 0 }} onClick={() => { handleClose(); onToLogin(); }}>
                                             로그인 하러 가기
                                         </button>
                                         <button className="submit-btn" style={{ flex: 1, margin: 0, backgroundColor: '#666' }} onClick={() => {
                                             setActiveTab('resetPw');
-                                            setResetId(foundId);
                                             setResetEmail(findIdEmail); // 입력했던 이메일 자동완성
-                                            setStep(1); // 검증 단계부터 시작 (하지만 ID/Email은 채워짐)
+                                            setStep(1); // 검증 단계부터 시작 (아이디는 메일로 받은 값을 입력)
                                         }}>
                                             비밀번호 찾기
                                         </button>

@@ -59,6 +59,9 @@ public class LogbookApplication {
 		setIfAbsent("SMTP_USERNAME", getEnvOr(dotenv, "SMTP_USERNAME", "smtp.username"));
 		setIfAbsent("SMTP_PASSWORD", getEnvOr(dotenv, "SMTP_PASSWORD", "smtp.password"));
 
+		// JWT 서명 키 (필수)
+		setIfAbsent("JWT_SECRET", getEnvOr(dotenv, "JWT_SECRET", "jwt.secret"));
+
 		// OAuth2 Google 설정
 		setIfAbsent("GOOGLE_CLIENT_ID", dotenv.get("GOOGLE_CLIENT_ID"));
 		setIfAbsent("GOOGLE_CLIENT_SECRET", dotenv.get("GOOGLE_CLIENT_SECRET"));

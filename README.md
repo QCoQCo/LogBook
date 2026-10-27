@@ -30,7 +30,7 @@
 [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![SCSS](https://img.shields.io/badge/SCSS-CC6699?style=for-the-badge&logo=sass&logoColor=white)](https://sass-lang.com/)
 
-[🎬 데모 보기 / デモ](https://your-demo-link.com) · [📖 문서 / Wiki](https://github.com/QCoQCo/LogBook/wiki) · [🐛 버그 신고 / バグ報告](https://github.com/QCoQCo/LogBook/issues) · [✨ 기능 요청 / 機能要望](https://github.com/QCoQCo/LogBook/issues)
+[🎬 데모 보기 / デモ](https://logbooks.cc) · [📖 문서 / Wiki](https://github.com/QCoQCo/LogBook/wiki) · [🐛 버그 신고 / バグ報告](https://github.com/QCoQCo/LogBook/issues) · [✨ 기능 요청 / 機能要望](https://github.com/QCoQCo/LogBook/issues)
 
 </div>
 
@@ -82,23 +82,39 @@
 
 ```
 PJ02/
-├── logBook/                 # React 프론트엔드 (Vite + React)
-│   ├── public/
-│   │   └── img/
+├── logBook/                      # React 프론트엔드 (Vite)
+│   ├── Dockerfile / nginx.conf   # 프론트엔드 컨테이너 빌드 · 리버스 프록시
+│   ├── public/                   # 정적 리소스 (img, data, html, video)
 │   └── src/
-│       ├── components/      # 페이지 및 UI 컴포넌트
-│       ├── context/         # React Context (인증, 포스트 등)
-│       ├── hooks/           # 커스텀 훅
-│       ├── pages/
-│       └── ...
-├── spring/                  # Spring Boot 백엔드
-│   └── src/main/java/com/skull/logbook/
-│       ├── controller/      # REST API 컨트롤러
-│       ├── service/         # 비즈니스 로직
-│       ├── entity/          # JPA 엔티티
-│       ├── repository/      # 데이터 접근 계층
-│       └── config/          # 보안, WebSocket 등 설정
-├── .env                     # 환경 변수 (Firebase, DB, OAuth, API 키 등)
+│       ├── App.jsx               # 라우팅 정의 및 Context Provider 트리
+│       ├── components/
+│       │   ├── common/           # 공통 UI (Header, Footer, Login, 알림 패널 등)
+│       │   ├── pages/            # 페이지 (Intro, Feed, Chat, Blog, Post, Admin 등)
+│       │   ├── admin/            # 관리자 대시보드 하위 컴포넌트
+│       │   ├── blog/             # 블로그 그리드 레이아웃 · 블록 편집
+│       │   ├── chat/             # 채팅방 UI
+│       │   └── post/             # 마크다운 에디터 · 뷰어 · 댓글
+│       ├── context/              # React Context 9종 (Auth, Post, Blog, Chat 등)
+│       ├── routes/               # 중첩 라우트 (PostRoutes)
+│       ├── firebase/             # Firebase 초기화 (Firestore)
+│       └── utils/                # apiClient, auth, chatService, WebSocket 등
+├── spring/                       # Spring Boot 백엔드
+│   ├── Dockerfile / build.gradle
+│   └── src/main/
+│       ├── java/com/skull/logbook/
+│       │   ├── controller/       # REST API 컨트롤러 13종
+│       │   ├── service/          # 비즈니스 로직
+│       │   ├── entity/           # JPA 엔티티 16종 + 공통 베이스 3종
+│       │   ├── repository/       # 데이터 접근 계층
+│       │   ├── dto/              # 요청 · 응답 DTO
+│       │   ├── security/         # SecurityConfig, JWT, OAuth2
+│       │   ├── config/           # LLM, Mail, WebSocket 설정
+│       │   ├── constant/         # Enum (AuthProvider, Role, NotificationType 등)
+│       │   └── exception/        # GlobalExceptionHandler
+│       └── resources/            # application.yaml, data.sql
+├── .github/workflows/            # GitHub Actions CI/CD 파이프라인
+├── docker-compose.yml            # 백엔드 · 프론트엔드 컨테이너 구성
+├── .env                          # 환경 변수 (Firebase, DB, OAuth, SFTP, LLM, SMTP)
 └── README.md
 ```
 
@@ -117,20 +133,20 @@ PJ02/
 | REQ-05  | 비밀번호 변경 / 아이디·비밀번호 찾기                                   | 중     |
 | REQ-06  | 사용자 프로필 수정 (닉네임, 소개글, 프로필 사진 SFTP 업로드)           | 중     |
 | REQ-07  | 팔로우 / 언팔로우 및 팔로우 상태 조회                                  | 중     |
-| REQ-08  | 블록 에디터(BlockNote) 기반 포스트 작성·수정·소프트 삭제               | 상     |
+| REQ-08  | 마크다운 에디터(자체 구현) 기반 포스트 작성·수정·소프트 삭제           | 상     |
 | REQ-09  | 포스트 목록 페이지네이션 조회 (필터·태그 검색 포함)                    | 상     |
 | REQ-10  | Gemini AI 기반 스마트 검색 (의도 분석 + 태그 매칭)                     | 상     |
 | REQ-11  | 포스트 좋아요 토글 (중복 방지)                                         | 중     |
 | REQ-12  | 댓글 작성·수정·소프트 삭제 (대댓글 지원)                               | 중     |
 | REQ-13  | YouTube URL 기반 플레이리스트 임포트                                   | 상     |
 | REQ-14  | 플레이리스트 CRUD 및 트랙 순서 일괄 변경                               | 중     |
-| REQ-15  | Firebase 기반 실시간 채팅 (공개·비공개방)                              | 상     |
+| REQ-15  | Firebase Firestore 기반 실시간 채팅 (공개·비공개방)                    | 상     |
 | REQ-16  | 채팅방 생성·삭제·비밀번호 검증                                         | 중     |
 | REQ-17  | 알림(Notification) 생성·조회·읽음 처리                                 | 중     |
 | REQ-18  | 링크 미리보기 메타데이터 파싱 (Jsoup)                                  | 하     |
 | REQ-19  | 어뷰징 포스트 신고 접수                                                | 하     |
 | REQ-20  | 관리자(ADMIN) 사용자 목록·통계·포스트 관리                             | 상     |
-| REQ-21  | 다크모드 토글 (로컬스토리지 영속)                                      | 하     |
+| REQ-21  | 채팅 페이지 진입 시 다크 테마 자동 적용                                | 하     |
 | REQ-22  | Google Maps API 기반 지도 위치 표시                                    | 하     |
 
 ---
@@ -180,34 +196,45 @@ PJ02/
 
 #### Frontend
 
-| 기술              | 버전    | 용도                  |
-| ----------------- | ------- | --------------------- |
-| React             | ^19.1.1 | UI 라이브러리         |
-| Vite              | ^7.1.2  | 빌드 도구             |
-| React Router      | ^7.8.1  | SPA 라우팅            |
-| SCSS              | -       | 스타일링              |
-| React Grid Layout | ^1.5.2  | 드래그 앤 드롭 그리드 |
-| React Markdown    | ^10.1.0 | 마크다운 렌더링       |
-| Swiper            | ^12.1.2 | 슬라이더/캐러셀       |
-| Axios             | ^1.11.0 | HTTP 클라이언트       |
-| Firebase          | ^12.1.0 | 인증, Firestore       |
+| 기술                     | 버전            | 용도                                   |
+| ------------------------ | --------------- | -------------------------------------- |
+| React                    | ^19.1.1         | UI 라이브러리                          |
+| Vite                     | ^7.1.2          | 빌드 도구                              |
+| React Router             | ^7.8.1          | SPA 라우팅                             |
+| sass-embedded (SCSS)     | ^1.90.0         | 스타일링                               |
+| React Grid Layout        | ^1.5.2          | 드래그 앤 드롭 그리드                  |
+| React Markdown           | ^10.1.0         | 마크다운 렌더링 (remark-gfm / breaks)  |
+| react-syntax-highlighter | ^16.1.0         | 코드 하이라이팅                        |
+| Swiper                   | ^12.1.2         | 슬라이더/캐러셀                        |
+| Axios                    | ^1.11.0         | HTTP 클라이언트                        |
+| Firebase                 | ^12.1.0         | Firestore (채팅 메시지 영속)           |
+| @stomp/stompjs + SockJS  | ^7.3.0 / ^1.6.1 | STOMP 실시간 알림 수신                 |
+| Recharts                 | ^3.7.0          | 관리자 통계 차트                       |
+| @react-google-maps/api   | ^2.20.8         | 지도 블록                              |
 
 #### Backend
 
-| 기술             | 버전   | 용도              |
-| ---------------- | ------ | ----------------- |
-| Spring Boot      | ^4.0.1 | 백엔드 프레임워크 |
-| Spring Security  | -      | 인증/인가         |
-| Spring WebSocket | -      | 실시간 통신       |
-| JPA / MySQL      | -      | 데이터베이스      |
-| JWT              | -      | 토큰 기반 인증    |
-| OAuth2           | -      | 소셜 로그인       |
+| 기술                 | 버전   | 용도                        |
+| -------------------- | ------ | --------------------------- |
+| Spring Boot          | 4.0.1  | 백엔드 프레임워크           |
+| Java                 | 21     | Gradle toolchain            |
+| Spring Security      | (BOM)  | 인증/인가                   |
+| Spring OAuth2 Client | (BOM)  | 소셜 로그인                 |
+| Spring Data JPA      | (BOM)  | ORM / MySQL                 |
+| Spring WebSocket     | (BOM)  | STOMP 실시간 알림           |
+| Spring WebFlux       | (BOM)  | Gemini API 호출용 WebClient |
+| Spring Mail          | (BOM)  | SMTP 이메일 발송            |
+| JJWT                 | 0.11.5 | JWT 발급·검증               |
+| JSch                 | 0.1.55 | SFTP 파일 전송              |
+| Jsoup                | 1.17.2 | 링크 OG 메타데이터 파싱     |
+| dotenv-java          | 3.0.2  | `.env` 로드                 |
 
-#### 기타
+#### 인프라 / 기타
 
-- **SMTP**: 이메일 발송
-- **YouTube Data API**: 음악 검색
-- **Google Maps API**: 지도 컴포넌트
+- **Docker + docker-compose**: 백엔드·프론트엔드 컨테이너 구성 (GHCR 이미지)
+- **GitHub Actions**: `main` 푸시 시 이미지 빌드·푸시 자동화 (`.github/workflows/deploy.yml`)
+- **Nginx**: 프론트엔드 정적 서빙 및 `/api` 리버스 프록시
+- **SMTP**: 이메일 발송 / **YouTube Data API**: 음악 검색 / **Google Maps API**: 지도 컴포넌트
 
 ---
 
@@ -236,7 +263,7 @@ PJ02/
         │         ├── YouTube Data API v3 → [재생목록 임포트]
         │         └── WebSocket (STOMP) → [알림 실시간 Push]
         │
-        └─── [Firebase Realtime DB] (채팅 메시지 영속·실시간 동기화)
+        └─── [Firebase Firestore] (채팅 메시지 영속·실시간 동기화)
 
 [흐름 요약]
 사용자 요청 → Nginx → React SPA 또는 /api 라우팅
@@ -260,13 +287,18 @@ PJ02/
 ```
 LogBook
 ├── 홈 (/)
-├── 포스트 (/posts, /posts/:id, /write, /edit/:id)
-├── 블로그 (/:loginId/blog)
-├── 채팅 (/chat, /chat/:roomId)
-├── 스마트 검색 (/search)
-├── 알림 (/notifications)
-├── 관리자 (/admin)  [ADMIN 권한 전용]
-└── 계정 (/login, /signup, /profile)
+├── 피드 (/feed)
+├── 포스트 (/post/write, /post/edit?postId=, /post/detail?postId=)
+├── 블로그 (/blog?userId=)
+├── 플레이리스트 (/playlist/:playId)
+├── 채팅 (/chat)
+├── 회원가입 (/signUp)
+├── OAuth2 콜백 (/oauth2/redirect)
+├── 에러 (/error)
+└── 관리자 (/admin)  [ADMIN 권한 전용]
+
+※ 로그인은 헤더의 모달로 처리하며 별도 경로가 없다.
+※ 스마트 검색·알림은 페이지가 아니라 헤더의 드롭다운·패널로 동작한다.
 ```
 
 #### 인증 (`/api/auth`)
@@ -329,7 +361,7 @@ LogBook
 | `/api/notifications/{id}/read`    | PATCH  | 단건 읽음 처리           | `204`                           |
 | `/api/notifications/read-all`     | PATCH  | 전체 읽음 처리           | `204`                           |
 | `/api/search`                     | GET    | `q` 파라미터 스마트 검색 | `SmartSearchResponseDto`        |
-| `/api/files/upload`               | POST   | SFTP 이미지 업로드       | `{ url }`                       |
+| `/api/img/blogItems/{userId}`     | POST   | SFTP 이미지 업로드       | `{ url }`                       |
 
 ---
 
@@ -378,7 +410,7 @@ user ──1:N── auth_session (Refresh Token)
 | id         | 포스트 PK            | BIGINT       | PK, AUTO_INCREMENT |
 | user_id    | 작성자 ID            | BIGINT       | NOT NULL           |
 | title      | 제목                 | VARCHAR(255) | NOT NULL           |
-| content    | 본문(BlockNote JSON) | TEXT         | —                  |
+| content    | 본문(마크다운 텍스트) | TEXT         | —                  |
 | is_active  | 활성 여부            | TINYINT(1)   | DEFAULT 1          |
 | deleted_at | 소프트 삭제 시각     | DATETIME     | —                  |
 | created_at | 생성 시각            | DATETIME     | NOT NULL           |
@@ -466,7 +498,7 @@ user ──1:N── auth_session (Refresh Token)
   │                 │─ POST /api/auth/login ────────────▶│             │
   │                 │◀─ { token } + Set-Cookie ──────────│             │
   │─ 이미지 삽입 ─▶│                  │                  │             │
-  │                 │─ POST /api/files/upload ──────────────────────────▶│
+  │                 │─ POST /api/img/blogItems/{userId} ────────────────▶│
   │                 │◀──────────────────────────── { url } ─────────────│
   │─ 포스트 저장 ─▶│                  │                  │             │
   │                 │─ POST /api/posts (Bearer token) ──▶│             │
@@ -501,7 +533,7 @@ user ──1:N── auth_session (Refresh Token)
 
 #### 필요 조건
 
-- Node.js v16+
+- Node.js v20.19+ (Vite 7 요구 사항)
 - Java 21+ (Spring 백엔드 실행 시)
 - npm 또는 yarn
 
@@ -556,7 +588,7 @@ db.password=YOUR_DB_PASSWORD
 
 # SFTP
 sftp.host=YOUR_SFTP_HOST
-sftp.port=22
+sftp.port=2222
 sftp.username=YOUR_SFTP_USER
 sftp.password=YOUR_SFTP_PASSWORD
 sftp.uploadPath=images
@@ -674,8 +706,13 @@ cd logBook && npm run dev
 
 ### 👥 $KULL 팀
 
-- **조장**: [CO_s_MOS](https://github.com/QCoQCo)
-- **조원**: [BH](https://github.com/devbhkim0707), [KyeongTaeHyeon](https://github.com/KyeongTaeHyeon)
+3인 팀으로 기획부터 배포까지 진행했으며, 담당 범위는 아래와 같다.
+
+| 팀원 | 역할 | 담당 범위 |
+| ---- | ---- | --------- |
+| **[CO_s_MOS](https://github.com/QCoQCo)** | 조장 · 기획 / 인프라 | 기획 총괄(와이어프레임·화면설계서·사이트맵·로고), 메인 페이지, Firebase Firestore 채팅, STOMP 실시간 알림, 댓글·좋아요, 팔로우·신고·프로필 조회, 로그인 여부 권한 분기, 이메일 인증, 공통코드, 관리자 대시보드, SFTP/NAS 및 배포 환경 설계, 라우팅·Context 구조 정리 |
+| **[KyeongTaeHyeon](https://github.com/KyeongTaeHyeon)** | 팀원 · 인증 / 검색 | 디자인 설계(유저 플로우·와이어프레임·디자인설계서), 인증·회원, JWT, OAuth2(Google·Kakao·Naver), 피드, 플레이리스트 저장·조회 및 yt-dlp 연동, Gemini 기반 스마트 검색, 로그인 모달·회원가입 화면, 플로팅 버튼 |
+| **[BH](https://github.com/devbhkim0707)** | 팀원 · 에디터 | 블로그 에디터 전반(react-grid-layout 드래그 레이아웃, 블록 편집 모달, 마크다운 에디터·프리뷰·태그·툴바), 블로그 마이페이지, 포스트, SFTP 이미지 업로드, 링크 OG 프리뷰, Google Maps 블록 |
 
 [NOTION](https://www.notion.so/KULL-24f27e5202b980279044dafa45b829d6?pvs=25) · [GITHUB](https://github.com/QCoQCo/LogBook)
 
@@ -684,8 +721,9 @@ cd logBook && npm run dev
 ### 🗺️ 로드맵
 
 - **v1.0**: 기본 블로그, 실시간 채팅, YouTube 플레이리스트, 마크다운 에디터 ✅
-- **v1.1 (계획)**: 팔로우, 좋아요/댓글, 알림, 다크모드
-- **v2.0 (예정)**: 모바일 앱, 고급 템플릿, API 분리
+- **v1.1**: 팔로우, 좋아요·댓글(대댓글), STOMP 실시간 알림, 신고, 관리자 대시보드, Gemini 스마트 검색 ✅
+- **v1.2**: Docker 컨테이너화 + GitHub Actions CI/CD, [logbooks.cc](https://logbooks.cc) 배포 ✅
+- **v2.0 (예정)**: 전역 다크모드(현재는 채팅 페이지 한정), 모바일 대응 강화, 테스트 코드 보강
 
 ---
 
@@ -743,23 +781,39 @@ cd logBook && npm run dev
 
 ```
 PJ02/
-├── logBook/                 # React フロントエンド (Vite + React)
-│   ├── public/
-│   │   └── img/
+├── logBook/                      # React フロントエンド (Vite)
+│   ├── Dockerfile / nginx.conf   # フロントエンドのコンテナビルド・リバースプロキシ
+│   ├── public/                   # 静的リソース (img, data, html, video)
 │   └── src/
-│       ├── components/      # ページ・UIコンポーネント
-│       ├── context/         # React Context（認証、投稿など）
-│       ├── hooks/           # カスタムフック
-│       ├── pages/
-│       └── ...
-├── spring/                  # Spring Boot バックエンド
-│   └── src/main/java/com/skull/logbook/
-│       ├── controller/      # REST APIコントローラー
-│       ├── service/         # ビジネスロジック
-│       ├── entity/          # JPAエンティティ
-│       ├── repository/      # データアクセス層
-│       └── config/          # セキュリティ、WebSocket等の設定
-├── .env                     # 環境変数 (Firebase, DB, OAuth, APIキー等)
+│       ├── App.jsx               # ルーティング定義・Context Providerツリー
+│       ├── components/
+│       │   ├── common/           # 共通UI (Header, Footer, Login, 通知パネル等)
+│       │   ├── pages/            # ページ (Intro, Feed, Chat, Blog, Post, Admin等)
+│       │   ├── admin/            # 管理者ダッシュボードの子コンポーネント
+│       │   ├── blog/             # ブログのグリッドレイアウト・ブロック編集
+│       │   ├── chat/             # チャットルームUI
+│       │   └── post/             # マークダウンエディタ・ビューア・コメント
+│       ├── context/              # React Context 9種 (Auth, Post, Blog, Chat等)
+│       ├── routes/               # ネストルート (PostRoutes)
+│       ├── firebase/             # Firebase初期化 (Firestore)
+│       └── utils/                # apiClient, auth, chatService, WebSocket等
+├── spring/                       # Spring Boot バックエンド
+│   ├── Dockerfile / build.gradle
+│   └── src/main/
+│       ├── java/com/skull/logbook/
+│       │   ├── controller/       # REST APIコントローラー 13種
+│       │   ├── service/          # ビジネスロジック
+│       │   ├── entity/           # JPAエンティティ 16種 + 共通ベース3種
+│       │   ├── repository/       # データアクセス層
+│       │   ├── dto/              # リクエスト・レスポンスDTO
+│       │   ├── security/         # SecurityConfig, JWT, OAuth2
+│       │   ├── config/           # LLM, Mail, WebSocket設定
+│       │   ├── constant/         # Enum (AuthProvider, Role, NotificationType等)
+│       │   └── exception/        # GlobalExceptionHandler
+│       └── resources/            # application.yaml, data.sql
+├── .github/workflows/            # GitHub Actions CI/CDパイプライン
+├── docker-compose.yml            # バックエンド・フロントエンドのコンテナ構成
+├── .env                          # 環境変数 (Firebase, DB, OAuth, SFTP, LLM, SMTP)
 └── README.md
 ```
 
@@ -778,20 +832,20 @@ PJ02/
 | REQ-05 | パスワード変更 / ID・パスワード検索                                              | 中     |
 | REQ-06 | ユーザープロフィール編集（ニックネーム、紹介、プロフィール写真SFTPアップロード） | 中     |
 | REQ-07 | フォロー / アンフォロー及びフォロー状態照会                                      | 中     |
-| REQ-08 | ブロックエディタ（BlockNote）ベース投稿作成・編集・ソフト削除                    | 高     |
+| REQ-08 | マークダウンエディタ（自前実装）ベース投稿作成・編集・ソフト削除                | 高     |
 | REQ-09 | 投稿一覧ページネーション照会（フィルター・タグ検索含む）                         | 高     |
 | REQ-10 | Gemini AIベーススマート検索（意図分析+タグマッチング）                           | 高     |
 | REQ-11 | 投稿いいねトグル（重複防止）                                                     | 中     |
 | REQ-12 | コメント作成・編集・ソフト削除（返信対応）                                       | 中     |
 | REQ-13 | YouTube URLベースプレイリストインポート                                          | 高     |
 | REQ-14 | プレイリストCRUD及びトラック順序一括変更                                         | 中     |
-| REQ-15 | Firebaseベースリアルタイムチャット（公開・非公開室）                             | 高     |
+| REQ-15 | Firebase Firestoreベースリアルタイムチャット（公開・非公開室）                   | 高     |
 | REQ-16 | チャットルーム作成・削除・パスワード検証                                         | 中     |
 | REQ-17 | 通知（Notification）作成・照会・既読処理                                         | 中     |
 | REQ-18 | リンクプレビューメタデータパース（Jsoup）                                        | 低     |
 | REQ-19 | 不正投稿通報受付                                                                 | 低     |
 | REQ-20 | 管理者（ADMIN）ユーザー一覧・統計・投稿管理                                      | 高     |
-| REQ-21 | ダークモードトグル（ローカルストレージ永続）                                     | 低     |
+| REQ-21 | チャットページ遷移時のダークテーマ自動適用                                       | 低     |
 | REQ-22 | Google Maps APIベース地図位置表示                                                | 低     |
 
 ---
@@ -841,34 +895,45 @@ PJ02/
 
 #### フロントエンド
 
-| 技術              | バージョン | 用途                       |
-| ----------------- | ---------- | -------------------------- |
-| React             | ^19.1.1    | UIライブラリ               |
-| Vite              | ^7.1.2     | ビルドツール               |
-| React Router      | ^7.8.1     | SPAルーティング            |
-| SCSS              | -          | スタイリング               |
-| React Grid Layout | ^1.5.2     | ドラッグ＆ドロップグリッド |
-| React Markdown    | ^10.1.0    | マークダウンレンダリング   |
-| Swiper            | ^12.1.2    | スライダー/カルーセル      |
-| Axios             | ^1.11.0    | HTTPクライアント           |
-| Firebase          | ^12.1.0    | 認証、Firestore            |
+| 技術                     | バージョン      | 用途                                     |
+| ------------------------ | --------------- | ---------------------------------------- |
+| React                    | ^19.1.1         | UIライブラリ                             |
+| Vite                     | ^7.1.2          | ビルドツール                             |
+| React Router             | ^7.8.1          | SPAルーティング                          |
+| sass-embedded (SCSS)     | ^1.90.0         | スタイリング                             |
+| React Grid Layout        | ^1.5.2          | ドラッグ＆ドロップグリッド               |
+| React Markdown           | ^10.1.0         | マークダウン描画 (remark-gfm / breaks)   |
+| react-syntax-highlighter | ^16.1.0         | コードハイライト                         |
+| Swiper                   | ^12.1.2         | スライダー/カルーセル                    |
+| Axios                    | ^1.11.0         | HTTPクライアント                         |
+| Firebase                 | ^12.1.0         | Firestore（チャットメッセージ永続）      |
+| @stomp/stompjs + SockJS  | ^7.3.0 / ^1.6.1 | STOMPリアルタイム通知の受信              |
+| Recharts                 | ^3.7.0          | 管理者統計チャート                       |
+| @react-google-maps/api   | ^2.20.8         | 地図ブロック                             |
 
 #### バックエンド
 
-| 技術             | 用途   |
-| ---------------- | ------ | -------------------------- |
-| Spring Boot      | ^4.0.1 | バックエンドフレームワーク |
-| Spring Security  | -      | 認証/認可                  |
-| Spring WebSocket | -      | リアルタイム通信           |
-| JPA / MySQL      | -      | データベース               |
-| JWT              | -      | トークンベース認証         |
-| OAuth2           | -      | ソーシャルログイン         |
+| 技術                 | バージョン | 用途                           |
+| -------------------- | ---------- | ------------------------------ |
+| Spring Boot          | 4.0.1      | バックエンドフレームワーク     |
+| Java                 | 21         | Gradle toolchain               |
+| Spring Security      | (BOM)      | 認証/認可                      |
+| Spring OAuth2 Client | (BOM)      | ソーシャルログイン             |
+| Spring Data JPA      | (BOM)      | ORM / MySQL                    |
+| Spring WebSocket     | (BOM)      | STOMPリアルタイム通知          |
+| Spring WebFlux       | (BOM)      | Gemini API呼び出し用WebClient  |
+| Spring Mail          | (BOM)      | SMTPメール送信                 |
+| JJWT                 | 0.11.5     | JWTの発行・検証                |
+| JSch                 | 0.1.55     | SFTPファイル転送               |
+| Jsoup                | 1.17.2     | リンクOGメタデータのパース     |
+| dotenv-java          | 3.0.2      | `.env` の読み込み              |
 
-#### その他
+#### インフラ / その他
 
-- **SMTP**: メール送信
-- **YouTube Data API**: 音楽検索
-- **Google Maps API**: 地図コンポーネント
+- **Docker + docker-compose**: バックエンド・フロントエンドのコンテナ構成（GHCRイメージ）
+- **GitHub Actions**: `main` へのpushでイメージのビルド・プッシュを自動化（`.github/workflows/deploy.yml`）
+- **Nginx**: フロントエンドの静的配信と `/api` のリバースプロキシ
+- **SMTP**: メール送信 / **YouTube Data API**: 音楽検索 / **Google Maps API**: 地図コンポーネント
 
 ---
 
@@ -897,7 +962,7 @@ PJ02/
         │         ├── YouTube Data API v3 → [プレイリストインポート]
         │         └── WebSocket（STOMP）→ [通知リアルタイムPush]
         │
-        └─── [Firebase Realtime DB]（チャットメッセージ永続・リアルタイム同期）
+        └─── [Firebase Firestore]（チャットメッセージ永続・リアルタイム同期）
 
 [フロー概要]
 ユーザーリクエスト → Nginx → React SPA または /api ルーティング
@@ -921,13 +986,18 @@ PJ02/
 ```
 LogBook
 ├── ホーム (/)
-├── 投稿 (/posts, /posts/:id, /write, /edit/:id)
-├── ブログ (/:loginId/blog)
-├── チャット (/chat, /chat/:roomId)
-├── スマート検索 (/search)
-├── 通知 (/notifications)
-├── 管理者 (/admin)  [ADMIN権限専用]
-└── アカウント (/login, /signup, /profile)
+├── フィード (/feed)
+├── 投稿 (/post/write, /post/edit?postId=, /post/detail?postId=)
+├── ブログ (/blog?userId=)
+├── プレイリスト (/playlist/:playId)
+├── チャット (/chat)
+├── 会員登録 (/signUp)
+├── OAuth2 コールバック (/oauth2/redirect)
+├── エラー (/error)
+└── 管理者 (/admin)  [ADMIN権限専用]
+
+※ ログインはヘッダーのモーダルで処理し、専用パスを持たない。
+※ スマート検索・通知はページではなく、ヘッダーのドロップダウン・パネルとして動作する。
 ```
 
 #### 認証 (`/api/auth`)
@@ -990,7 +1060,7 @@ LogBook
 | `/api/notifications/{id}/read`    | PATCH  | 単件既読処理               | `204`                           |
 | `/api/notifications/read-all`     | PATCH  | 全件既読処理               | `204`                           |
 | `/api/search`                     | GET    | `q`パラメータスマート検索  | `SmartSearchResponseDto`        |
-| `/api/files/upload`               | POST   | SFTP画像アップロード       | `{ url }`                       |
+| `/api/img/blogItems/{userId}`     | POST   | SFTP画像アップロード       | `{ url }`                       |
 
 </details>
 
@@ -1041,7 +1111,7 @@ user ──1:N── auth_session (Refresh Token)
 | id         | 投稿PK                 | BIGINT       | PK, AUTO_INCREMENT |
 | user_id    | 著者ID                 | BIGINT       | NOT NULL           |
 | title      | タイトル               | VARCHAR(255) | NOT NULL           |
-| content    | 本文（BlockNote JSON） | TEXT         | —                  |
+| content    | 本文（マークダウンテキスト） | TEXT         | —                  |
 | is_active  | 有効フラグ             | TINYINT(1)   | DEFAULT 1          |
 | deleted_at | ソフト削除日時         | DATETIME     | —                  |
 | created_at | 作成日時               | DATETIME     | NOT NULL           |
@@ -1129,7 +1199,7 @@ user ──1:N── auth_session (Refresh Token)
   │                 │─ POST /api/auth/login ────────────▶│             │
   │                 │◀─ { token } + Set-Cookie ──────────│             │
   │─ 画像挿入 ───▶│                  │                  │             │
-  │                 │─ POST /api/files/upload ──────────────────────────▶│
+  │                 │─ POST /api/img/blogItems/{userId} ────────────────▶│
   │                 │◀──────────────────────────── { url } ─────────────│
   │─ 投稿保存 ───▶│                  │                  │             │
   │                 │─ POST /api/posts (Bearer token) ──▶│             │
@@ -1162,7 +1232,7 @@ user ──1:N── auth_session (Refresh Token)
 
 #### 必要環境
 
-- Node.js v16以上
+- Node.js v20.19以上（Vite 7 の要件）
 - Java 21以上（Springバックエンド実行時）
 - npm または yarn
 
@@ -1217,7 +1287,7 @@ db.password=YOUR_DB_PASSWORD
 
 # SFTP
 sftp.host=YOUR_SFTP_HOST
-sftp.port=22
+sftp.port=2222
 sftp.username=YOUR_SFTP_USER
 sftp.password=YOUR_SFTP_PASSWORD
 sftp.uploadPath=images
@@ -1335,8 +1405,13 @@ cd logBook && npm run dev
 
 ### 👥 $KULL チーム
 
-- **リーダー**: [CO_s_MOS](https://github.com/QCoQCo)
-- **メンバー**: [BH](https://github.com/devbhkim0707), [KyeongTaeHyeon](https://github.com/KyeongTaeHyeon)
+3名のチームで企画からデプロイまで担当しました。担当範囲は以下の通りです。
+
+| メンバー | 役割 | 担当範囲 |
+| -------- | ---- | -------- |
+| **[CO_s_MOS](https://github.com/QCoQCo)** | リーダー · 企画 / インフラ | 企画統括（ワイヤーフレーム・画面設計書・サイトマップ・ロゴ）、メインページ、Firebase Firestoreチャット、STOMPリアルタイム通知、コメント・いいね、フォロー・通報・プロフィール照会、ログイン状態による権限分岐、メール認証、共通コード、管理者ダッシュボード、SFTP/NASおよびデプロイ環境の設計、ルーティング・Context構造の整理 |
+| **[KyeongTaeHyeon](https://github.com/KyeongTaeHyeon)** | メンバー · 認証 / 検索 | デザイン設計（ユーザーフロー・ワイヤーフレーム・デザイン設計書）、認証・会員、JWT、OAuth2（Google・Kakao・Naver）、フィード、プレイリストの保存・照会およびyt-dlp連携、Geminiベースのスマート検索、ログインモーダル・会員登録画面、フローティングボタン |
+| **[BH](https://github.com/devbhkim0707)** | メンバー · エディタ | ブログエディタ全般（react-grid-layoutのドラッグレイアウト、ブロック編集モーダル、マークダウンエディタ・プレビュー・タグ・ツールバー）、ブログマイページ、投稿、SFTP画像アップロード、リンクOGプレビュー、Google Mapsブロック |
 
 [NOTION](https://www.notion.so/KULL-24f27e5202b980279044dafa45b829d6?pvs=25) · [GITHUB](https://github.com/QCoQCo/LogBook)
 
@@ -1345,8 +1420,9 @@ cd logBook && npm run dev
 ### 🗺️ ロードマップ
 
 - **v1.0**: 基本ブログ、リアルタイムチャット、YouTubeプレイリスト、マークダウンエディタ ✅
-- **v1.1（予定）**: フォロー、いいね/コメント、通知、ダークモード
-- **v2.0（予定）**: モバイルアプリ、高度なテンプレート、API分離
+- **v1.1**: フォロー、いいね・コメント（返信）、STOMPリアルタイム通知、通報、管理者ダッシュボード、Geminiスマート検索 ✅
+- **v1.2**: Dockerコンテナ化 + GitHub Actions CI/CD、[logbooks.cc](https://logbooks.cc) へデプロイ ✅
+- **v2.0（予定）**: 全体ダークモード（現在はチャットページのみ）、モバイル対応の強化、テストコードの拡充
 
 ---
 
