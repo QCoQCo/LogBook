@@ -2,7 +2,6 @@
     {
         "id": 0,
         "userId": "admin",
-        "password": "1234",
         "nickName": "DevAdMin",
         "userEmail": "lls1010@gmail.com",
         "profilePhoto": null,
@@ -14,7 +13,6 @@
     {
         "id": 1,
         "userId": "musiclover",
-        "password": "music123",
         "nickName": "음악애호가",
         "userEmail": "musiclover@example.com",
         "profilePhoto": null,
@@ -26,7 +24,6 @@
     {
         "id": 2,
         "userId": "developer123",
-        "password": "dev2024",
         "nickName": "코딩하는개발자",
         "userEmail": "developer@example.com",
         "profilePhoto": "/img/profile_dev.jpg",
@@ -38,7 +35,6 @@
     {
         "id": 3,
         "userId": "gameplayer",
-        "password": "game456",
         "nickName": "게임마스터",
         "userEmail": "gamer@example.com",
         "profilePhoto": null,
@@ -50,7 +46,6 @@
     {
         "id": 4,
         "userId": "bookworm",
-        "password": "book789",
         "nickName": "독서광",
         "userEmail": "bookworm@example.com",
         "profilePhoto": null,
@@ -62,7 +57,6 @@
     {
         "id": 5,
         "userId": "belldoor",
-        "password": "wad",
         "nickName": "종무니",
         "userEmail": "bookworm@example.com",
         "profilePhoto": "/img/wad13.jpg",
@@ -74,7 +68,6 @@
     {
         "id": 6,
         "userId": "susybaka",
-        "password": "1234",
         "nickName": "CO_s_MOS",
         "userEmail": "kumityou@example.com",
         "profilePhoto": "/img/b2.png",
@@ -86,7 +79,6 @@
     {
         "id": 7,
         "userId": "devbhkim0707",
-        "password": "1234",
         "nickName": "baewoolhak",
         "userEmail": "bhkim0707@example.com",
         "profilePhoto": "/img/bkp.jpeg",
@@ -98,7 +90,6 @@
     {
         "id": 8,
         "userId": "ljh1234",
-        "password": "1234",
         "nickName": "LeeJee",
         "userEmail": "ljm@example.com",
         "profilePhoto": "https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg",

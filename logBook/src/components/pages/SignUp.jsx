@@ -201,6 +201,7 @@ const SignUp = () => {
                     userEmail: values.email,
                     nickName: values.nickName,
                     introduction: '', // 일단 빈값
+                    verificationToken: emailVerificationToken, // 서버에서 이메일 인증 여부 확인용
                 }),
             });
 
@@ -228,6 +229,7 @@ const SignUp = () => {
     };
 
     const [isEmailVerified, setIsEmailVerified] = useState(false);
+    const [emailVerificationToken, setEmailVerificationToken] = useState('');
     const [authCode, setAuthCode] = useState('');
     const [isCodeSent, setIsCodeSent] = useState(false);
     const [timer, setTimer] = useState(0); // 초 단위
@@ -286,7 +288,8 @@ const SignUp = () => {
                 setErrors((prev) => ({ ...prev, email: '' }));
                 alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
             } else {
-                alert('이메일 전송에 실패했습니다.');
+                const errorData = await resp.json().catch(() => ({}));
+                alert(errorData.message || '이메일 전송에 실패했습니다.');
             }
         } catch (e) {
             console.error(e);
@@ -308,6 +311,8 @@ const SignUp = () => {
             });
 
             if (resp.ok) {
+                const data = await resp.json();
+                setEmailVerificationToken(data.token);
                 setIsEmailVerified(true);
                 clearInterval(timerRef.current);
                 alert('이메일 인증이 완료되었습니다.');

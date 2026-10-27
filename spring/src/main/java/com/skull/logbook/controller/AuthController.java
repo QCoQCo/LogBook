@@ -5,13 +5,18 @@ import com.skull.logbook.entity.User;
 import com.skull.logbook.repository.UserRepository;
 import com.skull.logbook.service.BlogService;
 import com.skull.logbook.service.UserService;
+import com.skull.logbook.security.PrincipalDetails;
+import com.skull.logbook.security.RefreshTokenCookieFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -21,6 +26,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final BlogService blogService;
     private final com.skull.logbook.service.MailService mailService;
+    private final RefreshTokenCookieFactory refreshTokenCookieFactory;
 
     @PostMapping("/email/send")
     public ResponseEntity<Map<String, String>> sendEmail(@RequestBody com.skull.logbook.dto.EmailRequest request) {
@@ -42,7 +48,14 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto requestDto) {
+        // 이메일 인증 완료 여부를 서버에서 확인 (프론트 검증만으로는 우회 가능)
+        // 중복 아이디 등으로 가입이 실패해도 재인증하지 않도록, 가입 성공 후에 토큰을 소모
+        String verifiedEmail = mailService.getVerifiedEmail(requestDto.getVerificationToken());
+        if (verifiedEmail == null || !verifiedEmail.equals(requestDto.getUserEmail())) {
+            return ResponseEntity.status(401).body(Map.of("message", "이메일 인증이 필요합니다."));
+        }
         Long userId = userService.signup(requestDto);
+        mailService.consumeToken(requestDto.getVerificationToken());
         return ResponseEntity.ok(Map.of("message", "회원가입 성공", "userId", userId));
     }
 
@@ -57,14 +70,7 @@ public class AuthController {
         String refreshToken = tokens.get("refreshToken");
 
         // HttpOnly 쿠키 설정
-        org.springframework.http.ResponseCookie cookie = org.springframework.http.ResponseCookie
-                .from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(false) // 개발 환경에서는 false, 운영(HTTPS)에서는 true 권장
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7일
-                .sameSite("Lax")
-                .build();
+        org.springframework.http.ResponseCookie cookie = refreshTokenCookieFactory.create(refreshToken);
 
         // [추가/변경할 코드]
         User user = userService.getUserByLoginId(loginId); // 유저 정보 조회
@@ -113,12 +119,7 @@ public class AuthController {
         }
 
         // 쿠키 삭제 (수명을 0으로 설정)
-        org.springframework.http.ResponseCookie cookie = org.springframework.http.ResponseCookie
-                .from("refreshToken", "")
-                .httpOnly(true)
-                .path("/")
-                .maxAge(0) // 즉시 만료
-                .build();
+        org.springframework.http.ResponseCookie cookie = refreshTokenCookieFactory.expire();
         return ResponseEntity.ok()
                 .header(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(Map.of("message", "로그아웃 되었습니다."));
@@ -126,33 +127,34 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
-        System.out.println(
-                "[AuthController] Refresh requested. Cookie: " + (refreshToken != null ? "Present" : "Missing"));
         if (refreshToken == null) {
             return ResponseEntity.status(401).body(Map.of("message", "리프레시 토큰이 없습니다."));
         }
         try {
             // [수정] UUID 기반 세션을 처리하는 refreshToken 메서드를 호출하도록 변경
             String newAccessToken = userService.refreshToken(refreshToken);
-            System.out.println("[AuthController] Refresh Success");
             return ResponseEntity.ok(Map.of("token", newAccessToken));
-        } catch (Exception e) {
-            System.out.println("[AuthController] Refresh Failed: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.info("Refresh 실패: {}", e.getMessage());
             return ResponseEntity.status(401).body(Map.of("message", "토큰 갱신 실패: " + e.getMessage()));
         }
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> changePassword(
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal PrincipalDetails principal) {
+        // 본문의 userId가 아닌 로그인 토큰의 사용자만 변경 가능
+        if (principal == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        }
         try {
-            Long userId = Long.parseLong(request.get("userId"));
+            Long userId = principal.getId();
             String oldPassword = request.get("oldPassword");
             String newPassword = request.get("newPassword");
 
             userService.changePassword(userId, oldPassword, newPassword);
             return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
-        } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "잘못된 사용자 ID입니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
@@ -160,12 +162,15 @@ public class AuthController {
 
     @PostMapping("/find-id")
     public ResponseEntity<?> findId(@RequestBody Map<String, String> request) {
+        // 아이디는 응답으로 돌려주지 않고 해당 이메일로만 발송 (가입 여부도 노출하지 않음)
+        String email = request.get("email");
         try {
-            String id = userService.findLoginId(request.get("email"));
-            return ResponseEntity.ok(Map.of("loginId", id));
+            String id = userService.findLoginId(email);
+            mailService.sendLoginIdMail(email, id);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+            log.info("아이디 찾기: 일치하는 사용자 없음");
         }
+        return ResponseEntity.ok(Map.of("message", "입력하신 이메일로 가입된 계정이 있다면 아이디를 발송했습니다."));
     }
 
     @PostMapping("/verify-user")

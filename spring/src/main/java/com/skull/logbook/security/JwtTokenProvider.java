@@ -27,15 +27,22 @@ public class JwtTokenProvider {
     // 토큰 유효시간: 6시간
     private final long tokenValidityInMilliseconds = 1000L * 60 * 60 * 6;
 
-    // application.properties에 jwt.secret 값이 없으면 기본값 사용
-    public JwtTokenProvider(
-            @Value("${jwt.secret:default_secret_key_must_be_long_enough_for_hmac_sha_key_at_least_256_bits}") String secretKey) {
-        if (secretKey.equals("default_secret_key_must_be_long_enough_for_hmac_sha_key_at_least_256_bits")) {
-            this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
-        } else {
-            byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-            this.key = Keys.hmacShaKeyFor(keyBytes);
+    // 기본값을 두면 공개된 키로 토큰 위조가 가능하므로, 설정이 없으면 서버가 뜨지 않도록 함
+    public JwtTokenProvider(@Value("${jwt.secret:}") String secretKey) {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException(
+                    "JWT_SECRET(jwt.secret)이 설정되지 않았습니다. .env에 Base64 키를 추가하세요. 예: openssl rand -base64 48");
         }
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secretKey.trim());
+        } catch (RuntimeException e) {
+            throw new IllegalStateException("JWT_SECRET은 Base64 문자열이어야 합니다.", e);
+        }
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException("JWT_SECRET은 디코딩 후 32바이트(256비트) 이상이어야 합니다.");
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     // 1. 토큰 생성 (로그인 성공 시 호출)

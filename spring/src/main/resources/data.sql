@@ -220,17 +220,6 @@ INSERT IGNORE INTO user (id, loginId, password, nickName, userEmail, profilePhot
 (8, 'devbhkim0707', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL, 'USER'),
 (9, 'ljh1234', '$2b$12$kj8dtosnHnnWkaY92QZuJOq7z8Z7QTwQD42b39mUmejuIGBmKBNVK', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL, 'USER');
 
-/*
-('admin', '1234', 'DevAdMin', 'lls1010@gmail.com', NULL, '관리자입니다.', '2025-08-22', '2025-08-25', NULL),
-('musiclover', 'music123', '음악애호가', 'musiclover@example.com', NULL, '클래식과 재즈를 사랑하는 음악 애호가입니다.', '2024-12-01', '2024-12-15', NULL),
-('developer123', 'dev2024', '코딩하는개발자', 'developer@example.com', '/img/profile_dev.jpg', '풀스택 개발자로 새로운 기술에 관심이 많습니다.', '2024-11-15', '2024-12-20', NULL),
-('gameplayer', 'game456', '게임마스터', 'gamer@example.com', NULL, '게임과 음악을 결합한 OST를 좋아합니다.', '2024-10-20', '2024-12-18', NULL),
-('bookworm', 'book789', '독서광', 'bookworm@example.com', NULL, '책을 읽으며 듣는 배경음악을 찾고 있습니다.', '2024-09-10', '2024-12-22', NULL),
-('belldoor', 'wad', '종무니', 'belldoor@example.com', '/img/wad13.jpg', '어 내 종문인데 다 댐벼보거라!', '2024-09-10', '2024-12-22', NULL),
-('susybaka', '1234', 'CO_s_MOS', 'kumityou@example.com', '/img/b2.png', '$KULL조 조장', '2025-08-16', '2025-09-02', NULL),
-('devbhkim0707', '1234', 'baewoolhak', 'bhkim0707@example.com', '/img/bkp.jpeg', '$KULL 최연장자 \n node.js / Spring / Kotlin / Flutter', '2025-08-16', '2025-09-02', NULL),
-('ljh1234', '1234', 'LeeJee', 'ljm@example.com', 'https://image.aladin.co.kr/product/30331/32/cover500/f542839237_1.jpg', '리눅스 마스터', '2025-08-16', '2025-09-02', NULL);
-*/
 -- Playlist Data
 INSERT IGNORE INTO playlist (id, userId, title, createdAt, updatedAt, deletedAt) VALUES
 (1, 2, 'My Favorite Songs', NOW(), NOW(), NULL),

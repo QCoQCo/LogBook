@@ -11,4 +11,5 @@ public class SignupRequestDto {
     private String userEmail; // 프론트의 email
     private String nickName;
     private String introduction;
+    private String verificationToken; // /auth/email/verify 에서 발급받은 이메일 인증 토큰
 }
