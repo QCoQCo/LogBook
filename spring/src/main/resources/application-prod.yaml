@@ -1,0 +1,7 @@
+# 운영 프로필 (docker-compose.yml의 SPRING_PROFILES_ACTIVE=prod)
+spring:
+    sql:
+        init:
+            # data.sql 시드(테스트 계정 포함)를 운영 DB에 넣지 않음.
+            # 공통코드 등 운영에 필요한 데이터는 직접 마이그레이션할 것.
+            mode: never

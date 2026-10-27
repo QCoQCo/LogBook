@@ -107,6 +107,16 @@ llm:
 app:
     oauth2:
         authorized-redirect-uris: http://localhost:5173/oauth2/redirect,http://proxogus.codns.com:9008/oauth2/redirect
+    role-toggle:
+        # 헤더 USER/ADMIN 전환 버튼을 쓸 수 있는 사용자 id (쉼표 구분, 비우면 기능 비활성화)
+        allowed-user-ids: ${ROLE_TOGGLE_USER_IDS:1}
+    cookie:
+        # HTTPS 운영 시 true
+        secure: ${COOKIE_SECURE:false}
+
+jwt:
+    # 필수. Base64 인코딩된 32바이트 이상 키 (예: openssl rand -base64 48)
+    secret: ${JWT_SECRET:}
 
 youtube:
     api-key: ${YOUTUBE_API_KEY:}

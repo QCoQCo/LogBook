@@ -5,8 +5,10 @@ import com.skull.logbook.dto.ImageDeleteRequestDto;
 import com.skull.logbook.service.SftpService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/img")
 @RequiredArgsConstructor
@@ -49,10 +53,14 @@ public class FileController {
                 mediaType = MediaType.IMAGE_PNG;
             } else if (filename.toLowerCase().endsWith(".gif")) {
                 mediaType = MediaType.IMAGE_GIF;
+            } else if (filename.toLowerCase().endsWith(".webp")) {
+                mediaType = MediaType.parseMediaType("image/webp");
             }
 
+            // 파일명이 UUID라 내용이 바뀌지 않으므로 브라우저 캐시 허용 (매 요청 SFTP 접속 방지)
             return ResponseEntity.ok()
                     .contentType(mediaType)
+                    .cacheControl(CacheControl.maxAge(Duration.ofDays(7)).cachePublic())
                     .body(resource);
 
         } catch (IOException e) {
@@ -82,7 +90,8 @@ public class FileController {
                 !(originalFilename.toLowerCase().endsWith(".jpg") ||
                         originalFilename.toLowerCase().endsWith(".jpeg") ||
                         originalFilename.toLowerCase().endsWith(".png") ||
-                        originalFilename.toLowerCase().endsWith(".gif"))) {
+                        originalFilename.toLowerCase().endsWith(".gif") ||
+                        originalFilename.toLowerCase().endsWith(".webp"))) {
             return ResponseEntity.badRequest().body("허용되지 않는 확장자입니다.");
         }
 
@@ -91,8 +100,9 @@ public class FileController {
 
             return ResponseEntity.ok(uploadedPath);
         } catch (IOException e) {
+            log.error("이미지 업로드 실패", e);
             return ResponseEntity.internalServerError()
-                    .body("이미지 업로드 실패: " + e.getMessage());
+                    .body("이미지 업로드 실패");
         }
     }
 
@@ -111,12 +121,11 @@ public class FileController {
                     request.getEditId(),
                     request.getFiles()
             );
-            System.out.println("에디트: " + request.getEditId());
-
             return ResponseEntity.ok("이미지 파일 이동 완료");
         } catch (IOException e) {
+            log.error("이미지 파일 이동 실패", e);
             return ResponseEntity.internalServerError()
-                    .body("이미지 파일 이동 실패: " + e.getMessage());
+                    .body("이미지 파일 이동 실패");
         }
     }
 
