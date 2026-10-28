@@ -39,7 +39,7 @@ public class AdminController {
     // ========== 유저 관리 ==========
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers(@RequestParam(defaultValue = "1000") int limit) {
-        return ResponseEntity.ok(userService.getAllUsers(limit));
+        return ResponseEntity.ok(userService.getAllUsersForAdmin(limit));
     }
 
     @PatchMapping(value = "/users/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
