@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useChat, useAuth, useYTPopup, useUserData, useUI } from '../../context';
+import { useChat, useAuth, useYTPopup, useUI } from '../../context';
 import { validateRoomPasswordViaApi } from '../../utils/chatService';
 import * as Chat from '../chat';
 
@@ -26,7 +26,6 @@ const ChatPage = () => {
     } = useChat();
 
     // UserData Context 사용
-    const { updateUserNickname } = useUserData();
 
     // UI Context 사용
     const { setIsChatPage, toggleLogin } = useUI();
@@ -48,13 +47,6 @@ const ChatPage = () => {
         },
     }));
 
-    // 닉네임 편집 관련 상태들을 하나의 객체로 통합
-    const [nicknameState, setNicknameState] = useState({
-        isEditing: false,
-        tempValue: '',
-        error: '',
-    });
-
     // 사용자 정보 업데이트 로직을 메모이제이션
     const updateUserInfo = useCallback(() => {
         if (isLogin && authUser) {
@@ -70,10 +62,6 @@ const ChatPage = () => {
                 ...prev,
                 currentUser: newUserData,
             }));
-            setNicknameState((prev) => ({
-                ...prev,
-                tempValue: authUser.nickName,
-            }));
         } else {
             // 비로그인 사용자는 빈 정보로 설정
             setChatState((prev) => ({
@@ -84,10 +72,6 @@ const ChatPage = () => {
                     nickName: null,
                     sessionId: null,
                 },
-            }));
-            setNicknameState((prev) => ({
-                ...prev,
-                tempValue: '',
             }));
         }
     }, [isLogin, authUser]);
@@ -327,80 +311,6 @@ const ChatPage = () => {
         // window.scrollTo(0, 0);
     }, [messages, scrollToBottom]);
 
-    // 닉네임 관련 함수들을 메모이제이션
-    const nicknameHandlers = useMemo(
-        () => ({
-            validate: (nickname) => {
-                if (!nickname.trim()) {
-                    return '닉네임을 입력해주세요.';
-                }
-                return '';
-            },
-
-            startEdit: () => {
-                setNicknameState({
-                    isEditing: true,
-                    tempValue: chatState.currentUser.nickName,
-                    error: '',
-                });
-            },
-
-            cancelEdit: () => {
-                setNicknameState({
-                    isEditing: false,
-                    tempValue: chatState.currentUser.nickName,
-                    error: '',
-                });
-            },
-
-            save: () => {
-                const error = nicknameHandlers.validate(nicknameState.tempValue);
-                if (error) {
-                    setNicknameState((prev) => ({ ...prev, error }));
-                    return;
-                }
-
-                const newNickname = nicknameState.tempValue.trim();
-                if (newNickname === chatState.currentUser.nickName) {
-                    setNicknameState((prev) => ({ ...prev, isEditing: false, error: '' }));
-                    return;
-                }
-
-                const success = updateUserNickname(chatState.currentUser.id, newNickname);
-                if (success) {
-                    setChatState((prev) => ({
-                        ...prev,
-                        currentUser: { ...prev.currentUser, nickName: newNickname },
-                    }));
-                    setNicknameState({
-                        isEditing: false,
-                        tempValue: newNickname,
-                        error: '',
-                    });
-                }
-            },
-
-            handleInputChange: (e) => {
-                setNicknameState((prev) => ({
-                    ...prev,
-                    tempValue: e.target.value,
-                    error: prev.error ? '' : prev.error,
-                }));
-            },
-
-            handleKeyPress: (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    nicknameHandlers.save();
-                } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    nicknameHandlers.cancelEdit();
-                }
-            },
-        }),
-        [chatState.currentUser, nicknameState, updateUserNickname]
-    );
-
     // 채팅방 유저 리스트 모달 핸들러들
     const usersModalHandlers = useMemo(
         () => ({
@@ -520,59 +430,16 @@ const ChatPage = () => {
                                 )}
                             </div>
                             <div className='chat-nick-name-section'>
-                                {isLogin &&
-                                    (nicknameState.isEditing ? (
-                                        <div className='nickname-edit-container'>
-                                            <div className='nickname-input-wrapper'>
-                                                <input
-                                                    type='text'
-                                                    value={nicknameState.tempValue}
-                                                    onChange={nicknameHandlers.handleInputChange}
-                                                    onKeyDown={nicknameHandlers.handleKeyPress}
-                                                    placeholder='닉네임을 입력하세요'
-                                                    className={`nickname-input ${
-                                                        nicknameState.error ? 'error' : ''
-                                                    }`}
-                                                    maxLength={20}
-                                                    autoFocus
-                                                />
-                                                {nicknameState.error && (
-                                                    <div className='nickname-error'>
-                                                        {nicknameState.error}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className='nickname-buttons'>
-                                                <button
-                                                    onClick={nicknameHandlers.save}
-                                                    className='save-btn'
-                                                >
-                                                    저장
-                                                </button>
-                                                <button
-                                                    onClick={nicknameHandlers.cancelEdit}
-                                                    className='cancel-btn'
-                                                >
-                                                    취소
-                                                </button>
-                                            </div>
+                                {isLogin && (
+                                    <div className='nickname-display-container'>
+                                        <div className='current-nickname'>
+                                            <span className='nickname-label'>닉네임:</span>
+                                            <span className='nickname-value'>
+                                                {chatState.currentUser.nickName}
+                                            </span>
                                         </div>
-                                    ) : (
-                                        <div className='nickname-display-container'>
-                                            <div className='current-nickname'>
-                                                <span className='nickname-label'>닉네임:</span>
-                                                <span className='nickname-value'>
-                                                    {chatState.currentUser.nickName}
-                                                </span>
-                                            </div>
-                                            <button
-                                                onClick={nicknameHandlers.startEdit}
-                                                className='edit-btn'
-                                            >
-                                                닉네임 수정
-                                            </button>
-                                        </div>
-                                    ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className='chat-area-content' ref={messagesContainerRef}>

@@ -62,6 +62,9 @@ public class LogbookApplication {
 		// JWT 서명 키 (필수)
 		setIfAbsent("JWT_SECRET", getEnvOr(dotenv, "JWT_SECRET", "jwt.secret"));
 
+		// Firebase 서비스 계정 (Base64 인코딩한 JSON)
+		setIfAbsent("FIREBASE_SERVICE_ACCOUNT_BASE64", dotenv.get("FIREBASE_SERVICE_ACCOUNT_BASE64"));
+
 		// OAuth2 Google 설정
 		setIfAbsent("GOOGLE_CLIENT_ID", dotenv.get("GOOGLE_CLIENT_ID"));
 		setIfAbsent("GOOGLE_CLIENT_SECRET", dotenv.get("GOOGLE_CLIENT_SECRET"));

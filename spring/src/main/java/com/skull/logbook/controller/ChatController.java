@@ -3,11 +3,14 @@ package com.skull.logbook.controller;
 import com.skull.logbook.dto.CreateChatRoomRequestDto;
 import com.skull.logbook.entity.ChatRoom;
 import com.skull.logbook.entity.User;
+import com.skull.logbook.security.PrincipalDetails;
 import com.skull.logbook.service.ChatRoomService;
+import com.skull.logbook.service.FirebaseService;
 import com.skull.logbook.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -25,6 +28,7 @@ public class ChatController {
 
     private final ChatRoomService chatRoomService;
     private final UserService userService;
+    private final FirebaseService firebaseService;
 
     // 채팅방 목록 조회
     @GetMapping("/chat-rooms")
@@ -64,10 +68,23 @@ public class ChatController {
     @PostMapping("/chat-rooms/{id}/validate-password")
     public ResponseEntity<Map<String, Boolean>> validatePassword(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal PrincipalDetails principal) {
         String password = body != null ? body.get("password") : null;
-        boolean valid = chatRoomService.validatePassword(id, password);
+        boolean valid = chatRoomService.validatePassword(id, password, principal.getId());
         return ResponseEntity.ok(Map.of("valid", valid));
+    }
+
+    // 프론트 Firebase 로그인용 Custom Token 발급. 닉네임은 DB 값을 그대로 넣어 사칭을 막음
+    @PostMapping("/firebase-token")
+    public ResponseEntity<Map<String, String>> createFirebaseToken(@AuthenticationPrincipal PrincipalDetails principal) {
+        if (!firebaseService.isEnabled()) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of("message", "Firebase 인증이 설정되지 않았습니다."));
+        }
+        User user = userService.getUserByLoginId(principal.getUsername());
+        String token = firebaseService.createCustomToken(user.getId(), user.getLoginId(), user.getNickName());
+        return ResponseEntity.ok(Map.of("token", token));
     }
 
     // 응답 시 비밀번호 제외 (보안)
