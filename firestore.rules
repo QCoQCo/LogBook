@@ -1,0 +1,95 @@
+rules_version = '2';
+
+// 채팅 보안 규칙. Firebase 콘솔 > Firestore > 규칙에 게시해야 적용된다.
+// - request.auth.uid는 백엔드가 Custom Token으로 발급한 LogBook 사용자 id
+// - chatRoomAccess는 백엔드만 쓰며, 여기에 등록된 방의 메시지만 접근할 수 있다
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && userId is int && string(userId) == request.auth.uid;
+    }
+
+    function isMessageCollection(collectionName) {
+      return collectionName.matches('chatroom_.*_messages');
+    }
+
+    function roomAccessPath(collectionName) {
+      return /databases/$(database)/documents/chatRoomAccess/$(collectionName);
+    }
+
+    function canEnterRoom(collectionName) {
+      let room = get(roomAccessPath(collectionName));
+      return isSignedIn() && (
+        room.data.isPrivate == false
+        || exists(/databases/$(database)/documents/chatRoomAccess/$(collectionName)/members/$(request.auth.uid))
+      );
+    }
+
+    function canReadRoom(collectionName) {
+      return get(roomAccessPath(collectionName)).data.guestReadable == true
+        || canEnterRoom(collectionName);
+    }
+
+    // 작성자 이름은 서버가 토큰에 넣은 값과 같아야 한다 (사칭 방지)
+    function isOwnProfile(data) {
+      return isSelf(data.userId)
+        && data.nickName == request.auth.token.nickName
+        && (!('loginId' in data) || data.loginId == request.auth.token.loginId);
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['text', 'userId', 'nickName', 'roomName', 'sessionId', 'timestamp'])
+        && data.keys().hasOnly(['text', 'userId', 'nickName', 'roomName', 'sessionId', 'timestamp', 'loginId'])
+        && data.text is string && data.text.size() > 0 && data.text.size() <= 10000
+        && data.roomName is string && data.roomName.size() <= 100
+        && (data.sessionId == null || data.sessionId is string)
+        && data.timestamp == request.time
+        && isOwnProfile(data);
+    }
+
+    function isValidPresence(data, presenceId) {
+      return data.keys().hasOnly(['roomName', 'userId', 'nickName', 'userName', 'sessionId', 'loginId',
+                                  'joinedAt', 'lastSeen', 'isOnline', 'browserTab'])
+        && data.roomName is string && data.roomName.size() <= 100
+        && presenceId == data.roomName + '_' + request.auth.uid
+        && data.lastSeen == request.time
+        && isOwnProfile(data);
+    }
+
+    // 접속 신호 갱신: 예전 문서의 닉네임이 달라도 시간과 상태 값은 바꿀 수 있어야 한다
+    function isPresenceHeartbeat() {
+      return isSelf(resource.data.userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'isOnline', 'browserTab'])
+        && request.resource.data.lastSeen == request.time;
+    }
+
+    // 브라우저가 실행하는 정리 작업 기준(5분)보다 조금 짧게 두어 시계 오차를 허용
+    function isStalePresence() {
+      return resource.data.get('lastSeen', timestamp.date(2000, 1, 1)) < request.time - duration.value(4, 'm');
+    }
+
+    // 채팅 메시지: 수정은 불가, 삭제는 본인 메시지만
+    match /{collectionName}/{messageId} {
+      allow read: if isMessageCollection(collectionName) && canReadRoom(collectionName);
+      allow create: if isMessageCollection(collectionName)
+        && canEnterRoom(collectionName)
+        && isValidMessage(request.resource.data);
+      allow delete: if isMessageCollection(collectionName) && isSelf(resource.data.userId);
+    }
+
+    // 접속자: 비로그인 사용자는 일반 채팅방 접속자만 볼 수 있다
+    match /presence/{presenceId} {
+      allow read: if isSignedIn() || resource.data.roomName == '일반 채팅방';
+      allow create: if isSignedIn() && isValidPresence(request.resource.data, presenceId);
+      allow update: if isSignedIn() && (isValidPresence(request.resource.data, presenceId) || isPresenceHeartbeat());
+      allow delete: if isSignedIn() && (isSelf(resource.data.userId) || isStalePresence());
+    }
+
+    // chatRoomAccess, chatRooms 등 그 밖의 경로는 모두 차단 (백엔드 서비스 계정은 규칙을 거치지 않음)
+  }
+}

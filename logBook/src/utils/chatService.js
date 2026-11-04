@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import apiClient from './apiClient';
+import { ensureFirebaseUser, isFirebaseSignedIn } from './firebaseAuth';
 
 /**
  * 채팅방 이름을 sanitize하여 collection 이름으로 사용 가능하게 변환
@@ -60,15 +61,18 @@ export const sendMessageToRoom = async (
 ) => {
     try {
         const collectionName = getChatRoomCollectionName(roomName);
+        // 작성자 정보는 서버가 발급한 값을 우선 사용 (Firestore 규칙이 같은 값인지 검사)
+        const identity = await ensureFirebaseUser(userId);
+        const authorLoginId = identity?.loginId ?? loginId;
 
         const messageData = {
             text: messageText,
-            userId: userId,
-            nickName: nickName,
+            userId: identity?.userId ?? userId,
+            nickName: identity?.nickName ?? nickName,
             roomName: roomName,
             sessionId: sessionId,
             timestamp: serverTimestamp(),
-            ...(loginId != null && loginId !== '' && { loginId }),
+            ...(authorLoginId != null && authorLoginId !== '' && { loginId: authorLoginId }),
         };
 
         const docRef = await addDoc(collection(db, collectionName), messageData);
@@ -236,101 +240,6 @@ export const initializeChatRoom = async (roomName) => {
 };
 
 /**
- * 새 채팅방을 Firebase에 생성 (사용자 생성)
- * @param {Object} roomData - 채팅방 데이터
- * @returns {Promise<Object>} - 생성된 채팅방 데이터
- */
-export const createChatRoom = async (roomData) => {
-    try {
-        const newRoom = {
-            name: roomData.name,
-            admin: roomData.admin,
-            userId: roomData.userId,
-            description: roomData.description || '',
-            capacity: roomData.capacity || 50,
-            currentUsers: 0,
-            isPrivate: roomData.isPrivate || false,
-            password: roomData.isPrivate ? roomData.password || '0000' : null, // 비공개방만 비밀번호 설정
-            isSystem: false, // 🔑 사용자 생성 채팅방
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
-
-        const docRef = await addDoc(collection(db, 'chatRooms'), newRoom);
-
-        return {
-            id: docRef.id,
-            ...newRoom,
-        };
-    } catch (error) {
-        console.error('채팅방 생성 오류:', error);
-        throw error;
-    }
-};
-
-/**
- * 채팅방 비밀번호 검증
- * @param {Object} room - 채팅방 객체
- * @param {string} inputPassword - 입력된 비밀번호
- * @returns {boolean} - 비밀번호 일치 여부
- */
-export const validateRoomPassword = (room, inputPassword) => {
-    // 공개방은 비밀번호 검증 불필요
-    if (!room.isPrivate) {
-        return true;
-    }
-
-    // 비공개방은 비밀번호 검증 필요
-    return room.password === inputPassword;
-};
-
-/**
- * 특정 채팅방의 모든 메시지 삭제
- * @param {string} roomName - 채팅방 이름
- * @returns {Promise<void>}
- */
-export const deleteAllMessagesFromRoom = async (roomName) => {
-    try {
-        const collectionName = getChatRoomCollectionName(roomName);
-
-        // 해당 채팅방의 모든 메시지 조회
-        const messagesQuery = query(collection(db, collectionName));
-        const snapshot = await getDocs(messagesQuery);
-
-        // 배치 삭제를 위한 배열
-        const batch = [];
-
-        // 모든 메시지를 배치에 추가
-        snapshot.forEach((doc) => {
-            batch.push(deleteDoc(doc.ref));
-        });
-
-        // 배치 삭제 실행
-        if (batch.length > 0) {
-            await Promise.all(batch);
-            // console.log(`채팅방 "${roomName}"의 ${batch.length}개 메시지가 삭제되었습니다.`);
-        }
-    } catch (error) {
-        console.error(`채팅방 "${roomName}" 메시지 삭제 오류:`, error);
-        throw error;
-    }
-};
-
-/**
- * 특정 채팅방의 Firebase presence 데이터 정리 (MySQL에서 방 삭제 후 호출용)
- * @param {string} roomName - 채팅방 이름
- */
-export const cleanupPresenceForRoom = async (roomName) => {
-    try {
-        const presenceQuery = query(collection(db, 'presence'), where('roomName', '==', roomName));
-        const snapshot = await getDocs(presenceQuery);
-        await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
-    } catch (err) {
-        console.warn('Presence 정리 오류:', err);
-    }
-};
-
-/**
  * 채팅방별 접속 유저 관리를 위한 함수들
  */
 
@@ -351,6 +260,8 @@ export const joinChatRoom = async (
     loginId = null
 ) => {
     try {
+        const identity = await ensureFirebaseUser(userId);
+        const authorLoginId = identity?.loginId ?? loginId;
         const presenceRef = doc(db, 'presence', `${roomName}_${userId}`);
         const internalSessionId =
             sessionId || `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -359,10 +270,10 @@ export const joinChatRoom = async (
             presenceRef,
             {
                 roomName,
-                userId,
-                nickName,
+                userId: identity?.userId ?? userId,
+                nickName: identity?.nickName ?? nickName,
                 sessionId: internalSessionId, // 세션 ID 저장
-                ...(loginId != null && loginId !== '' && { loginId }),
+                ...(authorLoginId != null && authorLoginId !== '' && { loginId: authorLoginId }),
                 joinedAt: serverTimestamp(),
                 lastSeen: serverTimestamp(),
                 isOnline: true,
@@ -534,6 +445,7 @@ export const forceRemoveUserFromAllRooms = async (userId) => {
  */
 export const cleanupExpiredPresence = async (expireMinutes = 5) => {
     try {
+        if (!(await isFirebaseSignedIn())) return 0;
         const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
 
         // 모든 presence 문서들을 조회 (인덱스 없이도 안전)
@@ -570,6 +482,7 @@ export const cleanupExpiredPresence = async (expireMinutes = 5) => {
  */
 export const cleanupOfflinePresence = async (expireMinutes = 10) => {
     try {
+        if (!(await isFirebaseSignedIn())) return 0;
         const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
 
         // 먼저 오프라인 상태인 문서들을 조회
@@ -608,6 +521,7 @@ export const cleanupOfflinePresence = async (expireMinutes = 10) => {
  */
 export const cleanupOfflinePresenceForRoom = async (roomName, expireMinutes = 5) => {
     try {
+        if (!(await isFirebaseSignedIn())) return 0;
         const expiredTime = new Date(Date.now() - expireMinutes * 60 * 1000);
 
         // 특정 채팅방의 오프라인 유저들만 조회

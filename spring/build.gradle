@@ -42,6 +42,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+	// Firebase Custom Token 서명 및 Firestore REST API 호출용 서비스 계정 인증
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.30.0'
+
 	// .env 파일 로드 (DB, SFTP 등 환경 변수)
 	implementation 'io.github.cdimascio:dotenv-java:3.0.2'
 
