@@ -153,13 +153,14 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
     }
 
+    // 공개 API(비로그인 조회 가능)이므로 이메일은 내려주지 않음
     public UserResponseDto getBlogOwner(String loginId) {
         return userRepository.findForUserResponseByLoginId(loginId)
                 .map(p -> new UserResponseDto(
                         p.getId(),
                         p.getLoginId(),
                         p.getNickName(),
-                        p.getUserEmail(),
+                        null,
                         p.getProfilePhoto(),
                         p.getIntroduction(),
                         p.getRole() != null ? p.getRole().name() : null))
@@ -168,13 +169,22 @@ public class UserService {
 
     /** 채팅/헤더 등에서 프로필 표시용 사용자 목록 (공개 정보만, 삭제 제외, limit로 조회 수 제한) */
     public List<UserResponseDto> getAllUsers(int limit) {
+        return getUserList(limit, false);
+    }
+
+    /** 관리자 회원 관리용 목록 (이메일 포함) */
+    public List<UserResponseDto> getAllUsersForAdmin(int limit) {
+        return getUserList(limit, true);
+    }
+
+    private List<UserResponseDto> getUserList(int limit, boolean includeEmail) {
         int safeLimit = Math.min(Math.max(1, limit), 1000);
         return userRepository.findAllForUserList(PageRequest.of(0, safeLimit)).stream()
                 .map(p -> new UserResponseDto(
                         p.getId(),
                         p.getLoginId(),
                         p.getNickName(),
-                        p.getUserEmail(),
+                        includeEmail ? p.getUserEmail() : null,
                         p.getProfilePhoto(),
                         p.getIntroduction(),
                         p.getRole() != null ? p.getRole().name() : null))

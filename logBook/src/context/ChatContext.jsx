@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase/config';
 import {
     sendMessageToRoom,
     subscribeToRoomMessages,
@@ -6,8 +8,6 @@ import {
     fetchChatRoomList,
     createChatRoomViaApi,
     deleteChatRoomViaApi,
-    deleteAllMessagesFromRoom,
-    cleanupPresenceForRoom,
     joinChatRoom,
     leaveChatRoom,
     updateUserPresence,
@@ -62,6 +62,10 @@ export const ChatProvider = ({ children }) => {
     const [usersUnsubscribe, setUsersUnsubscribe] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [presenceHeartbeat, setPresenceHeartbeat] = useState(null);
+    // Firebase 로그인 사용자가 바뀌면 권한이 달라지므로 구독을 다시 시작
+    const [firebaseUid, setFirebaseUid] = useState(null);
+
+    useEffect(() => onAuthStateChanged(auth, (user) => setFirebaseUid(user?.uid ?? null)), []);
 
     // 구독 해제 통합 함수 (메시지/유저만. 채팅방 목록은 API 폴링)
     const cleanupSubscriptions = useCallback(() => {
@@ -223,10 +227,9 @@ export const ChatProvider = ({ children }) => {
         }
     }, []);
 
-    // 채팅방 삭제 (MySQL API + Firebase 메시지/presence 정리)
+    // 채팅방 삭제 (MySQL과 Firebase 메시지/presence 정리는 백엔드에서 처리)
     const deleteChatRoom = useCallback(
         async (roomId) => {
-            const room = chatRoomList.find((r) => r.id === roomId);
             try {
                 await handleAsyncOperation(
                     () => deleteChatRoomViaApi(roomId),
@@ -234,19 +237,6 @@ export const ChatProvider = ({ children }) => {
                     setError,
                     '채팅방 삭제에 실패했습니다.'
                 );
-
-                if (room?.name) {
-                    try {
-                        await deleteAllMessagesFromRoom(room.name);
-                    } catch (e) {
-                        console.warn('Firebase 메시지 정리 오류:', e);
-                    }
-                    try {
-                        await cleanupPresenceForRoom(room.name);
-                    } catch (e) {
-                        console.warn('Firebase presence 정리 오류:', e);
-                    }
-                }
 
                 const remaining = chatRoomList.filter((r) => r.id !== roomId);
                 setChatRoomList(remaining);
@@ -391,7 +381,7 @@ export const ChatProvider = ({ children }) => {
             safeUnsubscribe(messageUnsubscribe, '메시지 구독 정리 오류:');
             safeUnsubscribe(userUnsubscribe, '유저 구독 정리 오류:');
         };
-    }, [currentChatRoom]); // subscribeToCurrentRoomMessages, subscribeToCurrentRoomUsers 의존성 제거
+    }, [currentChatRoom, firebaseUid]); // subscribeToCurrentRoomMessages, subscribeToCurrentRoomUsers 의존성 제거
 
     // 주기적 정리 작업 시스템
     useEffect(() => {

@@ -100,7 +100,9 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, currentUserId, isOwnProfile 
                             <div className='user-details'>
                                 <h4 className='user-nickname'>{userInfo.nickName}</h4>
                                 <p className='user-id'>@{userInfo.userId}</p>
-                                <p className='user-email'>{userInfo.userEmail}</p>
+                                {userInfo.userEmail && (
+                                    <p className='user-email'>{userInfo.userEmail}</p>
+                                )}
                                 {userInfo.introduction && (
                                     <p className='user-introduction'>{userInfo.introduction}</p>
                                 )}

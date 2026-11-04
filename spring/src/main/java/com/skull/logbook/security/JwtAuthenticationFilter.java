@@ -22,9 +22,8 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         // 1. Request Header 에서 토큰 추출
+        // 토큰은 로그에 남기지 않음 (로그 유출 시 계정 탈취로 이어짐)
         String token = resolveToken((HttpServletRequest) request);
-        System.out.println("[Filter] Request URI: " + ((HttpServletRequest) request).getRequestURI());
-        System.out.println("[Filter] Token: " + token);
 
         // 2. 토큰 유효성 검사
         if (token != null && jwtTokenProvider.validateToken(token)) {

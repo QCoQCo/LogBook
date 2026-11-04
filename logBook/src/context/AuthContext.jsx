@@ -6,6 +6,7 @@ import {
     sendAuthEvent,
 } from '../utils/sessionSync';
 import { forceRemoveUserFromAllRooms } from '../utils/chatService';
+import { syncFirebaseUser } from '../utils/firebaseAuth';
 import apiClient from '../utils/apiClient';
 
 // JWT payload에서 auth 클레임 추출 (예: "ROLE_ADMIN" -> "ADMIN")
@@ -147,6 +148,15 @@ export const AuthProvider = ({ children }) => {
             } catch (e) {}
         };
     }, [isTokenExpired]);
+
+    // Firestore 규칙이 사용자를 확인할 수 있도록 Firebase 로그인 상태를 맞춤
+    useEffect(() => {
+        if (!isAuthReady) return;
+        const user = currentUser
+            ? { id: currentUser.id, loginId: currentUser.loginId, nickName: currentUser.nickName }
+            : null;
+        syncFirebaseUser(user).catch((error) => console.warn('Firebase 로그인 오류:', error));
+    }, [isAuthReady, currentUser?.id, currentUser?.loginId, currentUser?.nickName]);
 
     const login = useCallback((payload, persist = false) => {
         const userWithRole = ensureUserRole(payload);

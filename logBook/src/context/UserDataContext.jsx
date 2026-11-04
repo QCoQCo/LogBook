@@ -108,18 +108,6 @@ export const UserDataProvider = ({ children }) => {
         );
     }, []);
 
-    // 사용자 닉네임 업데이트 함수
-    const updateUserNickname = useCallback((userId, newNickname) => {
-        try {
-            // 여기에서는 로컬 상태 업데이트만 처리
-            // 실제 데이터베이스 업데이트는 ChatPage에서 처리
-            return true;
-        } catch (err) {
-            console.error('닉네임 업데이트 오류:', err);
-            return false;
-        }
-    }, []);
-
     // 사용자 데이터 로드 (컴포넌트 마운트 시)
     useEffect(() => {
         loadUserData();
@@ -136,7 +124,6 @@ export const UserDataProvider = ({ children }) => {
             getUserProfilePhoto,
             getUserInfo,
             updateUserInCache,
-            updateUserNickname,
         }),
         [
             userData,
@@ -147,7 +134,6 @@ export const UserDataProvider = ({ children }) => {
             getUserProfilePhoto,
             getUserInfo,
             updateUserInCache,
-            updateUserNickname,
         ]
     );
 
